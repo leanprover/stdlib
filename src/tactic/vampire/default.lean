@@ -1,0 +1,1 @@
+import tactic.vampire.main

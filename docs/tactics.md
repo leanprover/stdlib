@@ -1070,6 +1070,44 @@ int.cast_coe_nat : ∀ (n : ℕ), ↑↑n = ↑n
 int.cats_id : int.cast_id : ∀ (n : ℤ), ↑n = n
 ```
 
+### vampire
+
+`vampire` uses proof output from the Vampire theorem prover (https://vprover.github.io/) to discharge FOL goals. The tactic can either work in online mode which calls Vampire to obtain a proof, or in offline mode which uses the user-supplied proof. When invoked without a string argument, `vampire` defaults to the former to discharge the goal and displays the proof it used:
+```
+variables [inhabited α] (p q : α → Prop) (a : α)
+example : (∀ x, p x → q x) → (∀ x, p x) → q a := by vampire
+/-
+  Trace output :
+  n10hen0n10ymsn0hen10n0mn1n0msen10n0msn1hen10n1mn0n1msen10n0m
+  n1n0msren1n0mn0n0msen0n10ymsr
+-/
+```
+(Note the `inhabited` instance, which is required per the assumption of non-empty domain for FOL.)
+The online mode of `vampire` requires a local installation of Vampire (consult the readme in `tactic/vampire` for details). To invoke `vampire` in offline mode, copy and paste the trace output as a string argument:
+```
+variables [inhabited α] (p q : α → Prop) (a : α)
+example : (∀ x, p x → q x) → (∀ x, p x) → q a :=
+by vampire
+"
+n10hen0n10ymsn0hen10n0mn1n0msen10n0msn1hen10n1mn0n1msen10n0m
+n1n0msren1n0mn0n0msen0n10ymsr
+"
+```
+`vampire` only proves valid formulas of FOL, which means that all the necessary hypotheses should be included in the goal as antecedents.
+```
+example (p q : Prop) (h1 : p) (h2 : q) : p ∧ q :=
+by vampire -- fails
+```
+You can include the names of relevant hypotheses in order to revert them and call `vampire` in one step.
+```
+example (p q : Prop) (h1 : p) (h2 : q) : p ∧ q :=
+by vampire h1 h2
+```
+Use the `all` keyword to revert all hypotheses of type `Prop`. Hypothesis reversion can be used in offline mode as well.
+```
+example (p q : Prop) (h1 : p) (h2 : q) : p ∧ q :=
+by vampire all "n10hn1tn1hrn0hr"
+```
 ### convert_to
 
 `convert_to g using n` attempts to change the current goal to `g`, but unlike `change`,

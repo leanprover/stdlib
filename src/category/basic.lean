@@ -164,7 +164,7 @@ def mtry {α} (x : F α) : F unit := (x $> ()) <|> pure ()
 @[simp] theorem guard_false {h : decidable false} :
   @guard F _ false h = failure := by simp [guard]
 
-end alternative
+end vampireernative
 
 namespace sum
 
