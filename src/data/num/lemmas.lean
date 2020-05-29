@@ -283,7 +283,6 @@ by refine {
   add      := (+),
   zero     := 0,
   zero_add := zero_add,
-  add_zero := add_zero,
   mul      := (*),
   one      := 1, .. }; try {transfer}; simp [mul_add, mul_left_comm, mul_comm, add_comm]
 
@@ -1013,7 +1012,6 @@ instance : add_comm_group znum :=
   add_assoc        := by transfer,
   zero             := 0,
   zero_add         := zero_add,
-  add_zero         := add_zero,
   add_comm         := by transfer,
   neg              := has_neg.neg,
   add_left_neg     := by transfer }

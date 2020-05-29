@@ -144,7 +144,8 @@ begin
     constructor; intro h; apply neg_inj; simpa [left_distrib, neg_add_eq_iff_eq_add,
       eq_neg_iff_add_eq_zero, neg_eq_iff_add_eq_zero] using h },
   { change -a * ↑d = c * b.succ ↔ a * d = c * -b.succ,
-    constructor; intro h; apply neg_inj; simpa [left_distrib, eq_comm] using h },
+    constructor; intro h; apply neg_inj;
+    simp [left_distrib, *] at * },
   { change -a * d.succ = -c * b.succ ↔ a * -d.succ = c * -b.succ,
     simp [left_distrib, sub_eq_add_neg], cc }
 end,
@@ -417,7 +418,6 @@ instance : field ℚ :=
   mul              := rat.mul,
   inv              := rat.inv,
   zero_add         := rat.zero_add,
-  add_zero         := rat.add_zero,
   add_comm         := rat.add_comm,
   add_assoc        := rat.add_assoc,
   add_left_neg     := rat.add_left_neg,

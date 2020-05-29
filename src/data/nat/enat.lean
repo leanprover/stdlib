@@ -28,7 +28,6 @@ instance : add_comm_monoid enat :=
   zero      := (0),
   add_comm  := λ x y, roption.ext' and.comm (λ _ _, add_comm _ _),
   zero_add  := λ x, roption.ext' (true_and _) (λ _ _, zero_add _),
-  add_zero  := λ x, roption.ext' (and_true _) (λ _ _, add_zero _),
   add_assoc := λ x y z, roption.ext' and.assoc (λ _ _, add_assoc _ _ _) }
 
 instance : has_le enat := ⟨λ x y, ∃ h : y.dom → x.dom, ∀ hy : y.dom, x.get (h hy) ≤ y.get hy⟩

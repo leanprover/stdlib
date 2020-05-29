@@ -17,7 +17,7 @@ class is_unital (m : X → X → X) (e : X) : Prop :=
 (one_mul : ∀ x : X, (e <m> x) = x)
 (mul_one : ∀ x : X, (x <m> e) = x)
 
-lemma group.is_unital [G : group X] : is_unital (*) (1 : X) := { ..G }
+lemma monoid.is_unital [G : monoid X] : is_unital (*) (1 : X) := { ..G }
 
 variables {m₁ m₂ : X → X → X} {e₁ e₂ : X}
 variables (h₁ : is_unital m₁ e₁) (h₂ : is_unital m₂ e₂)
@@ -50,7 +50,7 @@ def comm_monoid : comm_monoid X :=
   ..h₂ }
 
 def comm_group [G : group X] (distrib : ∀ a b c d, ((a * b) <m₁> (c * d)) = ((a <m₁> c) * (b <m₁> d))) : comm_group X :=
-{ mul_comm := (eckmann_hilton.comm_monoid h₁ group.is_unital distrib).mul_comm,
+{ mul_comm := (eckmann_hilton.comm_monoid h₁ monoid.is_unital distrib).mul_comm,
   ..G }
 
 end eckmann_hilton

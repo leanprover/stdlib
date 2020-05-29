@@ -580,7 +580,9 @@ instance ordered_cancel_add_comm_monoid.to_ordered_add_comm_monoid : ordered_add
 { lt_of_add_lt_add_left := @lt_of_add_lt_add_left _ _, ..‹ordered_cancel_add_comm_monoid α› }
 
 instance ordered_cancel_add_comm_monoid.to_add_left_cancel_monoid :
-  add_left_cancel_monoid α := { ..‹ordered_cancel_add_comm_monoid α› }
+  add_left_cancel_monoid α := {
+  ..show add_monoid α, by apply_instance,
+  ..‹ordered_cancel_add_comm_monoid α› }
 
 @[simp] lemma add_le_add_iff_left (a : α) {b c : α} : a + b ≤ a + c ↔ b ≤ c :=
 ⟨le_of_add_le_add_left, λ h, add_le_add_left h _⟩

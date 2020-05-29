@@ -420,7 +420,6 @@ instance : ordered_cancel_add_comm_monoid (multiset α) :=
   add_assoc             := λ s₁ s₂ s₃, quotient.induction_on₃ s₁ s₂ s₃ $ λ l₁ l₂ l₃,
     congr_arg coe $ append_assoc l₁ l₂ l₃,
   zero_add              := multiset.zero_add,
-  add_zero              := λ s, by rw [multiset.add_comm, multiset.zero_add],
   add_left_cancel       := multiset.add_left_cancel,
   add_right_cancel      := λ s₁ s₂ s₃ h, multiset.add_left_cancel s₂ $
     by simpa [multiset.add_comm] using h,
@@ -1722,8 +1721,8 @@ begin
   refine s.induction_on _ _,
   { simp },
   { assume a s ih,
-    simp [ih, add_mul, mul_comm, mul_left_comm, mul_assoc, sum_map_mul_left.symm],
-    cc },
+    simp [ih, add_mul, mul_comm, mul_left_comm, mul_assoc, sum_map_mul_left.symm,
+      add_assoc, add_left_comm, add_comm] },
 end
 
 /- powerset_len -/

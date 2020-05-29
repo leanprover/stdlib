@@ -496,7 +496,7 @@ set.subset.antisymm (closure_subset $ set.subset.refl s) subset_closure
 theorem exists_list_of_mem_closure {s : set G} {a : G} (h : a ∈ closure s) :
   (∃l:list G, (∀x∈l, x ∈ s ∨ x⁻¹ ∈ s) ∧ l.prod = a) :=
 in_closure.rec_on h
-  (λ x hxs, ⟨[x], list.forall_mem_singleton.2 $ or.inl hxs, one_mul _⟩)
+  (λ x hxs, ⟨[x], list.forall_mem_singleton.2 $ or.inl hxs, by exact _root_.one_mul x⟩)
   ⟨[], list.forall_mem_nil _, rfl⟩
   (λ x _ ⟨L, HL1, HL2⟩, ⟨L.reverse.map has_inv.inv,
     λ x hx, let ⟨y, hy1, hy2⟩ := list.exists_of_mem_map hx in
@@ -548,10 +548,10 @@ begin
   simp only [closure_eq_mclosure, monoid.mem_closure_union_iff, exists_prop, preimage_union], split,
   { rintro ⟨_, ⟨ys, hys, yt, hyt, rfl⟩, _, ⟨zs, hzs, zt, hzt, rfl⟩, rfl⟩,
     refine ⟨_, ⟨_, hys, _, hzs, rfl⟩, _, ⟨_, hyt, _, hzt, rfl⟩, _⟩,
-    rw [mul_assoc, mul_assoc, mul_left_comm zs], refl },
+    rw [_root_.mul_assoc, _root_.mul_assoc, mul_left_comm zs], },
   { rintro ⟨_, ⟨ys, hys, zs, hzs, rfl⟩, _, ⟨yt, hyt, zt, hzt, rfl⟩, rfl⟩,
     refine ⟨_, ⟨ys, hys, yt, hyt, rfl⟩, _, ⟨zs, hzs, zt, hzt, rfl⟩, _⟩,
-    rw [mul_assoc, mul_assoc, mul_left_comm yt], refl }
+    rw [_root_.mul_assoc, _root_.mul_assoc, mul_left_comm yt] }
 end
 
 @[to_additive gmultiples_eq_closure]

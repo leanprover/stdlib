@@ -115,7 +115,6 @@ instance : comm_monoid ℕ+ :=
   mul_assoc := λ a b c, subtype.eq (mul_assoc _ _ _),
   one       := succ_pnat 0,
   one_mul   := λ a, subtype.eq (one_mul _),
-  mul_one   := λ a, subtype.eq (mul_one _),
   mul_comm  := λ a b, subtype.eq (mul_comm _ _) }
 
 theorem lt_add_one_iff : ∀ {a b : ℕ+}, a < b + 1 ↔ a ≤ b :=

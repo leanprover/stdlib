@@ -346,7 +346,6 @@ instance : group (free_group α) :=
   inv := has_inv.inv,
   mul_assoc := by rintros ⟨L₁⟩ ⟨L₂⟩ ⟨L₃⟩; simp,
   one_mul := by rintros ⟨L⟩; refl,
-  mul_one := by rintros ⟨L⟩; simp [one_eq_mk],
   mul_left_inv := by rintros ⟨L⟩; exact (list.rec_on L rfl $
     λ ⟨x, b⟩ tl ih, eq.trans (quot.sound $ by simp [one_eq_mk]) ih) }
 

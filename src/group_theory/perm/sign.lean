@@ -467,7 +467,7 @@ is_mul_hom.map_mul sign _ _
 is_group_hom.map_one sign
 
 @[simp] lemma sign_refl : sign (equiv.refl α) = 1 :=
-is_group_hom.map_one sign
+show sign 1 = 1, by exact is_group_hom.map_one sign
 
 @[simp] lemma sign_inv (f : perm α) : sign f⁻¹ = sign f :=
 by rw [is_group_hom.map_inv sign, int.units_inv_eq_self]; apply_instance

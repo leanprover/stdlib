@@ -80,7 +80,7 @@ protected def comm_monoid [comm_monoid β] : comm_monoid α :=
 
 /-- Transfer `group` across an `equiv` -/
 protected def group [group β] : group α :=
-{ mul_left_inv := by simp [mul_def, inv_def, one_def],
+{ mul_left_inv := λ _, by simp [mul_def, one_def, inv_def]; refl,
   ..equiv.monoid e,
   ..equiv.has_inv e }
 

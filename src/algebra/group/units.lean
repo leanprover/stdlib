@@ -61,7 +61,6 @@ ext.eq_iff.symm
     by rw [mul_assoc, ← mul_assoc u₂.val, val_inv, one_mul, val_inv],
     by rw [mul_assoc, ← mul_assoc u₁.inv, inv_val, one_mul, inv_val]⟩,
   one := ⟨1, 1, one_mul 1, one_mul 1⟩,
-  mul_one := λ u, ext $ mul_one u,
   one_mul := λ u, ext $ one_mul u,
   mul_assoc := λ u₁ u₂ u₃, ext $ mul_assoc u₁ u₂ u₃,
   inv := λ u, ⟨u.2, u.1, u.4, u.3⟩,

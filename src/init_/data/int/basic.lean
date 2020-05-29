@@ -13,7 +13,6 @@ instance : comm_ring int :=
   add_assoc      := int.add_assoc,
   zero           := int.zero,
   zero_add       := int.zero_add,
-  add_zero       := int.add_zero,
   neg            := int.neg,
   add_left_neg   := int.add_left_neg,
   add_comm       := int.add_comm,

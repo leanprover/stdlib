@@ -20,7 +20,6 @@ instance : comm_semiring nat :=
   add_assoc      := nat.add_assoc,
   zero           := nat.zero,
   zero_add       := nat.zero_add,
-  add_zero       := nat.add_zero,
   add_comm       := nat.add_comm,
   mul            := nat.mul,
   mul_assoc      := nat.mul_assoc,

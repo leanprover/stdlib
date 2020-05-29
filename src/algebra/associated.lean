@@ -349,8 +349,6 @@ rfl
 instance : comm_monoid (associates α) :=
 { one       := 1,
   mul       := (*),
-  mul_one   := assume a', quotient.induction_on a' $
-    assume a, show ⟦a * 1⟧ = ⟦ a ⟧, by simp,
   one_mul   := assume a', quotient.induction_on a' $
     assume a, show ⟦1 * a⟧ = ⟦ a ⟧, by simp,
   mul_assoc := assume a' b' c', quotient.induction_on₃ a' b' c' $

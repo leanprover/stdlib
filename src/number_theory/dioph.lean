@@ -678,7 +678,7 @@ dioph_fn_comp d [f, g] (by exact ⟨df, dg⟩)
 theorem eq_dioph : dioph (λv, f v = g v) :=
 dioph_comp2 df dg $ of_no_dummies _ (poly.proj &0 - poly.proj &1)
   (λv, (int.coe_nat_eq_coe_nat_iff _ _).symm.trans
-  ⟨@sub_eq_zero_of_eq ℤ _ (v &0) (v &1), eq_of_sub_eq_zero⟩)
+  ⟨@sub_eq_zero_of_eq ℤ _ (v &0) (v &1), λ h, eq_of_sub_eq_zero h⟩)
 localized "infix ` D= `:50 := dioph.eq_dioph" in dioph
 
 theorem add_dioph : dioph_fn (λv, f v + g v) :=

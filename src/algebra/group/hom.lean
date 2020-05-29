@@ -208,7 +208,6 @@ instance {M N} [monoid M] [comm_monoid N] : comm_monoid (M →* N) :=
   mul_assoc := by intros; ext; apply mul_assoc,
   one := 1,
   one_mul := by intros; ext; apply one_mul,
-  mul_one := by intros; ext; apply mul_one,
   mul_comm := by intros; ext; apply mul_comm }
 
 /-- `flip` arguments of `f : M →* N →* P` -/

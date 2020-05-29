@@ -26,8 +26,6 @@ instance : group (quotient N) :=
     (λ a b c, congr_arg mk (mul_assoc a b c)),
   one_mul := λ a, quotient.induction_on' a
     (λ a, congr_arg mk (one_mul a)),
-  mul_one := λ a, quotient.induction_on' a
-    (λ a, congr_arg mk (mul_one a)),
   inv := λ a, quotient.lift_on' a (λ a, ((a⁻¹ : G) : quotient N))
     (λ a b hab, quotient.sound' begin
       show a⁻¹⁻¹ * b⁻¹ ∈ N,

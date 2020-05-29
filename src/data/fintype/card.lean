@@ -76,7 +76,7 @@ end
 
 theorem fin.sum_univ_succ [add_comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
   univ.sum f = f 0 + univ.sum (λ i:fin n, f i.succ) :=
-by apply @fin.prod_univ_succ (multiplicative β)
+@fin.prod_univ_succ (multiplicative β) _ _ f
 
 attribute [to_additive] fin.prod_univ_succ
 
@@ -90,7 +90,7 @@ end
 
 theorem fin.sum_univ_cast_succ [add_comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
   univ.sum f = univ.sum (λ i:fin n, f i.cast_succ) + f (fin.last n) :=
-by apply @fin.prod_univ_cast_succ (multiplicative β)
+@fin.prod_univ_cast_succ (multiplicative β) _ _ f
 attribute [to_additive] fin.prod_univ_cast_succ
 
 @[simp] theorem fintype.card_sigma {α : Type*} (β : α → Type*)

@@ -191,14 +191,26 @@ by rw [bit1, bit0_zero, zero_add]
 
 end add_monoid
 
-@[ancestor monoid comm_semigroup]
-class comm_monoid (M : Type u) extends monoid M, comm_semigroup M
-@[ancestor add_monoid add_comm_semigroup]
-class add_comm_monoid (M : Type u) extends add_monoid M, add_comm_semigroup M
+@[ancestor comm_semigroup has_one]
+structure comm_monoid (M : Type u) extends comm_semigroup M, has_one M :=
+(one_mul : ∀ a : M, 1 * a = a)
+@[ancestor add_comm_semigroup has_zero]
+structure add_comm_monoid (M : Type u) extends add_comm_semigroup M, has_zero M :=
+(zero_add : ∀ a : M, 0 + a = a)
+attribute [class] comm_monoid add_comm_monoid
 attribute [to_additive add_comm_monoid] comm_monoid
 
 section comm_monoid
 variables {M : Type u} [comm_monoid M] {x y z : M}
+
+@[to_additive add_comm_monoid.to_add_comm_semigroup']
+instance comm_monoid.to_comm_semigroup' : comm_semigroup M :=
+@comm_monoid.to_comm_semigroup _ (by apply_instance)
+
+@[to_additive add_comm_monoid.to_add_monoid]
+instance comm_monoid.to_monoid : monoid M :=
+{ mul_one := λ a, by rw [comm_monoid.mul_comm, comm_monoid.one_mul]
+  ..show comm_monoid M, by apply_instance }
 
 @[to_additive] lemma inv_unique (hy : x * y = 1) (hz : x * z = 1) : y = z :=
 left_inv_eq_right_inv (trans (mul_comm _ _) hy) hz
@@ -215,22 +227,56 @@ variables {M : Type u} [add_left_cancel_monoid M]
 
 end add_left_cancel_monoid
 
-@[ancestor monoid has_inv]
-class group (α : Type u) extends monoid α, has_inv α :=
+@[ancestor semigroup has_one has_inv]
+structure group (α : Type u) extends semigroup α, has_one α, has_inv α :=
+(one_mul : ∀ a : α, 1 * a = a)
 (mul_left_inv : ∀ a : α, a⁻¹ * a = 1)
-@[ancestor add_monoid has_neg]
-class add_group (α : Type u) extends add_monoid α, has_neg α :=
+@[ancestor add_semigroup has_zero has_neg]
+structure add_group (α : Type u) extends add_semigroup α, has_zero α, has_neg α :=
+(zero_add : ∀ a : α, 0 + a = a)
 (add_left_neg : ∀ a : α, -a + a = 0)
+attribute [class] group add_group
 attribute [to_additive add_group] group
 
 section group
 variables {G : Type u} [group G] {a b c : G}
 
+@[to_additive add_group.to_has_neg']
+instance group.to_has_inv' : has_inv G :=
+@group.to_has_inv _ (by apply_instance)
+
+@[to_additive add_group.to_has_zero']
+def group.to_has_one' : has_one G :=
+@group.to_has_one _ (by apply_instance)
+
+@[to_additive add_group.to_add_semigroup']
+def group.to_semigroup' : Π {α : Type u} [group α], semigroup α :=
+@group.to_semigroup
+
+section
+
+local attribute [instance] group.to_semigroup' group.to_has_one'
+
 @[simp, to_additive]
 lemma mul_left_inv : ∀ a : G, a⁻¹ * a = 1 :=
-group.mul_left_inv
+group.mul_left_inv (by apply_instance)
 
 @[to_additive] def inv_mul_self := @mul_left_inv
+
+@[simp, to_additive] lemma mul_right_inv (a : G) : a * a⁻¹ = 1 :=
+calc a * a⁻¹ = (a * a⁻¹)⁻¹ * (a * a⁻¹) * (a * a⁻¹) :
+  by rw [mul_left_inv, group.one_mul]
+... = (a * a⁻¹)⁻¹ * (a * a⁻¹) :
+  by rw [mul_assoc, mul_assoc, ← mul_assoc (a⁻¹), mul_left_inv, group.one_mul]
+... = 1 : by rw mul_left_inv
+
+@[to_additive add_group.to_add_monoid]
+instance group.to_monoid : monoid G :=
+{ mul_one := λ a,
+    by rw [← group.mul_left_inv _ a, ← mul_assoc, mul_right_inv, group.one_mul],
+  .. show group G, by apply_instance }
+
+end
 
 @[simp, to_additive]
 lemma inv_mul_cancel_left (a b : G) : a⁻¹ * (a * b) = b :=
@@ -256,11 +302,6 @@ inv_eq_of_mul_eq_one (mul_left_inv a)
 theorem left_inverse_inv (G) [group G] :
   function.left_inverse (λ a : G, a⁻¹) (λ a, a⁻¹) :=
 inv_inv
-
-@[simp, to_additive]
-lemma mul_right_inv (a : G) : a * a⁻¹ = 1 :=
-have a⁻¹⁻¹ * a⁻¹ = 1, by rw mul_left_inv,
-by rwa [inv_inv] at this
 
 @[to_additive] def mul_inv_self := @mul_right_inv
 
@@ -516,7 +557,7 @@ lemma add_eq_of_eq_sub (h : a = c - b) : a + b = c :=
 by simp [h]
 
 instance add_group.to_add_left_cancel_monoid : add_left_cancel_monoid G :=
-{ ..‹add_group G›, .. add_group.to_left_cancel_add_semigroup }
+{ ..‹add_group G›, .. add_group.to_left_cancel_add_semigroup, ..add_group.to_add_monoid }
 
 @[simp] lemma sub_right_inj : a - b = a - c ↔ b = c :=
 (add_right_inj _).trans neg_inj'
