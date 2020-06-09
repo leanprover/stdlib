@@ -165,9 +165,8 @@ lemma support_single_subset : (single a b).support ⊆ {a} :=
 show ite _ _ _ ⊆ _, by split_ifs; [exact empty_subset _, exact subset.refl _]
 
 lemma injective_single (a : α) : function.injective (single a : β → α →₀ β) :=
-assume b₁ b₂ eq,
-have (single a b₁ : α →₀ β) a = (single a b₂ : α →₀ β) a, by rw eq,
-by rwa [single_eq_same, single_eq_same] at this
+function.injective_of_left_inverse $
+show ∀ b : β, (λ f : α →₀ β, f a) (single a b) = b, from λ _, single_eq_same
 
 lemma single_eq_single_iff (a₁ a₂ : α) (b₁ b₂ : β) :
   single a₁ b₁ = single a₂ b₂ ↔ ((a₁ = a₂ ∧ b₁ = b₂) ∨ (b₁ = 0 ∧ b₂ = 0)) :=
@@ -189,17 +188,15 @@ end
 
 lemma single_left_inj (h : b ≠ 0) :
   single a b = single a' b ↔ a = a' :=
-⟨λ H, by simpa only [h, single_eq_single_iff,
-  and_false, or_false, eq_self_iff_true, and_true] using H,
- λ H, by rw [H]⟩
+by simp only [h, single_eq_single_iff, and_false, or_false, eq_self_iff_true, and_true]
 
 lemma single_eq_zero : single a b = 0 ↔ b = 0 :=
-⟨λ h, by { rw ext_iff at h, simpa only [single_eq_same, zero_apply] using h a },
-λ h, by rw [h, single_zero]⟩
+calc single a b = 0 ↔ single a b = single a 0 : by rw [single_zero]
+... ↔ b = 0 : (injective_single a).eq_iff
 
 lemma single_swap {α β : Type*} [has_zero β] (a₁ a₂ : α) (b : β) :
   (single a₁ b : α → β) a₂ = (single a₂ b : α → β) a₁ :=
-by simp only [single_apply]; ac_refl
+by { simp only [single_apply], ac_refl }
 
 lemma unique_single [unique α] (x : α →₀ β) : x = single (default α) (x (default α)) :=
 by ext i; simp only [unique.eq_default i, single_eq_same]
@@ -475,13 +472,19 @@ end
 section add_monoid
 variables [add_monoid β]
 
+/-- This version of `prod_single_index'` assumex `b ≠ 0` instead of `h a 0 = 1`. -/
+@[to_additive]
+lemma prod_single_index' [comm_monoid γ] {a : α} {b : β} {h : α → β → γ} (hb : b ≠ 0) :
+  (single a b).prod h = h a b :=
+by simp only [finsupp.prod, support_single_ne_zero hb, prod_singleton, single_eq_same]
+
 @[to_additive]
 lemma prod_single_index [comm_monoid γ] {a : α} {b : β} {h : α → β → γ} (h_zero : h a 0 = 1) :
   (single a b).prod h = h a b :=
 begin
   by_cases h : b = 0,
   { simp only [h, h_zero, single_zero]; refl },
-  { simp only [finsupp.prod, support_single_ne_zero h, prod_singleton, single_eq_same] }
+  { exact prod_single_index' h }
 end
 
 instance : has_add (α →₀ β) := ⟨zip_with (+) (add_zero 0)⟩
@@ -519,8 +522,15 @@ instance : add_monoid (α →₀ β) :=
   zero_add  := assume ⟨s, f, hf⟩, ext $ assume a, zero_add _,
   add_zero  := assume ⟨s, f, hf⟩, ext $ assume a, add_zero _ }
 
-instance (a : α) : is_add_monoid_hom (λ g : α →₀ β, g a) :=
-{ map_add := λ _ _, add_apply, map_zero := zero_apply }
+variable (β)
+
+/-- `λ g : α →₀ β, g a` as an `add_monoid_hom`. -/
+def apply_add_hom (a : α) : (α →₀ β) →+ β :=
+⟨λ g, g a, zero_apply, λ _ _, add_apply⟩
+
+variable {β}
+
+@[simp] lemma apply_add_hom_apply {a : α} {f : α →₀ β} : apply_add_hom β a f = f a := rfl
 
 lemma single_add_erase {a : α} {f : α →₀ β} : single a (f a) + f.erase a = f :=
 ext $ λ a',
@@ -574,6 +584,11 @@ lemma map_range_add [add_monoid β₁] [add_monoid β₂]
   {f : β₁ → β₂} {hf : f 0 = 0} (hf' : ∀ x y, f (x + y) = f x + f y) (v₁ v₂ : α →₀ β₁) :
   map_range f hf (v₁ + v₂) = map_range f hf v₁ + map_range f hf v₂ :=
 ext $ λ a, by simp only [hf', add_apply, map_range_apply]
+
+lemma add_hom_ext [add_monoid β₁] ⦃g₁ g₂ : (α →₀ β) →+ β₁⦄
+  (h : ∀ a b, g₁ (single a b) = g₂ (single a b)) : g₁ = g₂ :=
+add_monoid_hom.ext $ λ f, finsupp.induction f (g₁.map_zero.trans g₂.map_zero.symm) $
+  λ a b f ha hb hg, by simp only [hg, h, add_monoid_hom.map_add]
 
 end add_monoid
 
@@ -670,7 +685,7 @@ instance [add_comm_group β] : add_comm_group (α →₀ β) :=
 @[simp] lemma sum_apply [has_zero β₁] [add_comm_monoid β]
   {f : α₁ →₀ β₁} {g : α₁ → β₁ → α →₀ β} {a₂ : α} :
   (f.sum g) a₂ = f.sum (λa₁ b, g a₁ b a₂) :=
-(f.support.sum_hom (λf : α →₀ β, f a₂)).symm
+(apply_add_hom β a₂).map_sum _ _
 
 lemma support_sum [has_zero β₁] [add_comm_monoid β]
   {f : α₁ →₀ β₁} {g : α₁ → β₁ → (α →₀ β)} :
