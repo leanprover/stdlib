@@ -429,10 +429,24 @@ lemma le_map_sup [semilattice_sup α] [semilattice_sup β]
   f x ⊔ f y ≤ f (x ⊔ y) :=
 sup_le (h le_sup_left) (h le_sup_right)
 
+lemma map_sup [semilattice_sup α] [is_total α (≤)] [semilattice_sup β] {f : α → β}
+  (hf : monotone f) (x y : α) :
+  f (x ⊔ y) = f x ⊔ f y :=
+(is_total.total x y).elim
+  (λ h : x ≤ y, by simp only [h, hf h, sup_of_le_right])
+  (λ h, by simp only [h, hf h, sup_of_le_left])
+
 lemma map_inf_le [semilattice_inf α] [semilattice_inf β]
   {f : α → β} (h : monotone f) (x y : α) :
   f (x ⊓ y) ≤ f x ⊓ f y :=
 le_inf (h inf_le_left) (h inf_le_right)
+
+lemma map_inf [semilattice_inf α] [is_total α (≤)] [semilattice_inf β] {f : α → β}
+  (hf : monotone f) (x y : α) :
+  f (x ⊓ y) = f x ⊓ f y :=
+(is_total.total x y).elim
+  (λ h : x ≤ y, by simp only [h, hf h, inf_of_le_left])
+  (λ h, by simp only [h, hf h, inf_of_le_right])
 
 end monotone
 

@@ -251,7 +251,7 @@ assume x, m_f (le_gh x)
 section monotone
 variables [preorder α] [preorder γ]
 
-theorem monotone.order_dual {f : α → γ} (hf : monotone f) :
+protected theorem monotone.order_dual {f : α → γ} (hf : monotone f) :
   @monotone (order_dual α) (order_dual γ) _ _ f :=
 λ x y hxy, hf hxy
 

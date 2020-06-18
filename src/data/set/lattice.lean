@@ -36,6 +36,12 @@ instance lattice_set : complete_lattice (set α) :=
 instance : distrib_lattice (set α) :=
 { le_sup_inf := λ s t u x, or_and_distrib_left.2, ..set.lattice_set }
 
+@[simp] lemma bot_eq_empty : (⊥ : set α) = ∅ := rfl
+@[simp] lemma sup_eq_union (s t : set α) : s ⊔ t = s ∪ t := rfl
+@[simp] lemma inf_eq_inter (s t : set α) : s ⊓ t = s ∩ t := rfl
+@[simp] lemma le_eq_subset (s t : set α) : s ≤ t = (s ⊆ t) := rfl
+@[simp] lemma lt_eq_ssubset (s t : set α) : s < t = (s ⊂ t) := rfl
+
 /-- Image is monotone. See `set.image_image` for the statement in terms of `⊆`. -/
 lemma monotone_image {f : α → β} : monotone (image f) :=
 assume s t, assume h : s ⊆ t, image_subset _ h

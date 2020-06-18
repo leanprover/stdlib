@@ -551,8 +551,14 @@ by simp [subset_def, or_imp_distrib, forall_and_distrib]
 theorem insert_subset_insert (h : s ⊆ t) : insert a s ⊆ insert a t :=
 assume a', or.imp_right (@h a')
 
+theorem ssubset_iff_insert {s t : set α} : s ⊂ t ↔ ∃ a ∉ s, insert a s ⊆ t :=
+begin
+  simp only [insert_subset, exists_and_distrib_right, ssubset_def, not_subset],
+  simp only [exists_prop, and_comm]
+end
+
 theorem ssubset_insert {s : set α} {a : α} (h : a ∉ s) : s ⊂ insert a s :=
-by finish [ssubset_iff_subset_ne, ext_iff]
+ssubset_iff_insert.2 ⟨a, h, subset.refl _⟩
 
 theorem insert_comm (a b : α) (s : set α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ by simp [or.left_comm]

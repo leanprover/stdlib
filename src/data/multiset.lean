@@ -2592,6 +2592,9 @@ theorem le_ndunion_right (s t : multiset α) : t ≤ ndunion s t :=
 quotient.induction_on₂ s t $ λ l₁ l₂,
 (sublist_of_suffix $ suffix_union_right _ _).subperm
 
+theorem subset_ndunion_right (s t : multiset α) : t ⊆ ndunion s t :=
+subset_of_le (le_ndunion_right s t)
+
 theorem ndunion_le_add (s t : multiset α) : ndunion s t ≤ s + t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, (union_sublist_append _ _).subperm
 
@@ -2650,6 +2653,9 @@ by simp [ndinter, le_filter, subset_iff]
 
 theorem ndinter_le_left (s t : multiset α) : ndinter s t ≤ s :=
 (le_ndinter.1 (le_refl _)).1
+
+theorem ndinter_subset_left (s t : multiset α) : ndinter s t ⊆ s :=
+subset_of_le (ndinter_le_left s t)
 
 theorem ndinter_subset_right (s t : multiset α) : ndinter s t ⊆ t :=
 (le_ndinter.1 (le_refl _)).2
