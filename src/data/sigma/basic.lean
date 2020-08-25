@@ -48,6 +48,10 @@ by casesm* sigma _; cases h₀; cases h₁ h₀; refl
   (∃ x, p x) ↔ (∃ a b, p ⟨a, b⟩) :=
 ⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
 
+@[simp] theorem sigma.mk_fst (a : α) (b : β a) : (sigma.mk a b).fst = a := rfl
+
+@[simp] theorem sigma.mk_snd (a : α) (b : β a) : (sigma.mk a b).snd = b := rfl
+
 variables {α₁ : Type*} {α₂ : Type*} {β₁ : α₁ → Type*} {β₂ : α₂ → Type*}
 
 /-- Map the left and right components of a sigma -/
