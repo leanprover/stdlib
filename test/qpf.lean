@@ -1,4 +1,5 @@
 import data.qpf.univariate.basic
+import data.qpf.indexed.basic
 import control.bifunctor
 
 universes u
@@ -186,3 +187,170 @@ begin
     { intros, simp [*,f,g,if_pos] } }
 end
 end ex
+
+/-!
+Example of constructions using `iqpf`
+
+1. Length-indexed vectors
+-/
+
+namespace ex
+local attribute [ext] fam.ext
+
+inductive vec_shape (α : Type) (rec : ℕ → Type) : ℕ → Type
+| nil : vec_shape 0
+| cons {n} : α → rec n → vec_shape (n + 1)
+
+inductive vec_branch (α : Type) :  Π i, vec_shape α (λ (_x : ℕ), unit) i → empty ⊕ ℕ → Type
+| cons (x) {n} : vec_branch (n+1) (vec_shape.cons x ()) (sum.inr n)
+
+def vec_shape.map (α : Type) (X Y : fam (empty ⊕ ℕ)) (f : X ⟶ Y) : Π i, vec_shape α (X ∘ sum.inr) i → vec_shape α (Y ∘ sum.inr) i
+| 0 vec_shape.nil := vec_shape.nil
+| (n+1) (vec_shape.cons x xs) := vec_shape.cons x (f _ xs)
+
+def vec_shape' (α : Type) : fam (empty ⊕ ℕ) ⥤ fam ℕ :=
+{ obj := λ f, vec_shape α (f ∘ sum.inr),
+  map := λ X Y f, vec_shape.map α X Y f,
+  map_id' := by intros; ext _ ⟨ ⟩; refl,
+  map_comp' := by intros; ext _ ⟨ ⟩; refl }
+
+def vec_P (α : Type) : ipfunctor (empty ⊕ ℕ) ℕ :=
+⟨ vec_shape α (λ _, unit), vec_branch α ⟩
+
+def unit' {I : Type} : fam I :=
+λ _, unit
+
+def abs {α} (f : fam (empty ⊕ ℕ)) : ipfunctor.obj (vec_P α) f ⟶ (vec_shape' α).obj f :=
+λ i x,
+       match i, x : Π i (x : ipfunctor.obj (vec_P α) f i), (vec_shape' α).obj f i with
+       | 0, ⟨a,b⟩ := vec_shape.map _ ((vec_P α).B 0 a) _ b _ vec_shape.nil
+       | j+1, ⟨a@(vec_shape.cons x ()),b⟩ := vec_shape.map _ ((vec_P α).B _ a) _ b _ (vec_shape.cons x $ @vec_branch.cons _ x j)
+       end
+
+def repr {α} (f : fam (empty ⊕ ℕ)) : (vec_shape' α).obj f ⟶ ipfunctor.obj (vec_P α) f :=
+λ i x, (⟨vec_shape.map α f unit' (λ _ _, ()) i x, λ a b,
+  match i, x, b with
+  | nat.succ j, (vec_shape.cons a_1 a_2), b :=
+    match a, b : Π a, vec_branch α (nat.succ j) (vec_shape.cons a_1 ()) a → f a with
+    | sum.inr _, vec_branch.cons x := a_2
+    end
+  end ⟩ : ipfunctor.obj (vec_P α) f i)
+
+instance {α} : iqpf (vec_shape' α) :=
+{ P := vec_P α,
+  abs := abs,
+  repr := repr,
+  abs_repr := by { intros, ext, cases x; refl },
+  abs_map := by { intros, ext, cases x; cases i; [refl, rcases x_fst with _|⟨_,_,⟨⟨ ⟩⟩⟩]; refl }, }
+
+end ex
+
+/-!
+
+2. rose-tree as mutual inductive types
+-/
+
+namespace ex_mutual
+
+def pair (α) (β) : bool → Type
+| tt := α
+| ff := β
+
+def pair.map {X X' Y Y'} (f : X → Y) (g : X' → Y') : pair X X' ⟶ pair Y Y' :=
+λ b,
+  match b : Π b : bool, pair X X' b ⟶ pair Y Y' b with
+  | tt := f
+  | ff := g
+  end
+
+/-!
+Encoding
+
+```lean
+mutual inductive child, tree (α : Type)
+with child : Type
+| nil : child
+| cons : tree → child → child
+with tree : Type
+| node : α → child → tree
+```
+
+as
+
+```lean
+inductive tree_child (α : Type) : bool → Type
+| nil : tree_child ff
+| cons : tree_child tt → tree_child ff → tree_child ff
+| node : α → tree_child ff → tree_child tt
+```
+
+in turns encoded as functors `fam (empty ⊕ bool) ⥤ fam bool`
+-/
+
+inductive child_shape (f : empty ⊕ bool → Type) : Type
+| nil : child_shape
+| cons : f (sum.inr tt) → f (sum.inr ff) → child_shape
+
+def child_shape.map {X Y : fam $ empty ⊕ bool} (f : X ⟶ Y) : child_shape X → child_shape Y
+| child_shape.nil := child_shape.nil
+| (child_shape.cons t xs) := child_shape.cons (f _ t) (f _ xs)
+
+inductive tree_shape (α : Type) (f : empty ⊕ bool → Type) : Type
+| node : α → f (sum.inr ff) → tree_shape
+
+def tree_shape.map {α} {X Y : fam $ empty ⊕ bool} (f : X ⟶ Y) : tree_shape α X → tree_shape α Y
+| (tree_shape.node x xs) := tree_shape.node x (f _ xs)
+
+def mut_shape (α : Type) (f : fam $ empty ⊕ bool) : fam bool :=
+pair (tree_shape α f) (child_shape f)
+
+def mut_shape.map (α : Type) (X Y : fam $ empty ⊕ bool) (f : X ⟶ Y) : mut_shape α X ⟶ mut_shape α Y :=
+pair.map (tree_shape.map f) (child_shape.map f)
+
+def mut_shape' (α : Type) : fam (empty ⊕ bool) ⥤ fam bool :=
+{ obj := mut_shape α,
+  map := mut_shape.map α,
+  map_id' := by intros; ext ⟨ ⟩ ⟨ ⟩ : 2; [refl, refl, skip]; ext ⟨ ⟩; refl,
+  map_comp' := by intros; ext ⟨ ⟩ ⟨ ⟩ : 2; [refl, refl, skip]; ext ⟨ ⟩; refl }
+
+inductive mut_children' (α : Type) : Π (i : bool), pair α bool i → (empty ⊕ bool) → Type u
+| list_obj : mut_children' ff ff (sum.inr tt)
+| list_tail : mut_children' ff ff (sum.inr ff)
+| child (x) : mut_children' tt x (sum.inr ff)
+
+def mut_P (α : Type) : ipfunctor (empty ⊕ bool) bool :=
+{ A := pair α bool,
+  B := mut_children' α }
+
+def mut_P.abs {α} : Π (X : fam (empty ⊕ bool)), ipfunctor.obj (mut_P α) X ⟶ (mut_shape' α).obj X
+| X tt := λ i, tree_shape.node i.1 $ i.2 _ $ mut_children'.child _
+| X ff := λ i,
+  match i with
+  | ⟨tt,f⟩ := child_shape.nil
+  | ⟨ff,f⟩ := child_shape.cons (f _ mut_children'.list_obj) (f _ mut_children'.list_tail)
+  end
+
+def mut_P.repr {α} : Π (X : fam (empty ⊕ bool)), (mut_shape' α).obj X ⟶ ipfunctor.obj (mut_P α) X
+| X tt := λ i,
+  match i with
+  | tree_shape.node a b := ⟨a,λ j, sum.rec_on j
+    (λ e, empty.elim e) $ λ b', bool.rec_on b' (λ c, b) (by intro x; cases x)⟩
+  end
+| X ff := λ i,
+  match i with
+  | child_shape.nil := ⟨tt,λ j, by intro x; cases x⟩
+  | child_shape.cons x xs := ⟨ff,λ j a,
+    match j, a with
+    | sum.inr ff, mut_children'.list_tail := xs
+    | sum.inr tt, mut_children'.list_obj := x
+    end ⟩
+  end
+
+instance {α} : iqpf (mut_shape' α) :=
+{ P := mut_P α,
+  abs := mut_P.abs,
+  repr := mut_P.repr,
+  abs_repr := by intros; ext (_|_) (_|_); dsimp [(≫)]; try { refl }; ext ⟨ ⟩; refl,
+  abs_map := by intros; ext (_|_) (_|_); dsimp [(≫)]; try { refl }; ext ⟨ ⟩; refl, }
+
+end ex_mutual

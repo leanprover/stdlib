@@ -1132,5 +1132,22 @@ add_tactic_doc
   decl_names := [`tactic.interactive.generalize'],
   tags       := ["context management"] }
 
+
+/-- take the name `n` of a lemma whose head is an equality and reverse
+the operands of `=` and return the resulting proof. -/
+private meta def apply_symm (n : name) : tactic expr :=
+do e ← mk_const n,
+   (vs,t) ← infer_type e >>= mk_local_pis,
+   e' ← mk_eq_symm $ e.mk_app vs,
+   lambdas vs e'
+
+/-- `fold n₁ ... nₙ at l₁ ... lₘ` finds occurrences of the value of definitions
+`n₁` to `nₙ` and replace then with the definition itself. -/
+meta def fold (ns : parse ident*) (ls : parse location) : tactic unit :=
+do hs ← ns.mmap $ get_eqn_lemmas_for tt,
+   hs ← hs.join.mmap apply_symm,
+   (s,u) ← mk_simp_set tt [] (hs.map $ simp_arg_type.expr ∘ to_pexpr),
+   ls.try_apply (λ h, () <$ simp_hyp s u h) (simp_target s u)
+
 end interactive
 end tactic

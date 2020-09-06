@@ -146,11 +146,13 @@ h.hom_ext $ λ j, walking_pair.cases_on j h₁ h₂
 variables {X Y : C}
 
 /-- A binary fan with vertex `P` consists of the two projections `π₁ : P ⟶ X` and `π₂ : P ⟶ Y`. -/
+@[simps X]
 def binary_fan.mk {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) : binary_fan X Y :=
 { X := P,
   π := { app := λ j, walking_pair.cases_on j π₁ π₂ }}
 
 /-- A binary cofan with vertex `P` consists of the two inclusions `ι₁ : X ⟶ P` and `ι₂ : Y ⟶ P`. -/
+@[simps X]
 def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X Y :=
 { X := P,
   ι := { app := λ j, walking_pair.cases_on j ι₁ ι₂ }}
@@ -225,10 +227,18 @@ binary_cofan.is_colimit.hom_ext (colimit.is_colimit _) h₁ h₂
 abbreviation prod.lift {W X Y : C} [has_binary_product X Y] (f : W ⟶ X) (g : W ⟶ Y) : W ⟶ X ⨯ Y :=
 limit.lift _ (binary_fan.mk f g)
 
+/-- diagonal arrow of the binary product in the category `fam I` -/
+abbreviation diag (X : C) [has_binary_product X X] : X ⟶ X ⨯ X :=
+prod.lift (𝟙 _) (𝟙 _)
+
 /-- If the coproduct of `X` and `Y` exists, then every pair of morphisms `f : X ⟶ W` and
     `g : Y ⟶ W` induces a morphism `coprod.desc f g : X ⨿ Y ⟶ W`. -/
 abbreviation coprod.desc {W X Y : C} [has_binary_coproduct X Y] (f : X ⟶ W) (g : Y ⟶ W) : X ⨿ Y ⟶ W :=
 colimit.desc _ (binary_cofan.mk f g)
+
+/-- codiagonal arrow of the binary coproduct -/
+abbreviation codiag (X : C) [has_binary_coproduct X X] : X ⨿ X ⟶ X :=
+coprod.desc (𝟙 _) (𝟙 _)
 
 @[simp, reassoc]
 lemma prod.lift_fst {W X Y : C} [has_binary_product X Y] (f : W ⟶ X) (g : W ⟶ Y) :
@@ -312,6 +322,36 @@ lim.map_iso (map_pair_iso f g)
 
 @[simp] lemma prod.map_iso_inv {W X Y Z : C} [has_limits_of_shape.{v} (discrete walking_pair) C]
   (f : W ≅ Y) (g : X ≅ Z) : (prod.map_iso f g).inv = prod.map f.inv g.inv := by simp
+
+@[simp, reassoc]
+lemma prod.diag_fst {X : C} [has_limits_of_shape (discrete walking_pair) C] : diag X ≫ prod.fst = 𝟙 X :=
+by simp
+
+@[simp, reassoc]
+lemma prod.diag_snd {X : C} [has_limits_of_shape (discrete walking_pair) C] : diag X ≫ prod.snd = 𝟙 X :=
+by simp
+
+@[simp, reassoc]
+lemma prod.diag_map {X Y : C} [has_limits_of_shape (discrete walking_pair) C] (f : X ⟶ Y) :
+  diag X ≫ prod.map f f = f ≫ diag Y :=
+by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
+
+@[simp, reassoc]
+lemma prod.diag_map_fst_snd {X Y : C} [has_limits_of_shape (discrete walking_pair) C] :
+  diag (X ⨯ Y) ≫ prod.map prod.fst prod.snd = 𝟙 (X ⨯ Y) :=
+by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
+
+@[simp, reassoc]
+lemma prod.diag_map_comp [has_limits_of_shape (discrete walking_pair) C]
+  {X Y Z Z' : C} (f : X ⟶ Y) (g : Y ⟶ Z) (g' : Y ⟶ Z') :
+  diag X ≫ prod.map (f ≫ g) (f ≫ g') = f ≫ diag Y ≫ prod.map g g' :=
+by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
+
+@[simp, reassoc]
+lemma prod.diag_map_fst_snd_comp  [has_limits_of_shape (discrete walking_pair) C]
+  {X X' Y Y' : C} (g : X ⟶ Y) (g' : X' ⟶ Y') :
+  diag (X ⨯ X') ≫ prod.map (prod.fst ≫ g) (prod.snd ≫ g') = prod.map g g' :=
+by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
 
 /-- If the coproducts `W ⨿ X` and `Y ⨿ Z` exist, then every pair of morphisms `f : W ⟶ Y` and
     `g : W ⟶ Z` induces a morphism `coprod.map f g : W ⨿ X ⟶ Y ⨿ Z`. -/
@@ -407,6 +447,34 @@ by tidy
 @[reassoc] lemma coprod.map_desc {S T U V W : C} (f : U ⟶ S) (g : W ⟶ S) (h : T ⟶ U) (k : V ⟶ W) :
   coprod.map h k ≫ coprod.desc f g = coprod.desc (h ≫ f) (k ≫ g) :=
 by tidy
+
+@[simp, reassoc]
+lemma coprod.inl_codiag {X : C} : coprod.inl ≫ codiag X = 𝟙 X :=
+by simp
+
+@[simp, reassoc]
+lemma coprod.inr_codiag {X : C} : coprod.inr ≫ codiag X = 𝟙 X :=
+by simp
+
+@[reassoc]
+lemma coprod.map_codiag {X Y : C} (f : X ⟶ Y) :
+  coprod.map f f ≫ codiag Y = codiag X ≫ f :=
+by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
+
+@[reassoc]
+lemma coprod.map_inl_inr_codiag {X Y : C}  :
+  coprod.map coprod.inl coprod.inr ≫ codiag (X ⨿ Y) = 𝟙 (X ⨿ Y) :=
+by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
+
+@[reassoc]
+lemma coprod.map_comp_codiag {X X' Y Z : C} (f : X ⟶ Y) (f' : X' ⟶ Y) (g : Y ⟶ Z) :
+  coprod.map (f ≫ g) (f' ≫ g) ≫ codiag Z = coprod.map f f' ≫ codiag Y ≫ g :=
+by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
+
+@[reassoc]
+lemma coprod.map_comp_inl_inr_codiag {X X' Y Y' : C} (g : X ⟶ Y) (g' : X' ⟶ Y') :
+  coprod.map (g ≫ coprod.inl) (g' ≫ coprod.inr) ≫ codiag (Y ⨿ Y') = coprod.map g g' :=
+by ext; { simp, dsimp, simp, } -- See note [dsimp, simp]
 
 end coprod_lemmas
 

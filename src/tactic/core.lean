@@ -1666,6 +1666,43 @@ add_tactic_doc
   decl_names               := [``tactic.interactive_attr],
   tags                     := ["environment"] }
 
+/-- Attribute `needed` is used to mark declarations that are featured
+in the current file.  Then, the `#unneeded` command can be used to
+list the declaration present in the file that do not support the main
+features of the file. -/
+@[user_attribute]
+meta def needed_attr : user_attribute :=
+{ name := `needed,
+  descr := "tag essential declarations to help identify unused definitions" }
+
+/-- `unneeded n m` removes from the map of unneeded declarations those
+referenced by declaration named `n` which is considerred to be a
+needed declaration -/
+private meta def unneeded : name → name_map declaration → tactic (name_map declaration)
+| n m :=
+  do d ← get_decl n,
+     if m.contains n then do
+       let m := m.erase n,
+       let ns := d.value.list_constant.union d.type.list_constant,
+       ns.mfold m unneeded
+     else pure m
+
+/-- In the current file, list all the declaration that are not marked as `@[needed]` and
+that are not referenced by such declarations -/
+meta def all_unneeded : tactic (name_map declaration) :=
+do ds ← local_decls,
+   ls ← ds.keys.mfilter (succeeds ∘ user_attribute.get_param_untyped needed_attr),
+   ds ← ls.mfoldl (flip unneeded) ds,
+   ds.mfilter $ λ n d, do
+     e ← get_env,
+     return $ !d.is_auto_generated e &&
+       !(n.get_prefix.last = "equations") &&
+       !(n.last = "_sunfold") &&
+       !(string.is_prefix_of "_match_" n.last) &&
+       !(string.is_prefix_of "_proof_" n.last) &&
+       !(string.is_prefix_of "_main" n.last) &&
+       !(name.is_suffix_of `_main._meta_aux n)
+
 /--
 Use `refine` to partially discharge the goal,
 or call `fconstructor` and try again.
@@ -2232,6 +2269,14 @@ then do
     fail!"Cannot set attribute @[{attr_name}]. The corresponding user attribute {user_attr_nm} has a parameter.",
   tac
 else fail msg
+
+/-- The command `#unneeded` lists the declarations that do not support the main features of
+the present file. The main features of a file are taken as the declaration tagged with @[needed]. -/
+@[user_command]
+meta def unneeded_cmd (_ : parse $ tk "#unneeded") : lean.parser unit :=
+show tactic unit, from
+do ds ← all_unneeded,
+   ds.to_list.mmap' $ λ ⟨n,_⟩, trace!"#print {n}"
 
 end tactic
 
