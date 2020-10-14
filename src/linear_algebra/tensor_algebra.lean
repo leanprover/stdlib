@@ -115,4 +115,28 @@ begin
   rw [this, ←lift_unique, w],
 end
 
+
+section wip
+
+-- This looks dangerous!
+def bad_coe {α β : Type*} [add_comm_monoid α] [add_comm_monoid β] [semimodule R α] [semimodule R β] :
+  has_coe (α →ₗ[R] β) (α → β) := ⟨λ f, f⟩
+
+local attribute [instance] bad_coe
+
+instance : has_universal_property R M (tensor_algebra R M)
+  -- this doesn't work, I need another way to generalize across Homs :(
+  (λ A _ _, by exactI M →ₗ[R] A) :=
+{
+  -- homomorphisms are regular functions
+  hom_comp := λ _ _ _ f g, by exactI f.to_linear_map.comp g,
+  hom_comp_eq := λ _ _ _ f g, rfl,
+  hom_ext' := λ _ _ _ f g, ⟨λ h, by {unfold_coes at h, ext, simp * at *, }, λ h, h ▸ rfl⟩ ,
+  -- connect the boilerplate ∀
+  ι := ι R,
+  lift := λ _ _ _ f, by exactI lift R f,
+  lift_unique := λ _ _ _ f g, by exactI lift_unique f g }
+
+end wip
+
 end tensor_algebra

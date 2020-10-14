@@ -5,6 +5,7 @@ Author: Scott Morrison, Adam Topaz.
 -/
 import algebra.algebra.subalgebra
 import algebra.monoid_algebra
+import algebra.universal_property
 import linear_algebra
 
 /-!
@@ -29,6 +30,8 @@ Given a commutative semiring `R`, and a type `X`, we construct the free `R`-alge
   of the composition of an algebra morphism with `ι` is the algebra morphism itself.
 5. `equiv_monoid_algebra_free_monoid : free_algebra R X ≃ₐ[R] monoid_algebra R (free_monoid X)`
 6. An inductive principle `induction`.
+7. Statements about the natural grading of the free algebra `grades x i`: `grades.map_algebra_map`,
+  `grades.map_algebra_ι`, and `grades.map_grades`.
 
 ## Implementation details
 
@@ -276,6 +279,25 @@ begin
   have : g = lift R ((g : free_algebra R X → A) ∘ (ι R)), by rw ←lift_unique,
   rw [this, ←lift_unique, w],
 end
+
+section wip
+
+-- This looks dangerous!
+def bad_coe {α β : Type*} : has_coe (α → β) (α → β) := ⟨id⟩
+
+local attribute [instance] bad_coe
+
+instance : has_universal_property R X (free_algebra R X) (λ x _ _, X → x) := {
+  -- homomorphisms are regular functions
+  hom_comp := λ _ _ _ f g, (f ∘ g),
+  hom_comp_eq := λ _ _ _ f g, rfl,
+  hom_ext' := λ _ _ _ f g, iff.rfl,
+  -- connect the boilerplate
+  ι := ι R,
+  lift := λ _ _ _ f, by exactI lift R f,
+  lift_unique := λ _ _ _ f g, by exactI lift_unique f g }
+
+end wip
 
 /--
 The free algebra on `X` is "just" the monoid algebra on the free monoid on `X`.
