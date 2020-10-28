@@ -123,7 +123,7 @@ m.map ((*) b)
 
 section
 open format prod
-variables {key : Type} {data : Type} [has_to_tactic_format key] [has_to_tactic_format data]
+variables {key : Type} {data data' : Type} [has_to_tactic_format key] [has_to_tactic_format data]
 private meta def pp_key_data (k : key) (d : data) (first : bool) : tactic format :=
 do fk ← tactic.pp k, fd ← tactic.pp d, return $
 (if first then to_fmt "" else to_fmt "," ++ line) ++ fk ++ space ++ to_fmt "←" ++ space ++ fd
@@ -133,6 +133,22 @@ meta instance : has_to_tactic_format (rb_map key data) :=
   (fmt, _) ← fold m (return (to_fmt "", tt))
      (λ k d p, do p ← p, pkd ← pp_key_data k d (snd p), return (fst p ++ pkd, ff)),
   return $ group $ to_fmt "⟨" ++ nest 1 fmt ++ to_fmt "⟩"⟩
+
+variables [has_lt key] [decidable_rel ((<) : key → key → Prop)]
+variables (f : data → data → data)
+
+meta def filter_map (f : key → data → option data') (x : rb_map key data) : rb_map key data' :=
+fold x (mk _ _) $ λa b m', (insert m' a <$> f a b).get_or_else m'
+
+meta def intersect_with (m m' : rb_map key data) : rb_map key data :=
+m.filter_map $ λ k x, f x <$> m'.find k
+
+meta def intersect (x y : rb_map key data) : rb_map key data :=
+intersect_with (function.const data) x y
+
+meta def difference (m m' : rb_map key data) : rb_map key data :=
+m.filter_map (λ k x, guard (¬ m'.contains k) >> pure x)
+
 end
 
 end rb_map
@@ -200,3 +216,6 @@ meta instance {data : Type} : inhabited (name_map data) :=
 ⟨mk_name_map⟩
 
 end name_map
+
+meta def list.to_rb_set {α} [has_lt α] [decidable_rel ((<) : α → α → Prop)] (xs : list α) : native.rb_set α :=
+xs.foldl native.rb_set.insert (native.mk_rb_set)

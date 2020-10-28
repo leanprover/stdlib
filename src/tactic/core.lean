@@ -82,6 +82,9 @@ meta def kreplace (e old new : expr) (md := semireducible) (unify := tt)
   e ← kabstract e old md unify,
   pure $ e.instantiate_var new
 
+meta def mk_app' (e : expr) (xs : list $ list expr) : expr :=
+xs.foldl mk_app e
+
 end expr
 
 namespace interaction_monad
@@ -147,6 +150,66 @@ bracket "[" "]" (comma_separated l)
 end format
 
 namespace tactic
+
+meta def unify_app_aux : expr → expr → list expr → tactic expr
+| e (expr.pi _ _ d b) (a :: as) :=
+do t ← infer_type a,
+   unify t d,
+   e' ← head_beta (e a),
+   b' ← whnf (b.instantiate_var a),
+   unify_app_aux e' b' as
+| e t (_ :: _) := fail "too many arguments"
+| e _ [] := pure e
+
+meta def unify_app (e : expr) (args : list expr) : tactic expr :=
+do t ← infer_type e >>= whnf,
+   unify_app_aux e t args
+
+meta def unify_app_aux' : expr → expr → list expr → tactic expr
+| e (expr.pi _ binder_info.default d b) (a :: as) :=
+do t ← infer_type a,
+   unify t d,
+   e' ← head_beta (e a),
+   b' ← whnf (b.instantiate_var a),
+   unify_app_aux' e' b' as
+| e (expr.pi _ binder_info.inst_implicit d b) as :=
+do v ← mk_instance d <|> mk_meta_var d,
+   e' ← head_beta (e v),
+   b' ← whnf (b.instantiate_var v),
+   unify_app_aux' e' b' as
+| e (expr.pi _ _ d b) as :=
+do v ← mk_meta_var d,
+   e' ← head_beta (e v),
+   b' ← whnf (b.instantiate_var v),
+   unify_app_aux' e' b' as
+| e t (_ :: _) := fail "too many arguments"
+| e _ [] := pure e
+
+meta def unify_app' (e : expr) (args : list expr) : tactic expr :=
+do t ← infer_type e >>= whnf,
+   unify_app_aux' e t args
+
+meta def unify_mapp_aux : expr → expr → list (option expr) → tactic expr
+| e (expr.pi _ _ d b) (none :: as) :=
+do a ← mk_mvar,
+   t ← infer_type a,
+   unify t d,
+   e' ← head_beta (e a),
+   b' ← whnf (b.instantiate_var a),
+   unify_mapp_aux e' b' as
+| e (expr.pi _ _ d b) (some a :: as) :=
+do t ← infer_type a,
+   unify t d,
+   e' ← head_beta (e a),
+   b' ← whnf (b.instantiate_var a),
+   unify_mapp_aux e' b' as
+| e t (_ :: _) := fail "too many arguments"
+| e _ [] := pure e
+
+meta def unify_mapp (e : expr) (args : list (option expr)) : tactic expr :=
+do t ← infer_type e >>= whnf,
+   unify_mapp_aux e t args
+
 open function
 
 /-- Private work function for `add_local_consts_as_local_hyps`: given
@@ -480,6 +543,11 @@ do cxt ← list.map expr.to_implicit_local_const <$> local_context,
    let univ := t'.collect_univ_params,
    add_decl $ declaration.defn n univ t' d' (reducibility_hints.regular 1 tt) trusted,
    applyc n
+
+/-- Add a declaration to the environment and create a term referring to it -/
+meta def add_decl' (d : declaration) : tactic expr :=
+do add_decl d,
+   pure $ expr.const d.to_name $ d.univ_params.map level.param
 
 /-- Attempts to close the goal with `dec_trivial`. -/
 meta def exact_dec_trivial : tactic unit := `[exact dec_trivial]

@@ -285,6 +285,25 @@ as.foldr_with_index (λ i a mb, do b ← mb, f i a b) (pure b)
 
 end mfold_with_index
 
+section zip_with
+
+def zip_with₃ {α β γ φ} (f : α → β → γ → φ) : list α → list β → list γ → list φ
+| (x::xs) (y::ys) (z::zs) := f x y z :: zip_with₃ xs ys zs
+| _ _ _ := []
+
+variables {m : Type v → Type w} [applicative m]
+
+def mzip_with₃ {α β γ φ} (f : α → β → γ → m φ) : list α → list β → list γ → m (list φ)
+| (x::xs) (y::ys) (z::zs) := (::) <$> f x y z <*> mzip_with₃ xs ys zs
+| _ _ _ := pure []
+
+def mzip_with₄ {α β γ φ ψ} (f : α → β → γ → φ → m ψ) :
+  list α → list β → list γ → list φ → m (list ψ)
+| (w :: ws) (x::xs) (y::ys) (z::zs) := (::) <$> f w x y z <*> mzip_with₄ ws xs ys zs
+| _ _ _ _ := pure []
+
+end zip_with
+
 section mmap_with_index
 
 variables {m : Type v → Type w} [applicative m]

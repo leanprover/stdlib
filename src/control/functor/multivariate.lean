@@ -70,8 +70,8 @@ namespace mvfunctor
 export is_lawful_mvfunctor (comp_map)
 open is_lawful_mvfunctor
 
-variables {α β γ : typevec.{u} n}
 variables {F : typevec.{u} n → Type v} [mvfunctor F]
+variables {α β γ : typevec.{u} n}
 
 variables (p : α ⟹ repeat n Prop) (r : α ⊗ α ⟹ repeat n Prop)
 
@@ -114,6 +114,11 @@ begin
     simp only [mvfunctor.map_map,h₀,is_lawful_mvfunctor.id_map,h₂] },
 end
 variables {F}
+
+#check @liftp
+#check @liftp'
+
+#print of_subtype
 
 lemma liftp_def (x : F α) : liftp' p x ↔ ∃ u : F (subtype_ p), subtype_val p <$$> u = x :=
 begin

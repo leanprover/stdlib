@@ -85,6 +85,9 @@ def drop (α : typevec.{u} (n+1)) : typevec n := λ i, α i.fs
 /-- take the last value of a `(n+1)-length` vector -/
 def last (α : typevec.{u} (n+1)) : Type* := α fin2.fz
 
+/-- typevec of length 0 -/
+def nil : typevec.{u} 0 := fin2.elim0
+
 instance last.inhabited (α : typevec (n+1)) [inhabited (α fin2.fz)] : inhabited (last α) :=
 ⟨ (default (α fin2.fz) : α fin2.fz) ⟩
 
@@ -205,7 +208,7 @@ lemma append_fun_comp' {α₀ α₁ α₂ : typevec n} {β₀ β₁ β₂ : Type
   (f₁ ::: g₁) ⊚ (f₀ ::: g₀) = f₁ ⊚ f₀ ::: g₁ ∘ g₀ :=
 eq_of_drop_last_eq rfl rfl
 
-lemma nil_fun_comp {α₀ : typevec 0} (f₀ : α₀ ⟹ fin2.elim0) : nil_fun ⊚ f₀ = f₀ :=
+lemma nil_fun_comp {α₀ : typevec 0} (f₀ : α₀ ⟹ nil) : nil_fun ⊚ f₀ = f₀ :=
 funext $ λ x, fin2.elim0 x
 
 theorem append_fun_comp_id {α : typevec n} {β₀ β₁ β₂ : Type*}
@@ -240,7 +243,7 @@ run_cmd do
 local prefix `♯`:0 := cast (by try { simp }; congr' 1; try { simp })
 
 /-- cases distinction for 0-length type vector -/
-protected def cases_nil {β : typevec 0 → Sort*} (f : β fin2.elim0) :
+protected def cases_nil {β : typevec 0 → Sort*} (f : β nil) :
   Π v, β v :=
 λ v, ♯ f
 
@@ -249,8 +252,8 @@ protected def cases_cons (n : ℕ) {β : typevec (n+1) → Sort*} (f : Π t (v :
   Π v, β v :=
 λ v : typevec (n+1), ♯ f v.last v.drop
 
-protected lemma cases_nil_append1 {β : typevec 0 → Sort*} (f : β fin2.elim0) :
-  typevec.cases_nil f fin2.elim0 = f := rfl
+protected lemma cases_nil_append1 {β : typevec 0 → Sort*} (f : β nil) :
+  typevec.cases_nil f nil = f := rfl
 
 protected lemma cases_cons_append1 (n : ℕ) {β : typevec (n+1) → Sort*}
       (f : Π t (v : typevec n), β (v ::: t))
@@ -258,7 +261,7 @@ protected lemma cases_cons_append1 (n : ℕ) {β : typevec (n+1) → Sort*}
   typevec.cases_cons n f (v ::: α) = f α v := rfl
 
 /-- cases distinction for an arrow in the category of 0-length type vectors -/
-def typevec_cases_nil₃ {β : Π v v' : typevec 0, v ⟹ v' → Sort*} (f : β fin2.elim0 fin2.elim0 nil_fun) :
+def typevec_cases_nil₃ {β : Π v v' : typevec 0, v ⟹ v' → Sort*} (f : β nil nil nil_fun) :
   Π v v' fs, β v v' fs :=
 λ v v' fs,
 begin
@@ -278,7 +281,7 @@ begin
 end
 
 /-- specialized cases distinction for an arrow in the category of 0-length type vectors -/
-def typevec_cases_nil₂ {β : fin2.elim0 ⟹ fin2.elim0 → Sort*}
+def typevec_cases_nil₂ {β : nil ⟹ nil → Sort*}
   (f : β nil_fun) :
   Π f, β f :=
 begin
@@ -296,7 +299,7 @@ begin
   apply F
 end
 
-lemma typevec_cases_nil₂_append_fun {β : fin2.elim0 ⟹ fin2.elim0 → Sort*}
+lemma typevec_cases_nil₂_append_fun {β : nil ⟹ nil → Sort*}
   (f : β nil_fun) :
   typevec_cases_nil₂ f nil_fun = f := rfl
 
@@ -322,12 +325,12 @@ open nat
 
 /-- `repeat n t` is a `n-length` type vector that contains `n` occurences of `t` -/
 def repeat : Π (n : ℕ) (t : Sort*), typevec n
-| 0 t := fin2.elim0
+| 0 t := nil
 | (nat.succ i) t := append1 (repeat i t) t
 
 /-- `prod α β` is the pointwise product of the components of `α` and `β` -/
 def prod : Π {n} (α β : typevec.{u} n), typevec n
-| 0 α β := fin2.elim0
+| 0 α β := nil
 | (n+1) α β := prod (drop α) (drop β) ::: (last α × last β)
 
 localized "infix ` ⊗ `:45 := typevec.prod" in mvfunctor
