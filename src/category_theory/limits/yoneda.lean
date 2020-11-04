@@ -38,7 +38,7 @@ The proposed colimit cocone over `coyoneda.obj X` is a colimit cocone.
 @[simps]
 def colimit_cocone_is_colimit (X : Cᵒᵖ) : is_colimit (colimit_cocone X) :=
 { desc := λ s x, s.ι.app (unop X) (𝟙 _),
-  fac' := λ s Y, by { ext f, convert congr_fun (s.w f).symm (𝟙 (unop X)), simp, },
+  fac' := λ s Y, by { ext f, convert congr_fun (s.w f).symm (𝟙 (unop X)), refl, simp, },
   uniq' := λ s m w, by { ext ⟨⟩, rw ← w, simp, } }
 
 instance (X : Cᵒᵖ) : has_colimit (coyoneda.obj X) :=

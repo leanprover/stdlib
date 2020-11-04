@@ -1538,7 +1538,7 @@ begin
   induction l₂ with a l₂ IH generalizing l₁ l₂',
   { cases list.length_eq_zero.1 e, refl },
   cases l₂' with b l₂'; injection e with e,
-  dunfold write step_aux,
+  dunfold write step_aux list.reverse_core,
   convert IH _ _ e, simp only [list_blank.head_cons, list_blank.tail_cons,
     list_blank.append, tape.move_right_mk', tape.write_mk']
 end
@@ -2030,7 +2030,8 @@ list_blank.cons (tt, L.head) (L.tail.map ⟨prod.mk ff, rfl⟩)
 
 theorem add_bottom_map (L) : (add_bottom L).map ⟨prod.snd, rfl⟩ = L :=
 begin
-  simp only [add_bottom, list_blank.map_cons]; convert list_blank.cons_head_tail _,
+  simp only [add_bottom, list_blank.map_cons],
+  convert list_blank.cons_head_tail _, refl,
   generalize : list_blank.tail L = L',
   refine L'.induction_on _, intro l, simp,
   rw (_ : _ ∘ _ = id), {simp},

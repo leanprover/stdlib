@@ -43,6 +43,7 @@ theorem map_sub_range' (a) :
 | s (n+1) h :=
 begin
   convert congr_arg (cons (s-a)) (map_sub_range' (s+1) n (nat.le_succ_of_le h)),
+  refl,
   rw nat.succ_sub h,
   refl,
 end

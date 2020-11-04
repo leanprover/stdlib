@@ -449,7 +449,8 @@ lemma ichildren_mk [decidable_eq F.A] [inhabited (M F)] (x : F.obj (M F)) (i : F
 by { dsimp only [ichildren,pfunctor.obj.iget],
      congr' with h, apply ext',
      dsimp only [children',M.mk,approx.s_mk],
-     intros, refl }
+     intros, refl,
+     refl }
 
 @[simp]
 lemma isubtree_cons [decidable_eq F.A] [inhabited (M F)] (ps : path F) {a} (f : F.B a → M F) {i : F.B a} :

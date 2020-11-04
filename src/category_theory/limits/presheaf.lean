@@ -188,7 +188,7 @@ begin
   rw [comp_id, colimit.ι_desc],
   dsimp,
   rw ← A.map_comp,
-  congr' 1,
+  congr' 1, refl
 end
 
 /-- See Property 2 of https://ncatlab.org/nlab/show/Yoneda+extension#properties. -/

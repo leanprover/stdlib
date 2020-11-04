@@ -1173,7 +1173,7 @@ nth_le_reverse_aux2 _ _ _ _ _
 lemma eq_cons_of_length_one {l : list α} (h : l.length = 1) :
   l = [l.nth_le 0 (h.symm ▸ zero_lt_one)] :=
 begin
-  refine ext_le (by convert h) (λ n h₁ h₂, _),
+  refine ext_le (by convert h; refl) (λ n h₁ h₂, _),
   simp only [nth_le_singleton],
   congr,
   exact eq_bot_iff.mpr (nat.lt_succ_iff.mp h₂)

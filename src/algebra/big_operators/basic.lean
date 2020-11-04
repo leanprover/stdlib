@@ -629,7 +629,7 @@ end
 
 lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
   s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
-by { convert prod_multiset_map_count s id, rw map_id }
+by { convert prod_multiset_map_count s id, rw map_id, refl }
 
 /--
 To prove a property of a product, it suffices to prove that

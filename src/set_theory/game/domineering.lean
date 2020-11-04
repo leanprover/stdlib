@@ -106,8 +106,7 @@ begin
       simp only [finset.mem_map, prod.exists] at t,
       rcases t with ⟨x,y,w,h⟩,
       rw ←h,
-      convert w,
-      simp, } }
+      convert w; simp } }
 end
 lemma move_right_card {b : board} {m : ℤ × ℤ} (h : m ∈ right b) :
   finset.card (move_right b m) + 2 = finset.card b :=
@@ -124,8 +123,7 @@ begin
       simp only [finset.mem_map, prod.exists] at t,
       rcases t with ⟨x,y,w,h⟩,
       rw ←h,
-      convert w,
-      simp, } }
+      convert w; simp } }
 end
 
 lemma move_left_smaller {b : board} {m : ℤ × ℤ} (h : m ∈ left b) :

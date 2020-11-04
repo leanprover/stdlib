@@ -26,9 +26,9 @@ namespace Mon_Type_equivalence_Mon
 instance Mon_monoid (A : Mon_ (Type u)) : monoid (A.X) :=
 { one := A.one punit.star,
   mul := λ x y, A.mul (x, y),
-  one_mul := λ x, by convert congr_fun A.one_mul (punit.star, x),
-  mul_one := λ x, by convert congr_fun A.mul_one (x, punit.star),
-  mul_assoc := λ x y z, by convert congr_fun A.mul_assoc ((x, y), z), }
+  one_mul := λ x, by simpa [-Mon_.one_mul_hom] using congr_fun A.one_mul (punit.star, x),
+  mul_one := λ x, by simpa [-Mon_.mul_one_hom] using congr_fun A.mul_one (x, punit.star),
+  mul_assoc := λ x y z, by simpa [-Mon_.mul_assoc] using congr_fun A.mul_assoc ((x, y), z) }
 
 /--
 Converting a monoid object in `Type` to a bundled monoid.
@@ -85,7 +85,7 @@ instance Mon_Type_inhabited : inhabited (Mon_ (Type u)) :=
 namespace CommMon_Type_equivalence_CommMon
 
 instance CommMon_comm_monoid (A : CommMon_ (Type u)) : comm_monoid (A.X) :=
-{ mul_comm := λ x y, by convert congr_fun A.mul_comm (y, x),
+{ mul_comm := λ x y, by simpa [-CommMon_.mul_comm] using congr_fun A.mul_comm (y, x),
   ..Mon_Type_equivalence_Mon.Mon_monoid A.to_Mon_ }
 
 /--

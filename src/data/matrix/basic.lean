@@ -235,17 +235,17 @@ by simp [dot_product, mul_add, finset.sum_add_distrib]
 @[simp] lemma diagonal_dot_product [decidable_eq m] [semiring α] (v w : m → α) (i : m) :
   dot_product (diagonal v i) w = v i * w i :=
 have ∀ j ≠ i, diagonal v i j * w j = 0 := λ j hij, by simp [diagonal_apply_ne' hij],
-by convert finset.sum_eq_single i (λ j _, this j) _; simp
+by convert @finset.sum_eq_single _ _ _ finset.univ _ i (λ j _, this j) (by simp); by simp
 
 @[simp] lemma dot_product_diagonal [decidable_eq m] [semiring α] (v w : m → α) (i : m) :
   dot_product v (diagonal w i) = v i * w i :=
 have ∀ j ≠ i, v j * diagonal w i j = 0 := λ j hij, by simp [diagonal_apply_ne' hij],
-by convert finset.sum_eq_single i (λ j _, this j) _; simp
+by convert @finset.sum_eq_single _ _ _ finset.univ _ i (λ j _, this j) (by simp); by simp
 
 @[simp] lemma dot_product_diagonal' [decidable_eq m] [semiring α] (v w : m → α) (i : m) :
   dot_product v (λ j, diagonal w j i) = v i * w i :=
 have ∀ j ≠ i, v j * diagonal w j i = 0 := λ j hij, by simp [diagonal_apply_ne hij],
-by convert finset.sum_eq_single i (λ j _, this j) _; simp
+by convert @finset.sum_eq_single _ _ _ finset.univ _ i (λ j _, this j) (by simp); by simp
 
 @[simp] lemma neg_dot_product [ring α] (v w : m → α) : dot_product (-v) w = - dot_product v w :=
 by simp [dot_product]

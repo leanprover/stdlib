@@ -285,7 +285,8 @@ begin
   { simp [function.comp_apply, h1] },
   { simp only [h1, mul_one, one_mul, prod.fst_swap, function.embedding.coe_fn_mk, prod.snd_swap,
     if_false, zeta_apply, opposite.coe_op_add_hom],
-    refl }
+    refl },
+  refl
 end
 
 end zeta

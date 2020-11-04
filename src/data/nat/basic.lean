@@ -140,6 +140,7 @@ theorem range_rec {α : Type*} (x : α) (f : ℕ → α → α) :
     {x} ∪ set.range (λ n, nat.rec (f 0 x) (f ∘ succ) n) :=
 begin
   convert (range_of_succ _).symm,
+  refl,
   ext n,
   induction n with n ihn,
   { refl },

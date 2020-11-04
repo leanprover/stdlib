@@ -296,9 +296,9 @@ begin
   simp only [prod_dite, attach_eq_univ],
   congr' 1,
   { convert (equiv.subtype_congr_right _).prod_comp (λ x : {x // p x}, f x x.2),
-    simp },
+    refl, simp },
   { convert (equiv.subtype_congr_right _).prod_comp (λ x : {x // ¬p x}, g x x.2),
-    simp }
+    refl, simp }
 end
 
 section

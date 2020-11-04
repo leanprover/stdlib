@@ -193,7 +193,7 @@ begin
     rw ← hj at H,
     have ji : j < ⟨i, hi⟩ := (mono_of_fin_strict_mono s h).lt_iff_lt.1 H,
     have : f j = mono_of_fin s h j,
-      by { convert IH j ji (lt_trans ji hi), rw [fin.ext_iff, fin.coe_mk] },
+      by { convert IH j ji (lt_trans ji hi); simp },
     rw ← this at hj,
     exact (ne_of_lt (hmono ji) hj).elim },
   { exact H },
@@ -202,7 +202,7 @@ begin
     rw ← hj at H,
     have ji : j < ⟨i, hi⟩ := hmono.lt_iff_lt.1 H,
     have : f j = mono_of_fin s h j,
-      by { convert IH j ji (lt_trans ji hi), rw [fin.ext_iff, fin.coe_mk] },
+      by { convert IH j ji (lt_trans ji hi); simp },
     rw this at hj,
     exact (ne_of_lt (mono_of_fin_strict_mono s h ji) hj).elim }
 end

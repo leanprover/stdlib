@@ -1055,13 +1055,13 @@ theorem move₂_ok {p k₁ k₂ q s L₁ o L₂} {S : K' → list Γ'}
 begin
   refine (move_ok h₁.1 e).trans (trans_gen.head rfl _),
   cases o; simp only [option.elim, tr, id.def],
-  { convert move_ok h₁.2.1.symm (split_at_pred_ff _) using 2,
+  { convert move_ok h₁.2.1.symm (split_at_pred_ff _) using 2, refl,
     simp only [function.update_comm h₁.1, function.update_idem],
     rw show update S rev [] = S, by rw [← h₂, function.update_eq_self],
     simp only [function.update_noteq h₁.2.2.symm, function.update_noteq h₁.2.1,
       function.update_noteq h₁.1.symm, list.reverse_core_eq, h₂,
       function.update_same, list.append_nil, list.reverse_reverse] },
-  { convert move_ok h₁.2.1.symm (split_at_pred_ff _) using 2,
+  { convert move_ok h₁.2.1.symm (split_at_pred_ff _) using 2, refl,
     simp only [h₂, function.update_comm h₁.1,
       list.reverse_core_eq, function.update_same, list.append_nil, function.update_idem],
     rw show update S rev [] = S, by rw [← h₂, function.update_eq_self],
@@ -1145,7 +1145,7 @@ begin
   { refine trans_gen.trans (move_ok dec_trivial
       (split_at_pred_eq _ _ [] (some Γ'.Cons) L₃ (by rintro _ ⟨⟩) ⟨rfl, rfl⟩))
       (trans_gen.head rfl (trans_gen.head rfl _)),
-    convert unrev_ok, simp, refl },
+    convert unrev_ok, refl, simp, refl },
   { refine trans_gen.trans (move_ok dec_trivial
       (split_at_pred_eq _ _ (tr_nat a) (some Γ'.cons)
         (tr_list L₂ ++ Γ'.Cons :: L₃) (tr_nat_nat_end _) ⟨rfl, by simp⟩))
@@ -1154,7 +1154,7 @@ begin
     refine trans_gen.trans (clear_ok
       (split_at_pred_eq _ _ (tr_list L₂) (some Γ'.Cons) L₃
         (λ x h, (to_bool_ff (tr_list_ne_Cons _ _ h))) ⟨rfl, by simp⟩)) _,
-    convert unrev_ok, simp [list.reverse_core_eq] },
+    convert unrev_ok, refl, simp [list.reverse_core_eq] },
 end
 
 theorem succ_ok {q s n} {c d : list Γ'} :
@@ -1166,7 +1166,7 @@ begin
   cases (n:num) with a,
   { refine trans_gen.head rfl _, simp,
     rw if_neg, swap, rintro ⟨⟩, rw if_pos, swap, refl,
-    convert unrev_ok, simp, refl },
+    convert unrev_ok, refl, simp, refl },
   simp [num.succ, tr_num, num.succ'],
   suffices : ∀ l₁,
     ∃ l₁' l₂' s', list.reverse_core l₁ (tr_pos_num a.succ) = list.reverse_core l₁' l₂' ∧
@@ -1197,7 +1197,7 @@ begin
   refine ⟨none, _⟩, simp [tr_nat, num.add_one, num.succ, tr_num],
   cases (n:num) with a,
   { simp [tr_pos_num, tr_num, show num.zero.succ' = pos_num.one, from rfl],
-    refine trans_gen.head rfl _, convert unrev_ok, simp, refl },
+    refine trans_gen.head rfl _, convert unrev_ok, refl, simp, refl },
   simp [tr_num, num.succ'],
   suffices : ∀ l₁,
     ∃ l₁' l₂' s', list.reverse_core l₁ (tr_pos_num a) = list.reverse_core l₁' l₂' ∧
@@ -1227,7 +1227,7 @@ begin
   case succ : { refine ⟨_, ⟨none, rfl⟩, head_main_ok.trans succ_ok⟩ },
   case tail : {
     let o : option Γ' := list.cases_on v none (λ _ _, some Γ'.cons),
-    refine ⟨_, ⟨o, rfl⟩, _⟩, convert clear_ok _, simp, swap,
+    refine ⟨_, ⟨o, rfl⟩, _⟩, convert clear_ok _, refl, simp, swap,
     refine split_at_pred_eq _ _ (tr_nat v.head) _ _ (tr_nat_nat_end _) _,
     cases v; exact ⟨rfl, rfl⟩ },
   case cons : f fs IHf IHfs {
@@ -1235,7 +1235,7 @@ begin
     refine ⟨c, h₁, trans_gen.head rfl $ (move_ok dec_trivial (split_at_pred_ff _)).trans _⟩,
     simp [step_normal],
     refine (copy_ok _ none [] (tr_list v).reverse _ _).trans _,
-    convert h₂ using 2,
+    convert h₂ using 2, refl,
     simp [list.reverse_core_eq, tr_cont_stack] },
   case comp : f g IHf IHg { exact IHg (cont.comp f k) v s },
   case case : f g IHf IHg {
@@ -1285,6 +1285,7 @@ begin
       refine ⟨_, h₁, trans_gen.head rfl $ trans_gen.trans _ h₂⟩,
       swap 3, simp [tr_cont, this.1],
       convert clear_ok (split_at_pred_eq _ _ (tr_nat v.head).tail (some Γ'.cons) _ _ _) using 2,
+      { refl },
       { simp },
       { exact λ x h, tr_nat_nat_end _ _ (list.tail_subset _ h) },
       { exact ⟨rfl, this.2⟩ } } },

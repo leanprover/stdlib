@@ -39,7 +39,7 @@ has_limit.mk
       -- Usually something like this would work by limit.hom_ext,
       -- but the opposites get in the way of this firing.
       have u := (colimit.is_colimit F.left_op).uniq (cocone_left_op_of_cone s) (m.unop),
-      convert congr_arg (λ f : _ ⟶ _, f.op) (u _), clear u,
+      convert congr_arg (λ f : _ ⟶ _, f.op) (u _), refl, clear u,
       intro j,
       rw [cocone_left_op_of_cone_ι_app, colimit.cocone_ι],
       convert congr_arg (λ f : _ ⟶ _, f.unop) (w (unop j)), clear w,
@@ -78,7 +78,7 @@ has_colimit.mk
     uniq' := λ s m w,
     begin
       have u := (limit.is_limit F.left_op).uniq (cone_left_op_of_cocone s) (m.unop),
-      convert congr_arg (λ f : _ ⟶ _, f.op) (u _), clear u,
+      convert congr_arg (λ f : _ ⟶ _, f.op) (u _), refl, clear u,
       intro j,
       rw [cone_left_op_of_cocone_π_app, limit.cone_π],
       convert congr_arg (λ f : _ ⟶ _, f.unop) (w (unop j)), clear w,

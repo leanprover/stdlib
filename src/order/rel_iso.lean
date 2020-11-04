@@ -593,7 +593,7 @@ lemma rel_iso.map_sup [semilattice_sup α] [semilattice_sup β]
 begin
   apply le_antisymm, swap, { apply f.to_rel_embedding.le_map_sup },
   rw [f.symm.map_rel_iff, rel_iso.symm_apply_apply],
-  convert f.symm.to_rel_embedding.le_map_sup; simp,
+  convert f.symm.to_rel_embedding.le_map_sup; simp; simp
 end
 
 end lattice_isos

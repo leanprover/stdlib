@@ -53,8 +53,8 @@ is_add_group_hom.map_zero _
 
 @[simp] protected lemma of (x : α) : lift f (of x) = f x :=
 begin
-  convert @abelianization.lift.of (free_group α) _ (multiplicative β) _ _ _,
-  convert free_group.to_group.of.symm
+  convert @abelianization.lift.of (free_group α) _ (multiplicative β) _ _ _, refl,
+  convert free_group.to_group.of.symm, refl
 end
 
 protected theorem unique (g : free_abelian_group α →+ β)
