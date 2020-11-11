@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import group_theory.coset
+import tactic
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -467,5 +468,22 @@ eq_neg_of_add_eq_zero $ by rw [← smul_add, neg_add_self, smul_zero]
 
 theorem smul_sub (r : α) (x y : β) : r • (x - y) = r • x - r • y :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, smul_add, smul_neg]
+
+end
+
+section
+open equiv
+
+/-- This constructs the natural permutation group on `G` that is used to show Cayley's theorem-/
+def group_to_perm (G : Type*) [group G] : G →* perm G :=
+{ to_fun := λ g,
+  { to_fun := λ h, g * h,
+    inv_fun := λ h, g⁻¹ * h,
+    left_inv := fun h, by group,
+    right_inv := λ h, by group },
+  map_one' := by {ext, simp},
+  map_mul' := λ x y, by { ext, simp, group } }
+
+instance (G : Type*) [group G] : inhabited (G →* perm G) := group_to_perm G
 
 end
