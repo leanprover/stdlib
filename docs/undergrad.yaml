@@ -432,7 +432,7 @@ Topology:
   Hilbert Spaces:
     Hilbert projection theorem: 'exists_norm_eq_infi_of_complete_convex'
     orthogonal projection onto closed vector subspaces: 'orthogonal_projection_fn'
-    dual space: 'normed_space.dual.inst'
+    dual space: 'inner_product_space.dual_inner_product_space'
     Riesz representation theorem:
     $l^2$ and $L^2$ cases:
     Hilbert (orthonormal) bases (in the separable case):

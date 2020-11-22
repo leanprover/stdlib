@@ -170,6 +170,9 @@ by { rw ext_iff, simp only [of_real_im, conj_im, eq_self_iff_true, conj_re, and_
 @[simp] lemma conj_bit0 (z : K) : conj (bit0 z) = bit0 (conj z) := by simp [bit0, ext_iff]
 @[simp] lemma conj_bit1 (z : K) : conj (bit1 z) = bit1 (conj z) := by simp [bit0, ext_iff]
 
+@[simp] lemma conj_neg (z : K) : conj (-z) = -conj z := by simp [ext_iff]
+
+@[simp] lemma conj_I : conj I = (-I : K) := by simp [ext_iff]
 @[simp] lemma conj_neg_I : conj (-I) = (I : K) := by simp [ext_iff]
 
 @[simp] lemma conj_conj (z : K) : conj (conj z) = z := by simp [ext_iff]
@@ -490,6 +493,12 @@ lemma abs_sub : ∀ z w : K, abs (z - w) = abs (w - z) := abv_sub abs
 lemma abs_sub_le : ∀ a b c : K, abs (a - c) ≤ abs (a - b) + abs (b - c) := abv_sub_le abs
 @[simp] theorem abs_inv : ∀ z : K, abs z⁻¹ = (abs z)⁻¹ := abv_inv abs
 @[simp] theorem abs_div : ∀ z w : K, abs (z / w) = abs z / abs w := abv_div abs
+
+lemma abs_I_of_nonzero (h : (I : K) ≠ 0) : abs (I : K) = 1 :=
+begin
+  rw [←mul_self_inj_of_nonneg (abs_nonneg I) zero_le_one, one_mul, ←abs_mul, I_mul_I_of_nonzero h,
+    abs_neg, abs_one],
+end
 
 lemma abs_abs_sub_le_abs_sub : ∀ z w : K, abs' (abs z - abs w) ≤ abs (z - w) :=
 abs_abv_sub_le_abv_sub abs

@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2020 Heather Macbeth. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Heather Macbeth
+Authors: Heather Macbeth, Frédéric Dupuis
 -/
 import analysis.normed_space.hahn_banach
+import analysis.normed_space.inner_product
 
 /-!
 # The topological dual of a normed space
@@ -14,6 +15,9 @@ a normed space into its double dual.
 We also prove that, for base field such as the real or the complex numbers, this map is an isometry.
 More generically, this is proved for any field in the class `has_exists_extension_norm_eq`, i.e.,
 satisfying the Hahn-Banach theorem.
+
+We define an inner product on the dual of an inner product space, using polarization.  We check that
+with this definition the dual space is an inner product space.
 -/
 
 noncomputable theory
@@ -96,3 +100,26 @@ end
 end bidual_isometry
 
 end normed_space
+
+namespace inner_product_space
+open is_R_or_C
+
+variables (𝕜 : Type*)
+variables {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
+
+local notation `𝓚` := @is_R_or_C.of_real 𝕜 _
+
+/-- The dual of an inner product space satisfies the parallelogram identity. -/
+lemma parallelogram_law_with_dual_norm (α β : normed_space.dual 𝕜 E) :
+  ∥α + β∥ * ∥α + β∥ + ∥α - β∥ * ∥α - β∥ = 2 * (∥α∥ * ∥α∥ + ∥β∥ * ∥β∥) :=
+begin
+  -- is this even true? (without the completeness hypothesis on `E`.) Not clear.
+  -- Idea: apply `analysis.normed_space.riesz_lemma` to `ker (r • α + s • β)`, for each `r`, `s`.
+  sorry
+end
+
+/-- The dual of an inner product space is itself an inner product space. -/
+instance dual_inner_product_space : inner_product_space 𝕜 (normed_space.dual 𝕜 E) :=
+inner_product_space.of_norm (parallelogram_law_with_dual_norm 𝕜)
+
+end inner_product_space
