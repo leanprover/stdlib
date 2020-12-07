@@ -353,11 +353,11 @@ else i.pred $
 def sub_nat (m) (i : fin (n + m)) (h : m ≤ (i : ℕ)) : fin n :=
 ⟨(i : ℕ) - m, by { rw [nat.sub_lt_right_iff_lt_add h], exact i.is_lt }⟩
 
-/-- `add_nat i h` adds `m` on `i`, generalizes `fin.succ`. -/
+/-- `add_nat i h` adds `m` to `i`, generalizes `fin.succ`. -/
 def add_nat (m) (i : fin n) : fin (n + m) :=
 ⟨(i : ℕ) + m, add_lt_add_right i.2 _⟩
 
-/-- `nat_add i h` adds `n` on `i` -/
+/-- `nat_add i h` adds `n` to `i` "on the left". -/
 def nat_add (n) {m} (i : fin m) : fin (n + m) :=
 ⟨n + (i : ℕ), add_lt_add_left i.2 _⟩
 
@@ -389,7 +389,10 @@ by cases a; refl
 @[simp] lemma coe_sub_nat (i : fin (n + m)) (h : m ≤ i) : (i.sub_nat m h : ℕ) = i - m :=
 rfl
 
-@[simp] lemma coe_add_nat (i : fin (n + m)) : (i.add_nat m : ℕ) = i + m :=
+@[simp] lemma coe_add_nat (i : fin n) : (i.add_nat m : ℕ) = i + m :=
+rfl
+
+@[simp] lemma coe_nat_add (i : fin n) : (i.nat_add m : ℕ) = m + i :=
 rfl
 
 lemma cast_succ_injective (n : ℕ) : injective (@fin.cast_succ n) :=
@@ -475,7 +478,10 @@ begin
   exact add_lt_add_right h 1,
 end
 
-/-- `min n m` as an element of `fin (m + 1)` -/
+lemma nat_add_zero {n : ℕ} : fin.nat_add 0 = fin.cast (zero_add n).symm :=
+by { ext, apply zero_add }
+
+/-- `min n m` as an element of `fin (m + 1)`. -/
 def clamp (n m : ℕ) : fin (m + 1) := of_nat $ min n m
 
 @[simp] lemma coe_clamp (n m : ℕ) : (clamp n m : ℕ) = min n m :=
@@ -485,29 +491,29 @@ lemma cast_le_injective {n₁ n₂ : ℕ} (h : n₁ ≤ n₂) : injective (fin.c
 | ⟨i₁, h₁⟩ ⟨i₂, h₂⟩ eq := fin.eq_of_veq $ show i₁ = i₂, from fin.veq_of_eq eq
 
 /-- Embedding `i : fin n` into `fin (n + 1)` with a hole around `p : fin (n + 1)`
-embeds `i` by `cast_succ` when the resulting `i.cast_succ < p` -/
+embeds `i` by `cast_succ` when the resulting `i.cast_succ < p`. -/
 lemma succ_above_below (p : fin (n + 1)) (i : fin n) (h : i.cast_succ < p) :
   p.succ_above i = i.cast_succ :=
 by { rw [succ_above], exact if_pos h }
 
-/-- Embedding `fin n` into `fin (n + 1)` with a hole around zero embeds by `succ` -/
+/-- Embedding `fin n` into `fin (n + 1)` with a hole around zero embeds by `succ`. -/
 @[simp] lemma succ_above_zero : succ_above (0 : fin (n + 1)) = fin.succ := rfl
 
-/-- Embedding `fin n` into `fin (n + 1)` with a whole around `last n` embeds by `cast_succ` -/
+/-- Embedding `fin n` into `fin (n + 1)` with a hole around `last n` embeds by `cast_succ`. -/
 @[simp] lemma succ_above_last : succ_above (fin.last n) = cast_succ :=
 by { ext, simp only [succ_above, cast_succ_lt_last, if_true] }
 
 /-- Embedding `i : fin n` into `fin (n + 1)` with a hole around `p : fin (n + 1)`
-embeds `i` by `succ` when the resulting `p < i.succ` -/
+embeds `i` by `succ` when the resulting `p < i.succ`. -/
 lemma succ_above_above (p : fin (n + 1)) (i : fin n) (h : p ≤ i.cast_succ) :
   p.succ_above i = i.succ :=
 by { rw [succ_above], exact if_neg (not_lt_of_le h) }
 
-/-- Embedding `i : fin n` into `fin (n + 1)` is always about some hole `p` -/
+/-- Embedding `i : fin n` into `fin (n + 1)` is always about some hole `p`. -/
 lemma succ_above_lt_ge (p : fin (n + 1)) (i : fin n) : i.cast_succ < p ∨ p ≤ i.cast_succ :=
 lt_or_ge (cast_succ i) p
 
-/-- Embedding `i : fin n` into `fin (n + 1)` is always about some hole `p` -/
+/-- Embedding `i : fin n` into `fin (n + 1)` is always about some hole `p`. -/
 lemma succ_above_lt_gt (p : fin (n + 1)) (i : fin n) : i.cast_succ < p ∨ p < i.succ :=
 or.cases_on (succ_above_lt_ge p i)
   (λ h, or.inl h) (λ h, or.inr (lt_of_le_of_lt h (cast_succ_lt_succ i)))
@@ -646,7 +652,7 @@ end
 
 section rec
 
-/-- Define `C n i` by induction on  `i : fin n` interpreted as `(0 : fin (n - i)).succ.succ…`.
+/-- Define `C n i` by induction on `i : fin n` interpreted as `(0 : fin (n - i)).succ.succ…`.
 This function has two arguments: `H0 n` defines `0`-th element `C (n+1) 0` of an `(n+1)`-tuple,
 and `Hs n i` defines `(i+1)`-st element of `(n+1)`-tuple based on `n`, `i`, and `i`-th element
 of `n`-tuple. -/
@@ -658,7 +664,7 @@ of `n`-tuple. -/
 | (succ n) ⟨0, _⟩      := H0 _
 | (succ n) ⟨succ i, h⟩ := Hs _ _ (succ_rec ⟨i, lt_of_succ_lt_succ h⟩)
 
-/-- Define `C n i` by induction on  `i : fin n` interpreted as `(0 : fin (n - i)).succ.succ…`.
+/-- Define `C n i` by induction on `i : fin n` interpreted as `(0 : fin (n - i)).succ.succ…`.
 This function has two arguments: `H0 n` defines `0`-th element `C (n+1) 0` of an `(n+1)`-tuple,
 and `Hs n i` defines `(i+1)`-st element of `(n+1)`-tuple based on `n`, `i`, and `i`-th element
 of `n`-tuple.
@@ -745,6 +751,8 @@ section tuple
 We can think of the type `Π(i : fin n), α i` as `n`-tuples of elements of possibly varying type
 `α i`. A particular case is `fin n → α` of elements with all the same type. Here are some relevant
 operations, first about adding or removing elements at the beginning of a tuple.
+
+For homogeneous tuples ("vectors") based on `fin n`, see `data.tuple`.
 -/
 
 /-- There is exactly one tuple of size zero. -/
@@ -755,12 +763,12 @@ instance tuple0_unique (α : fin 0 → Type u) : unique (Π i : fin 0, α i) :=
 fin_zero_elim
 
 variables {α : fin (n+1) → Type u} (x : α 0) (q : Πi, α i) (p : Π(i : fin n), α (i.succ))
-(i : fin n) (y : α i.succ) (z : α 0)
+  (i : fin n) (y : α i.succ) (z : α 0)
 
-/-- The tail of an `n+1` tuple, i.e., its last `n` entries -/
+/-- The tail of an `n+1` tuple, i.e., its last `n` entries. -/
 def tail (q : Πi, α i) : (Π(i : fin n), α (i.succ)) := λ i, q i.succ
 
-/-- Adding an element at the beginning of an `n`-tuple, to get an `n+1`-tuple -/
+/-- Adding an element at the beginning of an `n`-tuple, to get an `n+1`-tuple. -/
 def cons (x : α 0) (p : Π(i : fin n), α (i.succ)) : Πi, α i :=
 λ j, fin.cases x p j
 
