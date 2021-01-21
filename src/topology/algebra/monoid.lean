@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import topology.continuous_on
-import group_theory.submonoid.basic
-import algebra.group.prod
-import algebra.pointwise
 
 /-!
 # Theory of topological monoids

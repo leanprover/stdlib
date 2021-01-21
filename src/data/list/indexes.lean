@@ -5,8 +5,6 @@ Authors: Jannis Limperg
 -/
 
 import data.list.basic
-import data.list.defs
-import logic.basic
 
 universes u v
 

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton
 -/
 import topology.category.Top.adjunctions
-import category_theory.epi_mono
 
 universe u
 

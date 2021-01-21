@@ -4,10 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author:  Aaron Anderson.
 -/
 
-import order.complete_boolean_algebra
-import order.order_dual
 import order.lattice_intervals
-import order.rel_iso
 import data.fintype.basic
 
 /-!

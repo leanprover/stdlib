@@ -3,8 +3,6 @@ Copyright (c) 2020 Alena Gusakov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Alena Gusakov.
 -/
-import data.fintype.basic
-import data.sym2
 import combinatorics.simple_graph.basic
 /-!
 # Matchings

@@ -6,7 +6,6 @@ Authors: Patrick Massot, Johannes Hölzl
 import topology.uniform_space.uniform_embedding
 import topology.uniform_space.complete_separated
 import topology.algebra.group
-import tactic.abel
 
 /-!
 # Uniform structure on topological groups

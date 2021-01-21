@@ -5,7 +5,6 @@ Authors: Johan Commelin
 -/
 
 import data.nat.multiplicity
-import ring_theory.witt_vector.basic
 import ring_theory.witt_vector.is_poly
 
 

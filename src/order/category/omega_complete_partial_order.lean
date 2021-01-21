@@ -6,8 +6,6 @@ Author: Simon Hudon
 
 import order.omega_complete_partial_order
 import order.category.Preorder
-import category_theory.limits.shapes.products
-import category_theory.limits.shapes.equalizers
 import category_theory.limits.constructions.limits_of_products_and_equalizers
 
 /-!

@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser, Utensil Song.
 -/
 
-import algebra.ring_quot
-import linear_algebra.tensor_algebra
 import linear_algebra.exterior_algebra
 import linear_algebra.quadratic_form
 

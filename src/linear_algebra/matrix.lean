@@ -3,9 +3,7 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl, Patrick Massot, Casper Putz
 -/
-import linear_algebra.finite_dimensional
 import linear_algebra.nonsingular_inverse
-import linear_algebra.multilinear
 import linear_algebra.dual
 
 /-!

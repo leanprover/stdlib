@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp
 -/
 import algebra.module.pi
-import algebra.big_operators.basic
 
 /-!
 # Basic properties of holors

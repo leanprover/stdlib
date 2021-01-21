@@ -5,7 +5,6 @@ Authors: Kevin Kappelmann
 -/
 import data.stream.basic
 import tactic
-import data.nat.gcd
 /-!
 # The Fibonacci Sequence
 

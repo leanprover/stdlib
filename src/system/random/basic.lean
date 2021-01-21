@@ -6,17 +6,10 @@ Author(s): Simon Hudon
 
 import algebra.group_power
 import control.uliftable
-import control.monad.basic
 
 import data.bitvec.basic
-import data.list.basic
-import data.set.intervals.basic
 import data.stream.basic
-import data.fin
 
-import tactic.cache
-import tactic.interactive
-import tactic.norm_num
 
 import system.io
 import system.random

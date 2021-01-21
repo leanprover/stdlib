@@ -5,7 +5,6 @@ Authors: Johan Commelin, Robert Y. Lewis
 -/
 
 import algebra.invertible
-import data.mv_polynomial.variables
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.expand
 import data.zmod.basic

@@ -7,8 +7,6 @@ Type class for encodable Types.
 Note that every encodable Type is countable.
 -/
 import data.equiv.nat
-import order.rel_iso
-import order.directed
 
 open option list nat function
 

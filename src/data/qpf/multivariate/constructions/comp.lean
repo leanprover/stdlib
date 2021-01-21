@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad, Simon Hudon
 -/
 
-import data.pfunctor.multivariate.basic
 import data.qpf.multivariate.basic
 
 /-!

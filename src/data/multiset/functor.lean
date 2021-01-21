@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro, Johannes Hölzl, Simon Hudon, Kenny Lau
 -/
 import data.multiset.basic
-import control.traversable.lemmas
 import control.traversable.instances
 
 /-!

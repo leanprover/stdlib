@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
 import topology.instances.nnreal
-import topology.algebra.module
 import topology.metric_space.antilipschitz
 
 /-!

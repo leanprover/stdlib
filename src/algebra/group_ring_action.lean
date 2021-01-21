@@ -5,7 +5,6 @@ Authors: Kenny Lau
 -/
 
 import group_theory.group_action.group
-import data.equiv.ring
 import deprecated.subring
 
 /-!

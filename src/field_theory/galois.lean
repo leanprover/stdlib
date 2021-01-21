@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning and Patrick Lutz
 -/
 
-import field_theory.normal
 import field_theory.primitive_element
 import field_theory.fixed
-import ring_theory.power_basis
 
 /-!
 # Galois Extensions

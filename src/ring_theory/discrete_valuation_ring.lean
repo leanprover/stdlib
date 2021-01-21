@@ -5,8 +5,6 @@ Authors: Kevin Buzzard
 -/
 
 import ring_theory.principal_ideal_domain
-import order.conditionally_complete_lattice
-import ring_theory.multiplicity
 import ring_theory.valuation.basic
 
 /-!

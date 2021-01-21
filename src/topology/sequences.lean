@@ -3,8 +3,6 @@ Copyright (c) 2018 Jan-David Salchow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow, Patrick Massot
 -/
-import topology.bases
-import topology.subset_properties
 import topology.metric_space.basic
 
 /-!

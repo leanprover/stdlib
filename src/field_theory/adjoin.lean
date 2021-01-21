@@ -5,7 +5,6 @@ Authors: Thomas Browning and Patrick Lutz
 -/
 
 import field_theory.intermediate_field
-import field_theory.splitting_field
 import field_theory.separable
 
 /-!

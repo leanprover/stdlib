@@ -3,7 +3,6 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Patrick Stevens
 -/
-import data.nat.choose.basic
 import tactic.linarith
 import tactic.omega
 import algebra.big_operators.ring

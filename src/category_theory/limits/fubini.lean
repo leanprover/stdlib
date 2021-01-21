@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.limits
-import category_theory.products.basic
 import category_theory.currying
 
 /-!

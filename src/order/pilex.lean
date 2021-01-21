@@ -5,7 +5,6 @@ Authors: Chris Hughes
 -/
 import algebra.ordered_pi
 import order.well_founded
-import algebra.order_functions
 
 variables {ι : Type*} {β : ι → Type*} (r : ι → ι → Prop)
   (s : Π {i}, β i → β i → Prop)

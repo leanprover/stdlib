@@ -5,7 +5,6 @@ Authors: Joe Hendrix, Sebastian Ullrich
 -/
 
 import data.vector2
-import data.nat.basic
 
 /-!
 # Basic operations on bitvectors

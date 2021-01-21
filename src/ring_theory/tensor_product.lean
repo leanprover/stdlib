@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 
-import linear_algebra.tensor_product
 import algebra.algebra.basic
 
 universes u v₁ v₂ v₃ v₄

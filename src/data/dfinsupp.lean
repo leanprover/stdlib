@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Kenny Lau
 -/
 import algebra.module.linear_map
 import algebra.module.pi
-import algebra.big_operators.basic
 import data.set.finite
 
 /-!

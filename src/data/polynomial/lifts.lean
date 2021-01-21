@@ -7,7 +7,6 @@ Author: Riccardo Brasca
 import data.polynomial.algebra_map
 import algebra.algebra.subalgebra
 import algebra.polynomial.big_operators
-import data.polynomial.erase_lead
 
 /-!
 # Polynomials that lift

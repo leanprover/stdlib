@@ -5,7 +5,6 @@ Authors: Kenny Lau, Ken Lee, Chris Hughes
 -/
 import tactic.ring
 import algebra.big_operators.basic
-import data.fintype.basic
 import data.int.gcd
 import data.set.disjointed
 

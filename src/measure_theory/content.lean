@@ -3,10 +3,7 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
-import measure_theory.measure_space
 import measure_theory.borel_space
-import topology.opens
-import topology.compacts
 
 /-!
 # Contents

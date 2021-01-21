@@ -5,7 +5,6 @@ Author: Simon Hudon
 
 Instances for identity and composition functors
 -/
-import control.functor
 import algebra.group.basic
 
 universe variables u v w

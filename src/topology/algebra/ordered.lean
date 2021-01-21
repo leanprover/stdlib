@@ -6,11 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 import tactic.linarith
 import tactic.tfae
 import algebra.archimedean
-import algebra.group.pi
-import algebra.ordered_ring
 import order.liminf_limsup
-import data.set.intervals.image_preimage
-import data.set.intervals.ord_connected
 import data.set.intervals.surj_on
 import data.set.intervals.pi
 import topology.algebra.group

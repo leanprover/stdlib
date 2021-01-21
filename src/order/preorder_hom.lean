@@ -8,9 +8,6 @@ Authors: Johan Commelin
 Bundled monotone functions, `x ≤ y → f x ≤ f y`.
 -/
 
-import order.basic
-import order.bounded_lattice
-import order.complete_lattice
 import tactic.monotonicity
 
 /-! # Category of preorders -/

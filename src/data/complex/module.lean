@@ -6,7 +6,6 @@ Authors: Alexander Bentkamp, Sébastien Gouëzel
 import data.complex.basic
 import data.matrix.notation
 import field_theory.tower
-import linear_algebra.finite_dimensional
 
 /-!
 # Complex number as a vector space over `ℝ`

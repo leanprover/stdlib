@@ -5,7 +5,6 @@ Authors: Yury Kudryashov, Frédéric Dupuis
 -/
 import linear_algebra.linear_pmap
 import analysis.convex.basic
-import order.zorn
 
 /-!
 # Convex cones

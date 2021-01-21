@@ -3,11 +3,7 @@ Copyright (c) 2020 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author(s): Simon Hudon
 -/
-import control.monad.basic
 import control.monad.cont
-import control.monad.writer
-import data.equiv.basic
-import tactic.interactive
 
 /-!
 # Universe lifting for type families

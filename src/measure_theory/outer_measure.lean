@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import analysis.specific_limits
 import measure_theory.measurable_space
-import topology.algebra.infinite_sum
 
 /-!
 # Outer Measures

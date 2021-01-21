@@ -5,7 +5,6 @@ Authors : Ashvni Narayanan
 -/
 
 import deprecated.subring
-import group_theory.subgroup
 import ring_theory.subsemiring
 
 /-!

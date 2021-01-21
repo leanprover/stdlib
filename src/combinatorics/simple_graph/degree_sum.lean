@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Kyle Miller
 -/
 import combinatorics.simple_graph.basic
-import algebra.big_operators.basic
-import data.nat.parity
 import data.zmod.parity
 import tactic.omega
 /-!

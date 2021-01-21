@@ -3,10 +3,8 @@ Copyright (c) 2020 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
-import algebra.group.pi
 import group_theory.group_action
 import data.support
-import data.finset.lattice
 
 /-!
 # Indicator function

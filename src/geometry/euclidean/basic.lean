@@ -4,11 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Myers.
 -/
 import analysis.normed_space.inner_product
-import algebra.quadratic_discriminant
-import analysis.normed_space.add_torsor
-import data.matrix.notation
 import linear_algebra.affine_space.finite_dimensional
-import tactic.fin_cases
 
 noncomputable theory
 open_locale big_operators

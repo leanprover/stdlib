@@ -5,7 +5,6 @@ Authors: Thomas Browning and Patrick Lutz
 -/
 
 import field_theory.adjoin
-import field_theory.separable
 
 /-!
 # Primitive Element Theorem

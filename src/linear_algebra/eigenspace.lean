@@ -5,8 +5,6 @@ Author: Alexander Bentkamp.
 -/
 
 import field_theory.algebraic_closure
-import linear_algebra.finsupp
-import linear_algebra.matrix
 
 /-!
 # Eigenvectors and eigenvalues

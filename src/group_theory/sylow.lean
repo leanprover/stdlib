@@ -5,10 +5,7 @@ Authors: Chris Hughes
 -/
 import group_theory.group_action
 import group_theory.quotient_group
-import group_theory.order_of_element
 import data.zmod.basic
-import data.fintype.card
-import data.list.rotate
 
 open equiv fintype finset mul_action function
 open equiv.perm subgroup list quotient_group

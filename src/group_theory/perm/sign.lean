@@ -3,9 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.fintype.basic
 import data.finset.sort
-import group_theory.perm.basic
 import group_theory.order_of_element
 
 /-!

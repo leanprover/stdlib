@@ -5,7 +5,6 @@ Author: Joseph Myers.
 -/
 import linear_algebra.affine_space.basic
 import linear_algebra.tensor_product
-import data.set.intervals.unordered_interval
 
 /-!
 # Affine maps

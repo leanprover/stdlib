@@ -7,7 +7,6 @@ Authors: Johan Commelin
 import field_theory.finite.basic
 import field_theory.mv_polynomial
 import data.mv_polynomial.expand
-import linear_algebra.basic
 
 /-!
 ## Polynomials over finite fields

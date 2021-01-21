@@ -5,8 +5,6 @@ Author: Andreas Swerdlow
 -/
 
 import linear_algebra.matrix
-import linear_algebra.tensor_product
-import linear_algebra.nonsingular_inverse
 
 /-!
 # Bilinear form

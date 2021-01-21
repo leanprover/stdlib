@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.calculus.times_cont_diff
-import analysis.normed_space.finite_dimension
 
 /-!
 # Normed space structure on `ℂ`.

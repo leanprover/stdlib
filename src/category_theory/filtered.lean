@@ -6,7 +6,6 @@ Authors: Reid Barton
 import category_theory.fin_category
 import category_theory.limits.cones
 import category_theory.adjunction.basic
-import order.bounded_lattice
 
 /-!
 # Filtered categories

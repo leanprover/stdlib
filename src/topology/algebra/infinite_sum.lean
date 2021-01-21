@@ -5,10 +5,7 @@ Authors: Johannes Hölzl
 -/
 import algebra.big_operators.intervals
 import topology.instances.real
-import topology.algebra.module
-import data.indicator_function
 import data.equiv.encodable.lattice
-import order.filter.at_top_bot
 
 /-!
 # Infinite sum over a topological monoid

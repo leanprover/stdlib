@@ -8,8 +8,6 @@ import data.matrix.basic
 import data.equiv.ring_aut
 import linear_algebra.tensor_product
 import ring_theory.subring
-import deprecated.subring
-import algebra.opposites
 
 /-!
 # Algebra over Commutative Semiring

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import algebra.algebra.tower
 import algebra.invertible
 import linear_algebra.basis
 import ring_theory.adjoin

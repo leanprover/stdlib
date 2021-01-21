@@ -7,7 +7,6 @@ Free abelian groups as abelianization of free groups.
 
 -- TODO: rewrite in terms of finsupp
 -/
-import algebra.group.pi
 import group_theory.free_group
 import group_theory.abelianization
 

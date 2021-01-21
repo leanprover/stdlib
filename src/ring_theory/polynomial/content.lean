@@ -5,7 +5,6 @@ Author: Aaron Anderson
 -/
 import data.finset.gcd
 import data.polynomial
-import data.polynomial.erase_lead
 import data.polynomial.cancel_leads
 
 /-!

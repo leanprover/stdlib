@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Heather Macbeth.
 -/
 import analysis.calculus.times_cont_diff
-import topology.local_homeomorph
 import topology.metric_space.contracting
 
 /-!

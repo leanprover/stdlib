@@ -3,8 +3,6 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johan Commelin
 -/
-import ring_theory.integral_closure
-import data.polynomial.field_division
 import ring_theory.polynomial.gauss_lemma
 
 /-!

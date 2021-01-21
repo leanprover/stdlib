@@ -6,9 +6,6 @@ Authors: Ellen Arlt, Blair Shi, Sean Leather, Mario Carneiro, Johan Commelin
 import algebra.big_operators.pi
 import algebra.module.pi
 import algebra.module.linear_map
-import algebra.big_operators.ring
-import algebra.star.basic
-import data.equiv.ring
 import data.fintype.card
 
 /-!

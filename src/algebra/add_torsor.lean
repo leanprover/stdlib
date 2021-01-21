@@ -3,12 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Yury Kudryashov.
 -/
-import algebra.group.prod
-import algebra.group.type_tags
-import algebra.group.pi
 import algebra.pointwise
-import data.equiv.basic
-import data.set.finite
 
 /-!
 # Torsors of additive group actions

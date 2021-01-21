@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin, Patrick Massot
 -/
 
-import algebra.ordered_group
 import algebra.group_with_zero
 import algebra.group_with_zero.power
 import tactic.abel

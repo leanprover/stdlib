@@ -3,9 +3,7 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury Kudryashov
 -/
-import topology.instances.real_vector_space
 import analysis.normed_space.add_torsor
-import linear_algebra.affine_space.midpoint
 
 /-!
 # Mazur-Ulam Theorem

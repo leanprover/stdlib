@@ -3,13 +3,11 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
-import algebraic_geometry.prime_spectrum
 import algebra.category.CommRing.colimits
 import algebra.category.CommRing.limits
 import topology.sheaves.local_predicate
 import topology.sheaves.forget
 import ring_theory.localization
-import ring_theory.subring
 
 /-!
 # The structure sheaf on `prime_spectrum R`.

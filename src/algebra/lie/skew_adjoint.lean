@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import algebra.lie.basic
-import linear_algebra.bilinear_form
 
 /-!
 # Lie algebras of skew-adjoint endomorphisms of a bilinear form

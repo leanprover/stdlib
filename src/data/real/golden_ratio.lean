@@ -6,7 +6,6 @@ Authors: Anatole Dedecker, Alexey Soloyev, Junyan Xu
 import data.real.irrational
 import data.nat.fib
 import data.matrix.notation
-import tactic.ring_exp
 import algebra.linear_recurrence
 
 /-!

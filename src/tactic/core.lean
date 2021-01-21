@@ -6,7 +6,6 @@ Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 import data.dlist.basic
 import logic.function.basic
 import control.basic
-import meta.expr
 import meta.rb_map
 import data.bool
 import tactic.binder_matching

@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import ring_theory.noetherian
-import ring_theory.ideal.operations
 import ring_theory.algebra_tower
 
 /-!

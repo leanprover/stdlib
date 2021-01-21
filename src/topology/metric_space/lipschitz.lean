@@ -6,7 +6,6 @@ Authors: Rohan Mitta, Kevin Buzzard, Alistair Tucker, Johannes Hölzl, Yury Kudr
 import logic.function.iterate
 import topology.metric_space.basic
 import category_theory.endomorphism
-import category_theory.types
 
 /-!
 # Lipschitz continuous functions

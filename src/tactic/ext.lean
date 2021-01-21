@@ -5,7 +5,6 @@ Authors: Simon Hudon, Jesse Michael Han
 -/
 import tactic.rcases
 import data.sum
-import logic.function.basic
 
 universes u₁ u₂
 

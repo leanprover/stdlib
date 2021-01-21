@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shing Tak Lam
 -/
 import data.zmod.basic
-import group_theory.order_of_element
 
 /-!
 # Dihedral Groups

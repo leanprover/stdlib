@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Jeremy Avigad
 -/
 import order.zorn
 import order.copy
-import data.set.finite
 import tactic.monotonicity
 
 /-!

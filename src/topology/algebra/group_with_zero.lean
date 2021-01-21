@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury G. Kudryashov
 -/
 import topology.algebra.monoid
-import algebra.group.pi
 
 /-!
 # Topological group with zero

@@ -5,7 +5,6 @@ Author: Kenny Lau.
 -/
 
 import ring_theory.polynomial
-import algebra.big_operators.basic
 
 /-!
 # Lagrange interpolation

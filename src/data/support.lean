@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import order.conditionally_complete_lattice
-import algebra.big_operators.basic
-import algebra.group.prod
-import algebra.group.pi
 
 /-!
 # Support of a function

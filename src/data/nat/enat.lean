@@ -5,7 +5,6 @@ Authors: Chris Hughes
 -/
 import data.pfun
 import tactic.norm_num
-import data.equiv.mul_add
 
 /-!
 # Natural numbers with infinity

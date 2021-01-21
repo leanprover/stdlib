@@ -5,7 +5,6 @@ Authors: Johan Commelin
 -/
 
 import data.mv_polynomial
-import data.fintype.card
 
 /-!
 # Homogeneous polynomials

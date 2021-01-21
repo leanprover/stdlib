@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import topology.sheaves.sheaf_condition.equalizer_products
-import category_theory.full_subcategory
 
 /-!
 # Sheaves

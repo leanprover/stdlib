@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
 import data.padics.padic_integers
-import topology.metric_space.cau_seq_filter
 import analysis.specific_limits
 import data.polynomial.identities
 import topology.algebra.polynomial

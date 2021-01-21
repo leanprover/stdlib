@@ -6,11 +6,8 @@ Authors: Chris Hughes
 Definition of splitting fields, and definition of homomorphism into any field that splits
 -/
 import ring_theory.adjoin_root
-import ring_theory.algebra_tower
-import ring_theory.algebraic
 import ring_theory.polynomial
 import field_theory.minpoly
-import linear_algebra.finite_dimensional
 import tactic.field_simp
 
 noncomputable theory

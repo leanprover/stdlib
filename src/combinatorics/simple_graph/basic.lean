@@ -3,7 +3,6 @@ Copyright (c) 2020 Aaron Anderson, Jalex Stark, Kyle Miller. All rights reserved
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov
 -/
-import data.fintype.basic
 import data.sym2
 import data.set.finite
 /-!

@@ -5,7 +5,6 @@ Authors: Johan Commelin
 -/
 
 import data.fintype.sort
-import data.fin
 import order.category.LinearOrder
 
 /-! # Nonempty finite linear orders

@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Devon Tuma
 -/
 
-import group_theory.submonoid.operations
 import group_theory.submonoid.membership
 
 /-!

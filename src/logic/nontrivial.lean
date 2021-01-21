@@ -6,7 +6,6 @@ Authors: Sébastien Gouëzel
 import data.pi
 import data.prod
 import logic.unique
-import logic.function.basic
 
 /-!
 # Nontrivial types

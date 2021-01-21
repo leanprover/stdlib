@@ -5,7 +5,6 @@ Authors: Bhavik Mehta
 -/
 
 import topology.opens
-import category_theory.sites.grothendieck
 import category_theory.sites.pretopology
 import category_theory.limits.lattice
 

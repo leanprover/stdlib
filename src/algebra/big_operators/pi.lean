@@ -5,8 +5,6 @@ Authors: Simon Hudon, Patrick Massot
 -/
 import algebra.ring.pi
 import algebra.big_operators.basic
-import data.fintype.basic
-import algebra.group.prod
 /-!
 # Big operators for Pi Types
 

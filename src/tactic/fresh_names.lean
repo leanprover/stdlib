@@ -5,7 +5,6 @@ Author: Jannis Limperg
 -/
 
 import data.sum
-import meta.rb_map
 import tactic.dependencies
 
 /-!

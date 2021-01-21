@@ -6,7 +6,6 @@ Authors: Anne Baanen
 Notation for vectors and matrices
 -/
 
-import data.fintype.card
 import data.matrix.basic
 import tactic.fin_cases
 

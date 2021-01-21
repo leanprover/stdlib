@@ -7,7 +7,6 @@ Case bashing:
 * on `x ∈ A`, for `A : finset α` or `A : list α`, or
 * on `x : A`, with `[fintype A]`.
 -/
-import data.fintype.basic
 import tactic.norm_num
 
 namespace tactic

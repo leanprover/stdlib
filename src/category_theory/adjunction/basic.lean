@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Johan Commelin, Bhavik Mehta
 -/
 import category_theory.equivalence
-import data.equiv.basic
 
 namespace category_theory
 open category

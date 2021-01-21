@@ -6,7 +6,6 @@ Author: Anne Baanen
 
 import algebra.invertible
 import linear_algebra.bilinear_form
-import linear_algebra.determinant
 import linear_algebra.special_linear_group
 
 /-!

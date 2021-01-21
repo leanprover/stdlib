@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import geometry.manifold.algebra.smooth_functions
-import linear_algebra.finite_dimensional
 import analysis.normed_space.inner_product
 
 /-!

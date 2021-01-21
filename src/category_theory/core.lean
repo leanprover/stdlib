@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import category_theory.groupoid
 import control.equiv_functor
-import category_theory.types
 
 namespace category_theory
 

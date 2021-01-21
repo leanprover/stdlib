@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzza
 Amelia Livingston, Yury Kudryashov
 -/
 import group_theory.submonoid.operations
-import algebra.big_operators.basic
 import algebra.free_monoid
 
 /-!

@@ -3,8 +3,6 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.algebra.basic
-import algebra.algebra.subalgebra
 import algebra.free_algebra
 import algebra.category.CommRing.basic
 import algebra.category.Module.basic

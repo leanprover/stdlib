@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import group_theory.group_action.defs
-import algebra.group.units
 import algebra.group_with_zero
-import data.equiv.mul_add
 import group_theory.perm.basic
 
 /-!

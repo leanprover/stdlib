@@ -6,7 +6,6 @@ Authors: Devon Tuma
 import data.mv_polynomial
 import ring_theory.ideal.over
 import ring_theory.jacobson_ideal
-import ring_theory.localization
 
 /-!
 # Jacobson Rings

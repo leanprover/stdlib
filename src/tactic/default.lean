@@ -18,7 +18,6 @@ As (non-exhaustive) examples, these includes things like:
 * order.complete_lattice
 -/
 import tactic.basic -- ensure basic tactics are available
-import tactic.abel
 import tactic.ring_exp
 import tactic.noncomm_ring
 import tactic.linarith
@@ -31,7 +30,5 @@ import tactic.slice
 import tactic.subtype_instance
 import tactic.derive_fintype
 import tactic.group
-import tactic.cancel_denoms
-import tactic.zify
 import tactic.transport
 import tactic.unfold_cases

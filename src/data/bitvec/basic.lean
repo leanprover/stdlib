@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author(s): Simon Hudon
 -/
 import data.bitvec.core
-import data.fin
 import tactic.norm_num
 import tactic.monotonicity
 

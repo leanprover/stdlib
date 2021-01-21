@@ -3,7 +3,6 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Bhavik Mehta
 -/
-import category_theory.adjunction.basic
 import category_theory.conj
 import category_theory.yoneda
 

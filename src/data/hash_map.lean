@@ -7,7 +7,6 @@ import data.pnat.basic
 import data.list.range
 import data.array.lemmas
 import algebra.group
-import data.sigma.basic
 
 /-!
 # Hash maps

@@ -6,7 +6,6 @@ Authors: Floris van Doorn
 import set_theory.cardinal_ordinal
 import analysis.specific_limits
 import data.rat.denumerable
-import data.set.intervals.image_preimage
 /-!
 # The cardinality of the reals
 

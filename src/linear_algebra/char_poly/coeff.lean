@@ -6,9 +6,6 @@ Author: Aaron Anderson, Jalex Stark.
 
 import data.matrix.char_p
 import linear_algebra.char_poly.basic
-import linear_algebra.matrix
-import ring_theory.polynomial.basic
-import algebra.polynomial.big_operators
 import group_theory.perm.cycles
 import field_theory.finite.basic
 

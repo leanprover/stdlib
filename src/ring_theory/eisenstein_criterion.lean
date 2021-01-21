@@ -5,7 +5,6 @@ Authors: Chris Hughes
 -/
 import ring_theory.ideal.operations
 import data.polynomial.ring_division
-import tactic.apply_fun
 import ring_theory.prime
 /-!
 # Eisenstein's criterion

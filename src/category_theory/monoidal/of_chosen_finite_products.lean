@@ -5,8 +5,6 @@ Authors: Scott Morrison, Simon Hudon
 -/
 import category_theory.monoidal.braided
 import category_theory.limits.shapes.binary_products
-import category_theory.limits.shapes.terminal
-import category_theory.pempty
 
 /-!
 # The monoidal structure on a category with chosen finite products.

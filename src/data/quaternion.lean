@@ -5,8 +5,6 @@ Authors: Yury Kudryashov
 -/
 import tactic.ring_exp
 import algebra.algebra.basic
-import algebra.opposites
-import data.equiv.ring
 
 /-!
 # Quaternions

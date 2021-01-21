@@ -6,7 +6,6 @@ Authors: Bhavik Mehta, Thomas Read
 
 import category_theory.adjunction.basic
 import category_theory.yoneda
-import category_theory.opposites
 
 /-!
 # Opposite adjunctions

@@ -5,7 +5,6 @@ Author: Simon Hudon
 -/
 import tactic.monotonicity.basic
 import data.set.lattice
-import order.bounds
 
 variables {α : Type*}
 

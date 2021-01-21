@@ -7,7 +7,6 @@ Authors: Frédéric Dupuis
 import algebra.module.pi
 import algebra.ordered_pi
 import algebra.module.prod
-import algebra.ordered_field
 
 /-!
 # Ordered semimodules

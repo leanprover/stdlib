@@ -7,7 +7,6 @@ import tactic.ring_exp
 import tactic.interval_cases
 import data.nat.parity
 import data.zmod.basic
-import group_theory.order_of_element
 import ring_theory.fintype
 
 /-!

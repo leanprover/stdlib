@@ -5,13 +5,6 @@ Authors: Johan Commelin
 -/
 
 import data.nat.parity
-import data.polynomial.ring_division
-import group_theory.order_of_element
-import ring_theory.integral_domain
-import number_theory.divisors
-import data.zmod.basic
-import tactic.zify
-import field_theory.separable
 import field_theory.finite.basic
 
 /-!

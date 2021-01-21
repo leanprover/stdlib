@@ -5,7 +5,6 @@ Authors: Scott Morrison, Simon Hudon
 -/
 import category_theory.monoidal.braided
 import category_theory.limits.shapes.binary_products
-import category_theory.limits.shapes.terminal
 
 /-!
 # The natural monoidal structure on any category with finite (co)products.

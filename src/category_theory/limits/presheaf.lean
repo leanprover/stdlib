@@ -6,8 +6,6 @@ Authors: Bhavik Mehta
 import category_theory.adjunction
 import category_theory.elements
 import category_theory.limits.functor_category
-import category_theory.limits.preserves.limits
-import category_theory.limits.shapes.terminal
 import category_theory.limits.types
 
 /-!

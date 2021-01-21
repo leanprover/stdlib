@@ -1,2 +1,1 @@
-import order.boolean_algebra
 import order.complete_lattice

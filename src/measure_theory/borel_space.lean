@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import measure_theory.measure_space
 import analysis.complex.basic
-import analysis.normed_space.finite_dimension
 import topology.G_delta
 
 /-!

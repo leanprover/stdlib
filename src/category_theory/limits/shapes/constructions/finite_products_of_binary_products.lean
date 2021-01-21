@@ -4,11 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 import category_theory.limits.shapes.finite_products
-import category_theory.limits.shapes.binary_products
 import category_theory.limits.preserves.shapes.products
 import category_theory.limits.preserves.shapes.binary_products
-import category_theory.limits.shapes.pullbacks
-import category_theory.pempty
 import data.equiv.fin
 
 /-!

@@ -3,10 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johannes Hölzl
 -/
-import measure_theory.measure_space
 import measure_theory.borel_space
-import data.indicator_function
-import data.support
 
 /-!
 # Lebesgue integral for `ennreal`-valued functions

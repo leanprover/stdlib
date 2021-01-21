@@ -6,7 +6,6 @@ Authors: Yury Kudryashov
 
 import algebra.ring.prod
 import group_theory.submonoid
-import data.equiv.ring
 
 /-!
 # Bundled subsemirings

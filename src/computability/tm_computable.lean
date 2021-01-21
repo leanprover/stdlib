@@ -6,7 +6,6 @@ Authors: Pim Spelier, Daan van Gent.
 
 import computability.encoding
 import computability.turing_machine
-import data.polynomial.basic
 import data.polynomial.eval
 
 /-!

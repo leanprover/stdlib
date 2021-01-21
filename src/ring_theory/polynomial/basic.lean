@@ -18,7 +18,6 @@ Authors: Kenny Lau
 import algebra.char_p.basic
 import data.mv_polynomial.comm_ring
 import data.mv_polynomial.equiv
-import data.polynomial.field_division
 import ring_theory.principal_ideal_domain
 import ring_theory.polynomial.content
 

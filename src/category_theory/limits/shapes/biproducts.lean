@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.finite_products
-import category_theory.limits.shapes.binary_products
 import category_theory.preadditive
 
 /-!

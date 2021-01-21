@@ -4,13 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Kenny Lau, Joey van Langen, Casper Putz
 -/
 
-import data.fintype.basic
 import data.nat.choose
 import data.int.modeq
 import algebra.module.basic
 import algebra.iterate_hom
 import group_theory.order_of_element
-import algebra.group.type_tags
 
 /-!
 # Characteristic of semirings

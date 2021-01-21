@@ -6,7 +6,6 @@ Authors: Bhavik Mehta
 
 import category_theory.sites.pretopology
 import category_theory.limits.shapes.types
-import category_theory.full_subcategory
 
 /-!
 # Sheaves of types on a Grothendieck topology

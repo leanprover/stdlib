@@ -3,7 +3,6 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury G. Kudryashov
 -/
-import analysis.convex.basic
 import measure_theory.set_integral
 
 /-!

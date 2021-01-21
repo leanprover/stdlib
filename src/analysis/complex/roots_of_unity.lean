@@ -5,7 +5,6 @@ Authors: Johan Commelin
 -/
 
 import ring_theory.roots_of_unity
-import analysis.special_functions.trigonometric
 import analysis.special_functions.pow
 
 /-!

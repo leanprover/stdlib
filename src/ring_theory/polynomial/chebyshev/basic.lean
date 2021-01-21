@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import ring_theory.polynomial.chebyshev.defs
 import analysis.special_functions.trigonometric
 import ring_theory.localization
 import data.zmod.basic
-import algebra.invertible
 
 /-!
 # Chebyshev polynomials

@@ -13,10 +13,8 @@ a proof that every natural number is the sum of four square numbers.
 The proof used is close to Lagrange's original proof.
 -/
 import algebra.group_power.identities
-import data.zmod.basic
 import field_theory.finite.basic
 import data.int.parity
-import data.fintype.card
 
 open finset polynomial finite_field equiv
 open_locale big_operators

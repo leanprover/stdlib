@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import data.polynomial.monic
-import algebra.group_ring_action
-import algebra.group_action_hom
 
 /-!
 # Group action on rings applied to polynomials

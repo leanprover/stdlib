@@ -5,8 +5,6 @@ Authors: Bhavik Mehta
 -/
 
 import category_theory.closed.cartesian
-import category_theory.limits.preserves.shapes.binary_products
-import category_theory.adjunction.fully_faithful
 
 /-!
 # Cartesian closed functors

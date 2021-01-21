@@ -3,10 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Scott Morrison
 -/
-import algebra.group.pi
 import algebra.big_operators.order
-import algebra.module.basic
-import group_theory.submonoid.basic
 import data.fintype.card
 import data.finset.preimage
 import data.multiset.antidiagonal

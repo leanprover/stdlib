@@ -7,7 +7,6 @@ Basic topological facts (limits and continuity) about `floor`,
 `ceil` and `fract` in a `floor_ring`.
 -/
 import topology.algebra.ordered
-import algebra.floor
 
 open set function filter
 open_locale topological_space

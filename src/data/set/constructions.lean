@@ -5,7 +5,6 @@ Authors: Adam Topaz
 -/
 
 import tactic
-import data.finset.basic
 
 /-!
 # Constructions involving sets of sets.

@@ -5,7 +5,6 @@ Authors: Oliver Nash
 -/
 import algebra.invertible
 import algebra.lie.skew_adjoint
-import linear_algebra.matrix
 
 /-!
 # Classical Lie algebras

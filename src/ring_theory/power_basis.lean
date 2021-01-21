@@ -4,10 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen
 -/
 import field_theory.adjoin
-import field_theory.minpoly
-import ring_theory.adjoin
-import ring_theory.adjoin_root
-import ring_theory.algebraic
 
 /-!
 # Power basis

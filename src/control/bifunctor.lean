@@ -5,9 +5,7 @@ Author: Simon Hudon
 
 Functors with two arguments
 -/
-import logic.function.basic
 import control.functor
-import tactic.core
 
 universes u₀ u₁ u₂ v₀ v₁ v₂
 

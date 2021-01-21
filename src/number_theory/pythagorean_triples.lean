@@ -3,11 +3,7 @@ Copyright (c) 2020 Paul van Wamelen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Paul van Wamelen.
 -/
-import algebra.field
 import ring_theory.int.basic
-import algebra.group_with_zero.power
-import tactic.ring
-import tactic.ring_exp
 import tactic.field_simp
 
 /-!

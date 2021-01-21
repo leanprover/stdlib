@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import data.nat.choose.sum
-import data.equiv.ring
-import algebra.algebra.operations
 import ring_theory.ideal.basic
 import algebra.algebra.tower
 /-!

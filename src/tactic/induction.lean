@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jannis Limperg
 -/
 
-import tactic.dependencies
 import tactic.fresh_names
 import tactic.generalizes
 import tactic.has_variable_names

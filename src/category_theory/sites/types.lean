@@ -5,7 +5,6 @@ Authors: Kenny Lau
 -/
 
 import category_theory.sites.canonical
-import category_theory.sites.sheaf_of_types
 
 /-!
 # Grothendieck Topology and Sheaves on the Category of Types

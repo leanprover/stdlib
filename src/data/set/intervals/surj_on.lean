@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Heather Macbeth
 -/
 import data.set.intervals.basic
-import data.set.function
 
 /-!
 # Monotone surjective functions are surjective on intervals

@@ -5,7 +5,6 @@ Authors: Reid Barton, Mario Carneiro, Scott Morrison, Floris van Doorn
 -/
 import category_theory.adjunction.basic
 import category_theory.limits.cones
-import category_theory.reflects_isomorphisms
 
 /-!
 # Limits and colimits

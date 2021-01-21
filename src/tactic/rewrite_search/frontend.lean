@@ -5,7 +5,6 @@ Authors: Keeley Hoek, Scott Morrison
 -/
 
 import tactic.rewrite_search.explain
-import tactic.rewrite_search.discovery
 import tactic.rewrite_search.search
 
 /-!

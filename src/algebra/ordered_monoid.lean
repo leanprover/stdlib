@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 -/
 import algebra.group.with_one
-import algebra.group.type_tags
 import algebra.group.prod
 import algebra.order_functions
-import order.bounded_lattice
 
 /-!
 # Ordered monoids

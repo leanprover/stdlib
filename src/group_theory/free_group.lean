@@ -13,7 +13,6 @@ and proof that its join is an equivalence relation.
 
 Then we introduce `free_group α` as a quotient over `free_group.red.step`.
 -/
-import data.fintype.basic
 import group_theory.subgroup
 open relation
 

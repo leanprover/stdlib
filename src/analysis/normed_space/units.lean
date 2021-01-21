@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Heather Macbeth
 -/
 import analysis.specific_limits
-import analysis.asymptotics
 
 /-!
 # The group of units of a complete normed ring

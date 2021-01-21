@@ -4,13 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta, Edward Ayers, Thomas Read
 -/
 
-import category_theory.limits.shapes.finite_products
-import category_theory.limits.preserves.shapes.binary_products
 import category_theory.closed.monoidal
 import category_theory.monoidal.of_has_finite_products
 import category_theory.adjunction
 import category_theory.adjunction.mates
-import category_theory.epi_mono
 
 /-!
 # Cartesian closed categories

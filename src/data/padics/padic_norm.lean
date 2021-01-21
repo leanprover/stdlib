@@ -5,10 +5,7 @@ Authors: Robert Y. Lewis
 -/
 import ring_theory.int.basic
 import algebra.field_power
-import ring_theory.multiplicity
 import data.real.cau_seq
-import tactic.ring_exp
-import tactic.basic
 
 /-!
 # p-adic norm

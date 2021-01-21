@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ruben Van de Velde
 -/
 
-import analysis.complex.basic
-import analysis.normed_space.operator_norm
 import data.complex.is_R_or_C
 
 /-!

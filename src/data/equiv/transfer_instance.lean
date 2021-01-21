@@ -3,11 +3,8 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.equiv.basic
-import algebra.field
 import algebra.module
 import algebra.algebra.basic
-import algebra.group.type_tags
 import ring_theory.ideal.basic
 
 /-!

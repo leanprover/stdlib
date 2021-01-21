@@ -4,10 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Tim Baanen
 -/
 import data.matrix.pequiv
-import data.fintype.card
-import group_theory.perm.sign
-import algebra.algebra.basic
-import tactic.ring
 import linear_algebra.alternating
 
 universes u v w z

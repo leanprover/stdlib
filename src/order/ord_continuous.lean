@@ -5,7 +5,6 @@ Authors: Yury G. Kudryashov, Johannes Hölzl
 -/
 import order.conditionally_complete_lattice
 import logic.function.iterate
-import order.rel_iso
 
 /-!
 # Order continuity

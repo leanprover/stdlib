@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import algebra.lie.basic
-import algebra.ring_quot
 import linear_algebra.tensor_algebra
 
 /-!

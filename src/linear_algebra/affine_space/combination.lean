@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Myers.
 -/
 import algebra.invertible
-import data.indicator_function
 import linear_algebra.affine_space.affine_map
 import linear_algebra.affine_space.affine_subspace
 import linear_algebra.finsupp

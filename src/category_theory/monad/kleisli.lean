@@ -6,7 +6,6 @@ Author: Wojciech Nawrocki, Bhavik Mehta
 
 import category_theory.adjunction
 import category_theory.monad.adjunction
-import category_theory.monad.basic
 
 /-! # Kleisli category on a monad
 

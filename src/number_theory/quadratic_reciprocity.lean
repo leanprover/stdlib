@@ -5,7 +5,6 @@ Authors: Chris Hughes
 -/
 
 import field_theory.finite.basic
-import data.zmod.basic
 import data.nat.parity
 
 /-!

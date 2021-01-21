@@ -5,7 +5,6 @@ Author: Nicolò Cavalleri.
 -/
 
 import topology.subset_properties
-import topology.tactic
 
 /-!
 # Continuous bundled map

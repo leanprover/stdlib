@@ -3,10 +3,8 @@ Copyright (c) 2020 Yury Kudryashov All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Heather Macbeth
 -/
-import analysis.normed_space.operator_norm
 import analysis.normed_space.extend
 import analysis.convex.cone
-import data.complex.is_R_or_C
 
 /-!
 # Hahn-Banach theorem

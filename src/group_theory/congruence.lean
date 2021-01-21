@@ -5,8 +5,6 @@ Authors: Amelia Livingston
 -/
 import data.setoid.basic
 import algebra.group.pi
-import algebra.group.prod
-import data.equiv.mul_add
 import group_theory.submonoid.operations
 
 /-!

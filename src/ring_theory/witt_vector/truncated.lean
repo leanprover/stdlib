@@ -5,7 +5,6 @@ Authors: Johan Commelin, Robert Y. Lewis
 -/
 
 import ring_theory.witt_vector.init_tail
-import tactic.equiv_rw
 
 /-!
 

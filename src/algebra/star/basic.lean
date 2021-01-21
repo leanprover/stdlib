@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison.
 -/
 import tactic.apply_fun
-import algebra.ordered_ring
 import algebra.big_operators.basic
 import data.equiv.ring
 

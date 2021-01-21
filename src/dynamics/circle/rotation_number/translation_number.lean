@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Yury G. Kudryashov
 -/
 import analysis.specific_limits
-import order.iterate
 import order.semiconj_Sup
 import algebra.iterate_hom
 

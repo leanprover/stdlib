@@ -6,9 +6,6 @@ Amelia Livingston, Yury Kudryashov
 -/
 
 import group_theory.submonoid.basic
-import data.equiv.mul_add
-import algebra.group.prod
-import algebra.group.inj_surj
 
 /-!
 # Operations on `submonoid`s
