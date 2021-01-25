@@ -558,8 +558,7 @@ begin
     have : 0 < (2^n:ℝ) := pow_pos zero_lt_two _,
     convert (div_le_div_right this).2 (H (2^n)),
     rw [transnum_aux_seq, real.dist_eq, ← sub_div, abs_div, abs_of_pos this, real.dist_eq] },
-  { exact mul_zero C ▸ tendsto_const_nhds.mul (tendsto_inv_at_top_zero.comp $
-      tendsto_pow_at_top_at_top_of_one_lt one_lt_two) }
+  { exact tendsto_const_nhds.div_at_top (tendsto_pow_at_top_at_top_of_one_lt one_lt_two) }
 end
 
 lemma translation_number_eq_of_dist_bounded {f g : circle_deg1_lift} (C : ℝ)

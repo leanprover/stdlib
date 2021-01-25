@@ -651,7 +651,7 @@ by simpa only [mul_comm] using hf.const_mul_at_top hr
 constant also tends to infinity. -/
 lemma tendsto.at_top_div_const (hr : 0 < r) (hf : tendsto f l at_top) :
   tendsto (λx, f x / r) l at_top :=
-hf.at_top_mul_const (inv_pos.2 hr)
+by simpa only [div_eq_mul_inv] using hf.at_top_mul_const (inv_pos.2 hr)
 
 /-- If a function tends to infinity along a filter, then this function multiplied by a negative
 constant (on the left) tends to negative infinity. -/
@@ -683,7 +683,7 @@ by simpa only [mul_comm] using hf.const_mul_at_bot hr
 a positive constant also tends to negative infinity. -/
 lemma tendsto.at_bot_div_const (hr : 0 < r) (hf : tendsto f l at_bot) :
   tendsto (λx, f x / r) l at_bot :=
-hf.at_bot_mul_const (inv_pos.2 hr)
+by simpa only [div_eq_mul_inv] using hf.at_bot_mul_const (inv_pos.2 hr)
 
 /-- If a function tends to negative infinity along a filter, then this function multiplied by
 a negative constant (on the left) tends to positive infinity. -/

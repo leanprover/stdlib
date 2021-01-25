@@ -1091,7 +1091,7 @@ end sum
 theorem is_o.tendsto_0 {f g : α → 𝕜} {l : filter α} (h : is_o f g l) :
   tendsto (λ x, f x / (g x)) l (𝓝 0) :=
 have eq₁ : is_o (λ x, f x / g x) (λ x, g x / g x) l,
-  from h.mul_is_O (is_O_refl _ _),
+  by { simp only [div_eq_mul_inv], exact  h.mul_is_O (is_O_refl _ _) },
 have eq₂ : is_O (λ x, g x / g x) (λ x, (1 : 𝕜)) l,
   from is_O_of_le _ (λ x, by by_cases h : ∥g x∥ = 0; simp [h, zero_le_one]),
 (is_o_one_iff 𝕜).mp (eq₁.trans_is_O eq₂)

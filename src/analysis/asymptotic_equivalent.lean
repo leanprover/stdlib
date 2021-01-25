@@ -240,7 +240,7 @@ end
 
 lemma is_equivalent.div (htu : t ~[l] u) (hvw : v ~[l] w) :
   (λ x, t x / v x) ~[l] (λ x, u x / w x) :=
-htu.mul hvw.inv
+by simpa only [div_eq_mul_inv] using htu.mul hvw.inv
 
 end mul_inv
 

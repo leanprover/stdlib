@@ -861,27 +861,27 @@ by { rw inv_eq_iff_mul_eq_one, simp only [units.ext_iff], push_cast, exact mul_s
 
 end integral_domain
 
-namespace ring
-variables [ring R]
+section ring_inverse
+variables {M₀ : Type*} [monoid_with_zero M₀]
 open_locale classical
 
-/-- Introduce a function `inverse` on a ring `R`, which sends `x` to `x⁻¹` if `x` is invertible and
-to `0` otherwise.  This definition is somewhat ad hoc, but one needs a fully (rather than partially)
-defined inverse function for some purposes, including for calculus. -/
-noncomputable def inverse : R → R :=
-λ x, if h : is_unit x then (((classical.some h)⁻¹ : units R) : R) else 0
+/-- Introduce a function `inverse` on a monoid with zero `M₀`, which sends `x` to `x⁻¹` if `x` is
+invertible and to `0` otherwise.  This definition is somewhat ad hoc, but one needs a fully (rather
+than partially) defined inverse function for some purposes, including for calculus. -/
+noncomputable def ring.inverse : M₀ → M₀ :=
+λ x, if h : is_unit x then (((classical.some h)⁻¹ : units M₀) : M₀) else 0
 
 /-- By definition, if `x` is invertible then `inverse x = x⁻¹`. -/
-@[simp] lemma inverse_unit (a : units R) : inverse (a : R) = (a⁻¹ : units R) :=
+@[simp] lemma units.inverse_eq (u : units M₀) : ring.inverse (u : M₀) = (u⁻¹ : units M₀) :=
 begin
-  simp [is_unit_unit, inverse],
-  exact units.inv_unique (classical.some_spec (is_unit_unit a)),
+  simp only [is_unit_unit, ring.inverse, dif_pos],
+  exact units.inv_unique (classical.some_spec (is_unit_unit u))
 end
 
 /-- By definition, if `x` is not invertible then `inverse x = 0`. -/
-@[simp] lemma inverse_non_unit (x : R) (h : ¬(is_unit x)) : inverse x = 0 := dif_neg h
+@[simp] lemma ring.inverse_non_unit (x : M₀) (h : ¬(is_unit x)) : ring.inverse x = 0 := dif_neg h
 
-end ring
+end ring_inverse
 
 /-- A predicate to express that a ring is an integral domain.
 

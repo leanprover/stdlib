@@ -93,7 +93,7 @@ open asymptotics filter metric finset ring
 
 lemma inverse_one_sub (t : R) (h : ∥t∥ < 1) : inverse (1 - t) = ↑(units.one_sub t h)⁻¹ :=
 begin
-  rw ← inverse_unit (units.one_sub t h),
+  rw ← (units.one_sub t h).inverse_eq,
   refl,
 end
 
@@ -113,7 +113,7 @@ begin
     refine lt_of_lt_of_le (mul_lt_mul_of_pos_left ht x⁻¹.norm_pos) _,
     cancel_denoms },
   have hright := inverse_one_sub (-↑x⁻¹ * t) ht',
-  have hleft := inverse_unit (x.add t ht),
+  have hleft := (x.add t ht).inverse_eq,
   simp only [← neg_mul_eq_neg_mul, sub_neg_eq_add] at hright,
   simp only [units.add_coe] at hleft,
   simp [hleft, hright, units.add]
@@ -265,7 +265,7 @@ begin
   { refine tendsto_zero_iff_norm_tendsto_zero.mpr _,
     exact tendsto_iff_norm_tendsto_zero.mp tendsto_id },
   simp only [continuous_at],
-  rw [tendsto_iff_norm_tendsto_zero, inverse_unit],
+  rw [tendsto_iff_norm_tendsto_zero, x.inverse_eq],
   convert h_is_o.tendsto_0.comp h_lim,
   ext, simp
 end

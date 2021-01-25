@@ -646,9 +646,9 @@ hf.has_sum.smul.tsum_eq
 
 end topological_semimodule
 
-section division_ring
+section division_semiring
 
-variables [division_ring α] [topological_space α] [topological_semiring α]
+variables [division_semiring α] [topological_space α] [topological_semiring α]
 {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum.div_const (h : has_sum f a) (b : α) : has_sum (λ x, f x / b) (a / b) :=
@@ -678,7 +678,7 @@ else if ha : a = 0 then by simp [ha]
 else by rw [tsum_eq_zero_of_not_summable hf,
   tsum_eq_zero_of_not_summable (mt (summable_mul_right_iff ha).2 hf), zero_mul]
 
-end division_ring
+end division_semiring
 
 section order_topology
 variables [ordered_add_comm_monoid α] [topological_space α] [order_closed_topology α]

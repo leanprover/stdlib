@@ -855,6 +855,6 @@ instance : local_ring α :=
 { is_local := λ a,
   if h : a = 0
   then or.inr (by rw [h, sub_zero]; exact is_unit_one)
-  else or.inl $ is_unit_of_mul_eq_one a a⁻¹ $ div_self h }
+  else or.inl $ is_unit_of_mul_eq_one a a⁻¹ $ mul_inv_cancel h }
 
 end field

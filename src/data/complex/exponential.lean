@@ -1188,7 +1188,7 @@ end real
 namespace complex
 
 lemma sum_div_factorial_le {α : Type*} [linear_ordered_field α] (n j : ℕ) (hn : 0 < n) :
-  ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α) ≤ n.succ * (n! * n)⁻¹ :=
+  ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α) ≤ n.succ / (n! * n) :=
 calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
     = ∑ m in range (j - n), 1 / (m + n)! :
   sum_bij (λ m _, m - n)
@@ -1234,13 +1234,13 @@ calc ∑ m in filter (λ k, n ≤ k) (range j), (1 / m! : α)
   end
 
 lemma exp_bound {x : ℂ} (hx : abs x ≤ 1) {n : ℕ} (hn : 0 < n) :
-  abs (exp x - ∑ m in range n, x ^ m / m!) ≤ abs x ^ n * (n.succ * (n! * n)⁻¹) :=
+  abs (exp x - ∑ m in range n, x ^ m / m!) ≤ abs x ^ n * (n.succ / (n! * n)) :=
 begin
   rw [← lim_const (∑ m in range n, _), exp, sub_eq_add_neg, ← lim_neg, lim_add, ← lim_abs],
   refine lim_le (cau_seq.le_of_exists ⟨n, λ j hj, _⟩),
   simp_rw ← sub_eq_add_neg,
   show abs (∑ m in range j, x ^ m / m! - ∑ m in range n, x ^ m / m!)
-    ≤ abs x ^ n * (n.succ * (n! * n)⁻¹),
+    ≤ abs x ^ n * (n.succ / (n! * n)),
   rw sum_range_sub_sum_range hj,
   exact calc abs (∑ m in (range j).filter (λ k, n ≤ k), (x ^ m / m! : ℂ))
       = abs (∑ m in (range j).filter (λ k, n ≤ k), (x ^ n * (x ^ (m - n) / m!) : ℂ)) :
@@ -1258,7 +1258,7 @@ begin
     end
   ... = abs x ^ n * (∑ m in (range j).filter (λ k, n ≤ k), (1 / m! : ℝ)) :
     by simp [abs_mul, abv_pow abs, abs_div, mul_sum.symm]
-  ... ≤ abs x ^ n * (n.succ * (n! * n)⁻¹) :
+  ... ≤ abs x ^ n * (n.succ / (n! * n)) :
     mul_le_mul_of_nonneg_left (sum_div_factorial_le _ _ hn) (pow_nonneg (abs_nonneg _) _)
 end
 
@@ -1266,7 +1266,7 @@ lemma abs_exp_sub_one_le {x : ℂ} (hx : abs x ≤ 1) :
   abs (exp x - 1) ≤ 2 * abs x :=
 calc abs (exp x - 1) = abs (exp x - ∑ m in range 1, x ^ m / m!) :
   by simp [sum_range_succ]
-... ≤ abs x ^ 1 * ((nat.succ 1) * (1! * (1 : ℕ))⁻¹) :
+... ≤ abs x ^ 1 * ((nat.succ 1) / (1! * (1 : ℕ))) :
   exp_bound hx dec_trivial
 ... = 2 * abs x : by simp [two_mul, mul_two, mul_add, mul_comm]
 
@@ -1274,7 +1274,7 @@ lemma abs_exp_sub_one_sub_id_le {x : ℂ} (hx : abs x ≤ 1) :
   abs (exp x - 1 - x) ≤ (abs x)^2 :=
 calc abs (exp x - 1 - x) = abs (exp x - ∑ m in range 2, x ^ m / m!) :
   by simp [sub_eq_add_neg, sum_range_succ, add_assoc]
-... ≤ (abs x)^2 * (nat.succ 2 * (2! * (2 : ℕ))⁻¹) :
+... ≤ (abs x)^2 * (nat.succ 2 / (2! * (2 : ℕ))) :
   exp_bound hx dec_trivial
 ... ≤ (abs x)^2 * 1 :
   mul_le_mul_of_nonneg_left (by norm_num) (pow_two_nonneg (abs x))
@@ -1369,8 +1369,8 @@ calc abs' (cos x - (1 - x ^ 2 / 2)) = abs (complex.cos x - (1 - x ^ 2 / 2)) :
 ... = (abs ((complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m!)) / 2 +
     abs ((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m!)) / 2) :
   by simp [complex.abs_div]
-... ≤ ((complex.abs (x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2 +
-    (complex.abs (-x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2)  :
+... ≤ ((complex.abs (x * I) ^ 4 * (nat.succ 4 / (4! * (4 : ℕ)))) / 2 +
+    (complex.abs (-x * I) ^ 4 * (nat.succ 4 / (4! * (4 : ℕ)))) / 2)  :
   add_le_add ((div_le_div_right (by norm_num)).2 (complex.exp_bound (by simpa) dec_trivial))
              ((div_le_div_right (by norm_num)).2 (complex.exp_bound (by simpa) dec_trivial))
 ... ≤ abs' x ^ 4 * (5 / 96) : by norm_num; simp [mul_assoc, mul_comm, mul_left_comm, mul_div_assoc]
@@ -1395,8 +1395,8 @@ calc abs' (sin x - (x - x ^ 3 / 6)) = abs (complex.sin x - (x - x ^ 3 / 6)) :
 ... = (abs ((complex.exp (x * I) - ∑ m in range 4, (x * I) ^ m / m!)) / 2 +
     abs ((complex.exp (-x * I) - ∑ m in range 4, (-x * I) ^ m / m!)) / 2) :
   by simp [add_comm, complex.abs_div, complex.abs_mul]
-... ≤ ((complex.abs (x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2 +
-    (complex.abs (-x * I) ^ 4 * (nat.succ 4 * (4! * (4 : ℕ))⁻¹)) / 2) :
+... ≤ ((complex.abs (x * I) ^ 4 * (nat.succ 4 / (4! * (4 : ℕ)))) / 2 +
+    (complex.abs (-x * I) ^ 4 * (nat.succ 4 / (4! * (4 : ℕ)))) / 2) :
   add_le_add ((div_le_div_right (by norm_num)).2 (complex.exp_bound (by simpa) dec_trivial))
              ((div_le_div_right (by norm_num)).2 (complex.exp_bound (by simpa) dec_trivial))
 ... ≤ abs' x ^ 4 * (5 / 96) : by norm_num; simp [mul_assoc, mul_comm, mul_left_comm, mul_div_assoc]

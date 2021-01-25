@@ -44,7 +44,7 @@ by simp
 
 end semiring
 
-lemma sum_div [division_ring β] {s : finset α} {f : α → β} {b : β} :
+lemma sum_div [division_semiring β] {s : finset α} {f : α → β} {b : β} :
   (∑ x in s, f x) / b = ∑ x in s, f x / b :=
 by simp only [div_eq_mul_inv, sum_mul]
 

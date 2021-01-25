@@ -1605,6 +1605,9 @@ localization.of (non_zero_divisors A)
 
 variables {A}
 
+instance : algebra A (fraction_ring A) :=
+(of A).to_map.to_algebra
+
 noncomputable instance : field (fraction_ring A) :=
 (of A).to_field
 
@@ -1618,8 +1621,5 @@ type and `K`. -/
 noncomputable def alg_equiv_of_quotient {K : Type*} [field K] (f : fraction_map A K) :
   fraction_ring A ≃ₐ[A] f.codomain :=
 localization.alg_equiv_of_quotient f
-
-instance : algebra A (fraction_ring A) :=
-(of A).to_map.to_algebra
 
 end fraction_ring

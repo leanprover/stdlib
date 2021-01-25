@@ -2477,13 +2477,13 @@ end
 lemma tendsto_abs_tan_of_cos_eq_zero {x : ℂ} (hx : cos x = 0) :
   tendsto (λ x, abs (tan x)) (𝓝[{x}ᶜ] x) at_top :=
 begin
-  simp only [tan_eq_sin_div_cos, ← norm_eq_abs, normed_field.norm_div],
+  simp_rw [tan_eq_sin_div_cos, abs_div, div_eq_mul_inv],
   have A : sin x ≠ 0 := λ h, by simpa [*, pow_two] using sin_sq_add_cos_sq x,
   have B : tendsto cos (𝓝[{x}ᶜ] (x)) (𝓝[{0}ᶜ] 0),
   { refine tendsto_inf.2 ⟨tendsto.mono_left _ inf_le_left, tendsto_principal.2 _⟩,
     exacts [continuous_cos.tendsto' x 0 hx,
       hx ▸ (has_deriv_at_cos _).eventually_ne (neg_ne_zero.2 A)] },
-  exact tendsto.mul_at_top (norm_pos_iff.2 A) continuous_sin.continuous_within_at.norm
+  exact continuous_sin.continuous_within_at.norm.mul_at_top (norm_pos_iff.2 A) 
     (tendsto.inv_tendsto_zero $ tendsto_norm_nhds_within_zero.comp B),
 end
 

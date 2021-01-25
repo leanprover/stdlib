@@ -100,8 +100,12 @@ theorem subset_closure : S ⊆ closure S :=
 λ _, mem_closure
 
 theorem closure_subset {T : set F} [is_subfield T] (H : S ⊆ T) : closure S ⊆ T :=
-by rintros _ ⟨p, hp, q, hq, hq0, rfl⟩; exact is_submonoid.mul_mem (ring.closure_subset H hp)
+begin
+  rintros _ ⟨p, hp, q, hq, rfl⟩,
+  simp only [field.div, div_eq_mul_inv p q],
+  exact is_submonoid.mul_mem (ring.closure_subset H hp)
   (is_subfield.inv_mem $ ring.closure_subset H hq)
+end
 
 theorem closure_subset_iff (s t : set F) [is_subfield t] : closure s ⊆ t ↔ s ⊆ t :=
 ⟨set.subset.trans subset_closure, closure_subset⟩

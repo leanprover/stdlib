@@ -185,19 +185,20 @@ by simp only [← preimage_mul_const_interval ha, mul_comm]
 
 @[simp] lemma preimage_div_const_interval (ha : a ≠ 0) (b c : k) :
   (λ x, x / a) ⁻¹' [b, c] = [b * a, c * a] :=
-(preimage_mul_const_interval (inv_ne_zero ha) _ _).trans $ by simp [div_eq_mul_inv]
+by simp only [div_eq_mul_inv, preimage_mul_const_interval (inv_ne_zero ha), inv_inv']
 
 @[simp] lemma image_mul_const_interval (a b c : k) : (λ x, x * a) '' [b, c] = [b * a, c * a] :=
 if ha : a = 0 then by simp [ha] else
-calc (λ x, x * a) '' [b, c] = (λ x, x / a) ⁻¹' [b, c] :
+calc (λ x, x * a) '' [b, c] = (λ x, x * a⁻¹) ⁻¹' [b, c] :
   (units.mk0 a ha).mul_right.image_eq_preimage _
+... = (λ x, x / a) ⁻¹' [b, c] : by simp only [div_eq_mul_inv]
 ... = [b * a, c * a] : preimage_div_const_interval ha _ _
 
 @[simp] lemma image_const_mul_interval (a b c : k) : (λ x, a * x) '' [b, c] = [a * b, a * c] :=
 by simpa only [mul_comm] using image_mul_const_interval a b c
 
 @[simp] lemma image_div_const_interval (a b c : k) : (λ x, x / a) '' [b, c] = [b / a, c / a] :=
-image_mul_const_interval _ _ _
+by simp only [div_eq_mul_inv, image_mul_const_interval]
 
 end linear_ordered_field
 

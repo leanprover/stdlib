@@ -2248,8 +2248,8 @@ begin
   convert h_is_o.comp_tendsto h_lim,
   ext y,
   simp only [coe_comp', function.comp_app, lmul_right_apply, lmul_left_apply, neg_apply,
-    inverse_unit x, units.inv_mul, add_sub_cancel'_right, mul_sub, sub_mul, one_mul],
-  abel
+    x.inverse_eq, units.inv_mul, add_sub_cancel'_right, mul_sub, sub_mul, one_mul,
+    sub_neg_eq_add]
 end
 
 lemma differentiable_at_inverse (x : units R) : differentiable_at 𝕜 (@ring.inverse R _) x :=

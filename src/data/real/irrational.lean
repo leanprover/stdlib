@@ -187,10 +187,10 @@ protected theorem inv (h : irrational x) : irrational x⁻¹ :=
 of_inv $ by rwa inv_inv'
 
 theorem div_cases (h : irrational (x / y)) : irrational x ∨ irrational y :=
-h.mul_cases.imp id of_inv
+by { rw div_eq_mul_inv at h, exact h.mul_cases.imp id of_inv }
 
 theorem of_rat_div (h : irrational (q / x)) : irrational x :=
-(h.of_rat_mul q).of_inv
+by { rw div_eq_mul_inv at h, exact (h.of_rat_mul q).of_inv }
 
 theorem of_one_div (h : irrational (1 / x)) : irrational x :=
 of_rat_div 1 $ by rwa [cast_one]
