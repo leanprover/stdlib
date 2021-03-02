@@ -42,6 +42,12 @@ variables [linear_ordered_comm_monoid_with_zero α]
 The following facts are true more generally in a (linearly) ordered commutative monoid.
 -/
 
+lemma zero_le_one' : (0 : α) ≤ 1 :=
+linear_ordered_comm_monoid_with_zero.zero_le_one
+
+lemma zero_lt_one'' [nontrivial α] : (0 : α) < 1 :=
+lt_of_le_of_ne zero_le_one' zero_ne_one
+
 lemma one_le_pow_of_one_le' {n : ℕ} (H : 1 ≤ x) : 1 ≤ x^n :=
 begin
   induction n with n ih,
@@ -93,9 +99,6 @@ begin
   exact ne_of_gt h,
 end
 
-lemma zero_le_one' : (0 : α) ≤ 1 :=
-linear_ordered_comm_monoid_with_zero.zero_le_one
-
 @[simp] lemma zero_le' : 0 ≤ a :=
 by simpa only [mul_zero, mul_one] using mul_le_mul_left' (@zero_le_one' α _) a
 
@@ -114,9 +117,6 @@ lemma ne_zero_of_lt (h : b < a) : a ≠ 0 :=
 end linear_ordered_comm_monoid
 
 variables [linear_ordered_comm_group_with_zero α]
-
-lemma zero_lt_one'' : (0 : α) < 1 :=
-lt_of_le_of_ne zero_le_one' zero_ne_one
 
 lemma le_of_le_mul_right (h : c ≠ 0) (hab : a * c ≤ b * c) : a ≤ b :=
 by simpa only [mul_inv_cancel_right' h] using (mul_le_mul_right' hab c⁻¹)

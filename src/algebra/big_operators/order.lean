@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.big_operators.basic
+import algebra.linear_ordered_comm_group_with_zero
 
 /-!
 # Results about big operators with values in an ordered algebraic structure.
@@ -231,21 +232,50 @@ end
 
 end linear_ordered_cancel_comm_monoid
 
+section linear_ordered_comm_monoid_with_zero
+variables [linear_ordered_comm_monoid_with_zero β]
+
+lemma prod_nonneg' {s : finset α} {f : α → β}
+  (h0 : ∀(x ∈ s), 0 ≤ f x) : 0 ≤ (∏ x in s, f x) :=
+begin
+  refine prod_induction f (λ x, 0 ≤ x) _ linear_ordered_comm_monoid_with_zero.zero_le_one h0,
+  intros a b ha hb,
+  rw ← mul_zero (0:β),
+  exact mul_le_mul' ha hb
+end
+
+lemma prod_le_prod'' {s : finset α} {f g : α → β} (h0 : ∀(x ∈ s), 0 ≤ f x)
+  (h1 : ∀(x ∈ s), f x ≤ g x) : (∏ x in s, f x) ≤ (∏ x in s, g x) :=
+begin
+  classical,
+  induction s using finset.induction with a s has ih h,
+  { simp },
+  { simp [has], apply mul_le_mul',
+      exact h1 a (mem_insert_self a s),
+      apply ih (λ x H, h0 _ _) (λ x H, h1 _ _); exact (mem_insert_of_mem H) }
+end
+
+lemma prod_le_one' {s : finset α} {f : α → β} (h0 : ∀(x ∈ s), 0 ≤ f x)
+  (h1 : ∀(x ∈ s), f x ≤ 1) : (∏ x in s, f x) ≤ 1 :=
+begin
+  convert ← prod_le_prod'' h0 h1,
+  exact finset.prod_const_one
+end
+
+end linear_ordered_comm_monoid_with_zero
+
 section linear_ordered_comm_ring
+
 variables [linear_ordered_comm_ring β]
 open_locale classical
 
-/- this is also true for a ordered commutative multiplicative monoid -/
 lemma prod_nonneg {s : finset α} {f : α → β}
   (h0 : ∀(x ∈ s), 0 ≤ f x) : 0 ≤ (∏ x in s, f x) :=
 prod_induction f (λ x, 0 ≤ x) (λ _ _ ha hb, mul_nonneg ha hb) zero_le_one h0
 
-
-/- this is also true for a ordered commutative multiplicative monoid -/
 lemma prod_pos {s : finset α} {f : α → β} (h0 : ∀(x ∈ s), 0 < f x) : 0 < (∏ x in s, f x) :=
 prod_induction f (λ x, 0 < x) (λ _ _ ha hb, mul_pos ha hb) zero_lt_one h0
 
-/- this is also true for a ordered commutative multiplicative monoid -/
 lemma prod_le_prod {s : finset α} {f g : α → β} (h0 : ∀(x ∈ s), 0 ≤ f x)
   (h1 : ∀(x ∈ s), f x ≤ g x) : (∏ x in s, f x) ≤ (∏ x in s, g x) :=
 begin
