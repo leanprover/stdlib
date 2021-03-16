@@ -645,10 +645,16 @@ end
 
 end filter_mul
 
+open additive multiplicative
+
 instance additive.topological_add_group {G} [h : topological_space G]
-  [group G] [topological_group G] : @topological_add_group (additive G) h _ :=
-{ continuous_neg := @continuous_inv G _ _ _ }
+  [group G] [topological_group G] : topological_add_group (additive G) :=
+{ continuous_neg := by simpa using
+    show continuous (λ a : additive G, of_mul (a.to_mul⁻¹)), by continuity,
+  ..additive.has_continuous_add }
 
 instance multiplicative.topological_group {G} [h : topological_space G]
-  [add_group G] [topological_add_group G] : @topological_group (multiplicative G) h _ :=
-{ continuous_inv := @continuous_neg G _ _ _ }
+  [add_group G] [topological_add_group G] : topological_group (multiplicative G) :=
+{ continuous_inv := by simpa using
+    show continuous (λ a : multiplicative G, of_add (-a.to_add)), by continuity,
+  ..multiplicative.has_continuous_mul }

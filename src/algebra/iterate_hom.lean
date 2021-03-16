@@ -28,6 +28,10 @@ open function
 
 variables {M : Type*} {N : Type*} {G : Type*} {H : Type*}
 
+lemma equiv.apply_iterate (e : M ≃ N) (f : M → M) (n : ℕ) (x) :
+  (e (f^[n] x)) = n.iterate (e ∘ f ∘ e.symm) (e x) :=
+by induction n generalizing x; simp *
+
 namespace monoid_hom
 
 variables [monoid M] [monoid N] [group G] [group H]
@@ -65,11 +69,13 @@ semiconj₂.iterate f.map_sub n x y
 
 theorem iterate_map_smul (f : M →+ M) (n m : ℕ) (x : M) :
   f^[n] (m •ℕ x) = m •ℕ (f^[n] x) :=
-f.to_multiplicative.iterate_map_pow x n m
+by simpa [to_add_pow_nsmul, equiv.apply_iterate] using _root_.congr_arg multiplicative.to_add
+  (f.to_multiplicative.iterate_map_pow (multiplicative.of_add x) n m)
 
 theorem iterate_map_gsmul (f : G →+ G) (n : ℕ) (m : ℤ) (x : G) :
   f^[n] (m •ℤ x) = m •ℤ (f^[n] x) :=
-f.to_multiplicative.iterate_map_gpow x n m
+by simpa [to_add_pow_gsmul, equiv.apply_iterate] using _root_.congr_arg multiplicative.to_add
+  (f.to_multiplicative.iterate_map_gpow (multiplicative.of_add x) n m)
 
 end add_monoid_hom
 
@@ -120,14 +126,23 @@ end ring_hom
 nat.rec_on n (funext $ λ x, by simp) $ λ n ihn,
 funext $ λ x, by simp [iterate_succ, ihn, pow_succ', mul_assoc]
 
+private lemma mul_left_iterate' [monoid M] (a : M) (n : ℕ) (x) : ((*) a)^[n] x = (*) (a^n) x :=
+by rw mul_left_iterate
+
 @[simp] lemma add_left_iterate [add_monoid M] (a : M) (n : ℕ) : ((+) a)^[n] = (+) (n •ℕ a) :=
-@mul_left_iterate (multiplicative M) _ a n
+by ext; simpa [-mul_left_iterate, equiv.apply_iterate] using _root_.congr_arg multiplicative.to_add
+  (mul_left_iterate' (multiplicative.of_add a) n (multiplicative.of_add x))
 
 @[simp] lemma mul_right_iterate [monoid M] (a : M) (n : ℕ) :
   (λ x, x * a)^[n] = (λ x, x * a^n) :=
 nat.rec_on n (funext $ λ x, by simp) $ λ n ihn,
 funext $ λ x, by simp [iterate_succ, ihn, pow_succ, mul_assoc]
 
+private lemma mul_right_iterate' [monoid M] (a : M) (n : ℕ) (x) :
+  (λ x, x * a)^[n] x = (λ x, x * a^n) x :=
+by rw mul_right_iterate
+
 @[simp] lemma add_right_iterate [add_monoid M] (a : M) (n : ℕ) :
   (λ x, x + a)^[n] = λ x, x + (n •ℕ a) :=
-@mul_right_iterate (multiplicative M) _ a n
+by ext; simpa [-mul_right_iterate, equiv.apply_iterate] using _root_.congr_arg multiplicative.to_add
+  (mul_right_iterate' (multiplicative.of_add a) n (multiplicative.of_add x))

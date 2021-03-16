@@ -241,13 +241,13 @@ variables [linear_ordered_comm_monoid_with_zero Γ₀] [linear_ordered_comm_mono
 variables {v : valuation R Γ₀}
 variables {v₁ : valuation R Γ₀} {v₂ : valuation R Γ'₀} {v₃ : valuation R Γ''₀}
 
-@[refl] lemma refl : v.is_equiv v :=
+@[refl] protected lemma refl : v.is_equiv v :=
 λ _ _, iff.refl _
 
-@[symm] lemma symm (h : v₁.is_equiv v₂) : v₂.is_equiv v₁ :=
+@[symm] protected lemma symm (h : v₁.is_equiv v₂) : v₂.is_equiv v₁ :=
 λ _ _, iff.symm (h _ _)
 
-@[trans] lemma trans (h₁₂ : v₁.is_equiv v₂) (h₂₃ : v₂.is_equiv v₃) : v₁.is_equiv v₃ :=
+@[trans] protected lemma trans (h₁₂ : v₁.is_equiv v₂) (h₂₃ : v₂.is_equiv v₃) : v₁.is_equiv v₃ :=
 λ _ _, iff.trans (h₁₂ _ _) (h₂₃ _ _)
 
 lemma of_eq {v' : valuation R Γ₀} (h : v = v') : v.is_equiv v' :=
@@ -429,13 +429,15 @@ end add_monoid
 namespace add_valuation
 variables {Γ₀   : Type*} [linear_ordered_add_comm_monoid_with_top Γ₀]
 variables {Γ'₀  : Type*} [linear_ordered_add_comm_monoid_with_top Γ'₀]
+open multiplicative
 
 section basic
 
 variables (R) (Γ₀) [ring R]
 
 /-- A valuation is coerced to the underlying function `R → Γ₀`. -/
-instance : has_coe_to_fun (add_valuation R Γ₀) := { F := λ _, R → Γ₀, coe := valuation.to_fun }
+instance : has_coe_to_fun (add_valuation R Γ₀) :=
+{ F := λ _, R → Γ₀, coe := λ v x, (v.to_fun x).to_add }
 
 variables {R} {Γ₀} (v : add_valuation R Γ₀) {x y z : R}
 
@@ -444,14 +446,15 @@ section
 variables (f : R → Γ₀) (h0 : f 0 = ⊤) (h1 : f 1 = 0)
 variables (hadd : ∀ x y, min (f x) (f y) ≤ f (x + y)) (hmul : ∀ x y, f (x * y) = f x + f y)
 
+include h0 h1 hadd hmul
 /-- An alternate constructor of `add_valuation`, that doesn't reference
   `multiplicative (order_dual Γ₀)` -/
 def of : add_valuation R Γ₀ :=
-{ to_fun := f,
-  map_one' := h1,
-  map_zero' := h0,
-  map_add' := hadd,
-  map_mul' := hmul }
+{ to_fun := λ x, of_add (f x),
+  map_one' := by simpa [multiplicative.ext_iff] using h1,
+  map_zero' := by simpa [multiplicative.ext_iff] using h0,
+  map_add' := by simpa [multiplicative.ext_iff] using hadd,
+  map_mul' := by simpa [multiplicative.ext_iff] using hmul }
 
 variables {h0} {h1} {hadd} {hmul} {r : R}
 
@@ -460,31 +463,40 @@ theorem of_apply : (of f h0 h1 hadd hmul) r = f r := rfl
 
 end
 
-@[simp] lemma map_zero : v 0 = ⊤ := v.map_zero
-@[simp] lemma map_one  : v 1 = 0 := v.map_one
-@[simp] lemma map_mul  : ∀ x y, v (x * y) = v x + v y := v.map_mul
-@[simp] lemma map_add  : ∀ x y, min (v x) (v y) ≤ v (x + y) := v.map_add
+@[simp] lemma map_zero : v 0 = ⊤ := congr_arg to_add v.map_zero
+@[simp] lemma map_one  : v 1 = 0 := congr_arg to_add v.map_one
+@[simp] lemma map_mul (x y) : v (x * y) = v x + v y := congr_arg to_add (v.map_mul x y)
+@[simp] lemma map_add (x y) : min (v x) (v y) ≤ v (x + y) :=
+show of_add (to_add (v.to_fun (x + y))) ≤ of_add (max (to_add (v.to_fun x)) (to_add (v.to_fun y))),
+by simpa using v.map_add x y
 
-lemma map_le_add {x y g} (hx : g ≤ v x) (hy : g ≤ v y) : g ≤ v (x + y) := v.map_add_le hx hy
+lemma map_le_add {x y g} (hx : g ≤ v x) (hy : g ≤ v y) : g ≤ v (x + y) :=
+show of_add g ≤ _, from v.map_add_le hx hy
 
-lemma map_lt_add {x y g} (hx : g < v x) (hy : g < v y) : g < v (x + y) := v.map_add_lt hx hy
+lemma map_lt_add {x y g} (hx : g < v x) (hy : g < v y) : g < v (x + y) :=
+show of_add g < _, from v.map_add_lt hx hy
 
 lemma map_le_sum {ι : Type*} {s : finset ι} {f : ι → R} {g : Γ₀} (hf : ∀ i ∈ s, g ≤ v (f i)) :
-  g ≤ v (∑ i in s, f i) := v.map_sum_le hf
+  g ≤ v (∑ i in s, f i) :=
+show of_add g ≤ _, from v.map_sum_le hf
 
 lemma map_lt_sum {ι : Type*} {s : finset ι} {f : ι → R} {g : Γ₀} (hg : g ≠ ⊤)
-  (hf : ∀ i ∈ s, g < v (f i)) : g < v (∑ i in s, f i) := v.map_sum_lt hg hf
+  (hf : ∀ i ∈ s, g < v (f i)) : g < v (∑ i in s, f i) :=
+show of_add g < _, from v.map_sum_lt (show of_add g ≠ of_add _, by simpa using hg) hf
 
 lemma map_lt_sum' {ι : Type*} {s : finset ι} {f : ι → R} {g : Γ₀} (hg : g < ⊤)
-  (hf : ∀ i ∈ s, g < v (f i)) : g < v (∑ i in s, f i) := v.map_sum_lt' hg hf
+  (hf : ∀ i ∈ s, g < v (f i)) : g < v (∑ i in s, f i) :=
+show of_add g < _, from v.map_sum_lt' hg hf
 
-@[simp] lemma map_pow  : ∀ x (n:ℕ), v (x^n) = n • (v x) := v.map_pow
+@[simp] lemma map_pow (x : R) (n : ℕ) : v (x^n) = n • (v x) :=
+show to_add (v.to_fun (x ^ n)) = to_add (monoid.pow (of_add (to_add (v.to_fun x))) n),
+by simpa [-valuation.map_pow] using v.map_pow x n
 
 @[ext] lemma ext {v₁ v₂ : add_valuation R Γ₀} (h : ∀ r, v₁ r = v₂ r) : v₁ = v₂ :=
-valuation.ext h
+valuation.ext (λ r, to_add.injective (h _))
 
 lemma ext_iff {v₁ v₂ : add_valuation R Γ₀} : v₁ = v₂ ↔ ∀ r, v₁ r = v₂ r :=
-valuation.ext_iff
+⟨by rintros rfl _; refl, ext⟩
 
 -- The following definition is not an instance, because we have more than one `v` on a given `R`.
 -- In addition, type class inference would not be able to infer `v`.
@@ -495,10 +507,19 @@ def to_preorder : preorder R := preorder.lift v
 /-- If `v` is an additive valuation on a division ring then `v(x) = ⊤` iff `x = 0`. -/
 @[simp] lemma top_iff [nontrivial Γ₀] {K : Type*} [division_ring K]
   (v : add_valuation K Γ₀) {x : K} : v x = ⊤ ↔ x = 0 :=
-v.zero_iff
+begin
+  show to_add (v.to_fun x) = to_add 0 ↔ x = 0,
+  rw equiv.apply_eq_iff_eq,
+  exact v.zero_iff,
+end
 
 lemma ne_top_iff [nontrivial Γ₀] {K : Type*} [division_ring K]
-  (v : add_valuation K Γ₀) {x : K} : v x ≠ ⊤ ↔ x ≠ 0 := v.ne_zero_iff
+  (v : add_valuation K Γ₀) {x : K} : v x ≠ ⊤ ↔ x ≠ 0 :=
+begin
+  show ¬ (to_add (v.to_fun x) = to_add 0) ↔ x ≠ 0,
+  rw to_add.apply_eq_iff_eq,
+  exact v.ne_zero_iff
+end
 
 /-- A ring homomorphism `S → R` induces a map `add_valuation R Γ₀ → add_valuation S Γ₀`. -/
 def comap {S : Type*} [ring S] (f : S →+* R) (v : add_valuation R Γ₀) :
@@ -516,11 +537,8 @@ v.comap_comp f g
 -/
 def map (f : Γ₀ →+ Γ'₀) (ht : f ⊤ = ⊤) (hf : monotone f) (v : add_valuation R Γ₀) :
   add_valuation R Γ'₀ :=
-v.map {
-  to_fun := f,
-  map_mul' := f.map_add,
-  map_one' := f.map_zero,
-  map_zero' := ht } (λ x y h, hf h)
+v.map { map_zero' := show of_add _ = _, by erw ht; refl, .. f.to_multiplicative }
+  (λ x y h, hf h)
 
 /-- Two additive valuations on `R` are defined to be equivalent if they induce the same
   preorder on `R`. -/
@@ -535,11 +553,11 @@ variables {Γ''₀ : Type*} [linear_ordered_add_comm_monoid_with_top Γ''₀]
 variables {v : add_valuation R Γ₀}
 variables {v₁ : add_valuation R Γ₀} {v₂ : add_valuation R Γ'₀} {v₃ : add_valuation R Γ''₀}
 
-@[refl] lemma refl : v.is_equiv v := valuation.is_equiv.refl
+@[refl] protected lemma refl : v.is_equiv v := valuation.is_equiv.refl
 
-@[symm] lemma symm (h : v₁.is_equiv v₂) : v₂.is_equiv v₁ := h.symm
+@[symm] protected lemma symm (h : v₁.is_equiv v₂) : v₂.is_equiv v₁ := h.symm
 
-@[trans] lemma trans (h₁₂ : v₁.is_equiv v₂) (h₂₃ : v₂.is_equiv v₃) : v₁.is_equiv v₃ :=
+@[trans] protected lemma trans (h₁₂ : v₁.is_equiv v₂) (h₂₃ : v₂.is_equiv v₃) : v₁.is_equiv v₃ :=
 h₁₂.trans h₂₃
 
 lemma of_eq {v' : add_valuation R Γ₀} (h : v = v') : v.is_equiv v' :=
@@ -548,11 +566,9 @@ valuation.is_equiv.of_eq h
 lemma map {v' : add_valuation R Γ₀} (f : Γ₀ →+ Γ'₀) (ht : f ⊤ = ⊤) (hf : monotone f)
   (inf : injective f) (h : v.is_equiv v') :
   (v.map f ht hf).is_equiv (v'.map f ht hf) :=
-h.map {
-  to_fun := f,
-  map_mul' := f.map_add,
-  map_one' := f.map_zero,
-  map_zero' := ht } (λ x y h, hf h) inf
+h.map { map_zero' := show of_add _ = _, by erw ht; refl, .. f.to_multiplicative }
+  (λ x y h, hf h)
+  ((of_add.injective.comp inf).comp to_add.injective)
 
 /-- `comap` preserves equivalence. -/
 lemma comap {S : Type*} [ring S] (f : S →+* R) (h : v₁.is_equiv v₂) :
@@ -561,11 +577,12 @@ h.comap f
 
 lemma val_eq (h : v₁.is_equiv v₂) {r s : R} :
   v₁ r = v₁ s ↔ v₂ r = v₂ s :=
-h.val_eq
+multiplicative.ext_iff.symm.trans (h.val_eq.trans multiplicative.ext_iff)
 
 lemma ne_top (h : v₁.is_equiv v₂) {r : R} :
   v₁ r ≠ ⊤ ↔ v₂ r ≠ ⊤ :=
-h.ne_zero
+show ¬ (to_add (v₁.to_fun r) = to_add 0) ↔ ¬ (to_add (v₂.to_fun r) = to_add 0),
+by simpa using h.ne_zero
 
 end is_equiv
 
@@ -576,14 +593,17 @@ variables (v : add_valuation R Γ₀)
 /-- The support of an additive valuation `v : R → Γ₀` is the ideal of `R` where `v x = ⊤` -/
 def supp : ideal R := v.supp
 
-@[simp] lemma mem_supp_iff (x : R) : x ∈ supp v ↔ v x = ⊤ := v.mem_supp_iff x
+@[simp] lemma mem_supp_iff (x : R) : x ∈ supp v ↔ v x = ⊤ :=
+(v.mem_supp_iff x).trans $
+show v.to_fun x = 0 ↔ to_add (v.to_fun x) = to_add 0, by simp
 
 lemma map_add_supp (a : R) {s : R} (h : s ∈ supp v) : v (a + s) = v a :=
-v.map_add_supp a h
+show to_add _ = to_add _, from congr_arg to_add (v.map_add_supp a h)
 
 /-- If `hJ : J ⊆ supp v` then `on_quot_val hJ` is the induced function on R/J as a function.
 Note: it's just the function; the valuation is `on_quot hJ`. -/
-def on_quot_val {J : ideal R} (hJ : J ≤ supp v) : J.quotient → Γ₀ := v.on_quot_val hJ
+def on_quot_val {J : ideal R} (hJ : J ≤ supp v) (q : J.quotient) : Γ₀ :=
+(v.on_quot_val hJ q).to_add
 
 /-- The extension of valuation v on R to valuation on R/J if J ⊆ supp v -/
 def on_quot {J : ideal R} (hJ : J ≤ supp v) :

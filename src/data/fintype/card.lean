@@ -123,7 +123,8 @@ is the sum of `f x`, for some `x : fin (n + 1)` plus the remaining product -/
 theorem fin.sum_univ_succ_above [add_comm_monoid β] {n : ℕ} (f : fin (n + 1) → β)
   (x : fin (n + 1)) :
   ∑ i, f i = f x + ∑ i : fin n, f (x.succ_above i) :=
-by apply @fin.prod_univ_succ_above (multiplicative β)
+by simpa using congr_arg multiplicative.to_add
+  (fin.prod_univ_succ_above (multiplicative.of_add ∘ f) _)
 
 attribute [to_additive] fin.prod_univ_succ_above
 
@@ -151,7 +152,7 @@ by simpa [mul_comm] using fin.prod_univ_succ_above f (fin.last n)
 is the sum of `f (fin.last n)` plus the remaining sum -/
 theorem fin.sum_univ_cast_succ [add_comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) :
   ∑ i, f i = ∑ i : fin n, f i.cast_succ + f (fin.last n) :=
-by apply @fin.prod_univ_cast_succ (multiplicative β)
+by simpa using congr_arg multiplicative.to_add (fin.prod_univ_cast_succ (multiplicative.of_add ∘ f))
 
 attribute [to_additive] fin.prod_univ_cast_succ
 
@@ -360,7 +361,8 @@ end
 -- Use `multiplicative` instead.
 lemma sum_take_of_fn [add_comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
   ((of_fn f).take i).sum = ∑ j in finset.univ.filter (λ (j : fin n), j.val < i), f j :=
-@prod_take_of_fn (multiplicative α) _ n f i
+by simpa [list.to_add_prod, list.map_take] using
+  congr_arg multiplicative.to_add (prod_take_of_fn (multiplicative.of_add ∘ f) i)
 
 attribute [to_additive] prod_take_of_fn
 

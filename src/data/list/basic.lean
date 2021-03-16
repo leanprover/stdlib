@@ -2243,6 +2243,14 @@ lemma prod_update_nth : ∀ (L : list α) (n : ℕ) (a : α),
 
 end monoid
 
+lemma to_add_prod [add_monoid α] {l : list (multiplicative α)} :
+  multiplicative.to_add l.prod = (l.map multiplicative.to_add).sum :=
+by induction l; simp *
+
+lemma to_mul_sum [monoid α] {l : list (additive α)} :
+  additive.to_mul l.sum = (l.map additive.to_mul).prod :=
+by induction l; simp *
+
 section group
 variables [group α]
 

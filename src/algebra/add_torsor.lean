@@ -473,7 +473,7 @@ ext $ λ p, (vadd_assoc v₁ v₂ p).symm
 def const_vadd_hom : multiplicative G →* equiv.perm P :=
 { to_fun := λ v, const_vadd P v.to_add,
   map_one' := const_vadd_zero G P,
-  map_mul' := const_vadd_add P }
+  map_mul' := by simp [forall_multiplicative_iff] }
 
 variable {P}
 

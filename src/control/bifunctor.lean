@@ -84,17 +84,26 @@ open functor
 instance : bifunctor prod :=
 { bimap := @prod.map }
 
+@[simp] lemma prod.bifunctor_apply {α α' β β'} (f : α → α') (g : β → β') :
+  (bimap f g : α × β → α' × β') = prod.map f g := rfl
+
 instance : is_lawful_bifunctor prod :=
 by refine { .. }; intros; cases x; refl
 
 instance bifunctor.const : bifunctor const :=
 { bimap := (λ α α' β β f _, f) }
 
+@[simp] lemma functor.const.bifunctor_apply {α α' β β'} (f : α → α') (g : β → β') :
+  (bimap f g : functor.const α β → functor.const α' β') = f := rfl
+
 instance is_lawful_bifunctor.const : is_lawful_bifunctor const  :=
 by refine { .. }; intros; refl
 
 instance bifunctor.flip : bifunctor (flip F) :=
 { bimap := (λ α α' β β' f f' x, (bimap f' f x : F β' α')) }
+
+@[simp] lemma flip.bifunctor_apply {α α' β β'} (f : α → α') (g : β → β') :
+  (bimap f g : flip F α β → flip F α' β') = (bimap g f : F β α → F β' α') := rfl
 
 instance is_lawful_bifunctor.flip [is_lawful_bifunctor F] : is_lawful_bifunctor (flip F)  :=
 by refine { .. }; intros; simp [bimap] with functor_norm

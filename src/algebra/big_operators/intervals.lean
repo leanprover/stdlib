@@ -17,6 +17,7 @@ We prove results about big operators over intervals (mostly the `ℕ`-valued `Ic
 universes u v w
 
 open_locale big_operators nat
+open additive multiplicative
 
 namespace finset
 
@@ -30,7 +31,7 @@ Ico.image_add m n k ▸ eq.symm $ sum_image $ λ x hx y hy h, nat.add_left_cance
 @[to_additive]
 lemma prod_Ico_add (f : ℕ → β) (m n k : ℕ) :
   (∏ l in Ico m n, f (k + l)) = (∏ l in Ico (m + k) (n + k), f l) :=
-@sum_Ico_add (additive β) _ f m n k
+by simpa using congr_arg to_mul (sum_Ico_add (of_mul ∘ f) m n k)
 
 lemma sum_Ico_succ_top {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
   (hab : a ≤ b) (f : ℕ → δ) : (∑ k in Ico a (b + 1), f k) = (∑ k in Ico a b, f k) + f b :=
@@ -39,7 +40,7 @@ by rw [Ico.succ_top hab, sum_insert Ico.not_mem_top, add_comm]
 @[to_additive]
 lemma prod_Ico_succ_top {a b : ℕ} (hab : a ≤ b) (f : ℕ → β) :
   (∏ k in Ico a (b + 1), f k) = (∏ k in Ico a b, f k) * f b :=
-@sum_Ico_succ_top (additive β) _ _ _ hab _
+by simpa using congr_arg to_mul (sum_Ico_succ_top hab (of_mul ∘ f))
 
 lemma sum_eq_sum_Ico_succ_bot {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
   (hab : a < b) (f : ℕ → δ) : (∑ k in Ico a b, f k) = f a + (∑ k in Ico (a + 1) b, f k) :=
@@ -49,7 +50,7 @@ by rw [← sum_insert ha, Ico.insert_succ_bot hab]
 @[to_additive]
 lemma prod_eq_prod_Ico_succ_bot {a b : ℕ} (hab : a < b) (f : ℕ → β) :
   (∏ k in Ico a b, f k) = f a * (∏ k in Ico (a + 1) b, f k) :=
-@sum_eq_sum_Ico_succ_bot (additive β) _ _ _ hab _
+by simpa using congr_arg to_mul (sum_eq_sum_Ico_succ_bot hab (of_mul ∘ f))
 
 @[to_additive]
 lemma prod_Ico_consecutive (f : ℕ → β) {m n k : ℕ} (hmn : m ≤ n) (hnk : n ≤ k) :
@@ -113,7 +114,7 @@ end
 lemma sum_Ico_reflect {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (k : ℕ) {m n : ℕ}
   (h : m ≤ n + 1) :
   ∑ j in Ico k m, f (n - j) = ∑ j in Ico (n + 1 - m) (n + 1 - k), f j :=
-@prod_Ico_reflect (multiplicative δ) _ f k m n h
+by simpa using congr_arg to_add (prod_Ico_reflect (of_add ∘ f) k h)
 
 lemma prod_range_reflect (f : ℕ → β) (n : ℕ) :
   ∏ j in range n, f (n - 1 - j) = ∏ j in range n, f j :=
@@ -127,7 +128,7 @@ end
 
 lemma sum_range_reflect {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (n : ℕ) :
   ∑ j in range n, f (n - 1 - j) = ∑ j in range n, f j :=
-@prod_range_reflect (multiplicative δ) _ f n
+by simpa using congr_arg to_add (prod_range_reflect (of_add ∘ f) n)
 
 @[simp] lemma prod_Ico_id_eq_factorial : ∀ n : ℕ, ∏ x in Ico 1 (n + 1), x = n!
 | 0 := rfl

@@ -313,16 +313,14 @@ ideal.quotient.eq.2 $ subset_span $ or.inl ⟨i, j, hij, x, rfl⟩
 some component of the directed system. -/
 theorem exists_of [nonempty ι] (z : direct_limit G f) : ∃ i x, of G f i x = z :=
 nonempty.elim (by apply_instance) $ assume ind : ι,
-quotient.induction_on' z $ λ x, free_abelian_group.induction_on x
+quotient.induction_on' z $ λ x, free_abelian_group.induction_on_sub x
   ⟨ind, 0, (of _ _ ind).map_zero⟩
-  (λ s, multiset.induction_on s
+  (forall_multiplicative_iff.2 $ λ s, multiset.induction_on s
     ⟨ind, 1, (of _ _ ind).map_one⟩
     (λ a s ih, let ⟨i, x⟩ := a, ⟨j, y, hs⟩ := ih, ⟨k, hik, hjk⟩ := directed_order.directed i j in
       ⟨k, f i k hik x * f j k hjk y, by rw [(of _ _ _).map_mul, of_f, of_f, hs]; refl⟩))
-  (λ s ⟨i, x, ih⟩, ⟨i, -x, by rw [(of _ _ _).map_neg, ih]; refl⟩)
   (λ p q ⟨i, x, ihx⟩ ⟨j, y, ihy⟩, let ⟨k, hik, hjk⟩ := directed_order.directed i j in
-    ⟨k, f i k hik x + f j k hjk y, by rw [(of _ _ _).map_add, of_f, of_f, ihx, ihy]; refl⟩)
-
+    ⟨k, f i k hik x - f j k hjk y, by rw [(of _ _ _).map_sub, of_f, of_f, ihx, ihy]; refl⟩)
 
 section
 open_locale classical

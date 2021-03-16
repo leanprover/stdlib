@@ -49,8 +49,10 @@ def map_equiv :
   left_inv := λ x, by { convert (congr_fun (equiv_functor.map_trans e e.symm) x).symm, simp, },
   right_inv := λ y, by { convert (congr_fun (equiv_functor.map_trans e.symm e) y).symm, simp, }, }
 
-@[simp] lemma map_equiv_apply (x : f α) :
+lemma map_equiv_apply (x : f α) :
   map_equiv f e x = equiv_functor.map e x := rfl
+
+@[simp] lemma map_equiv_apply' : (map_equiv f e : f α → f β) = equiv_functor.map e := rfl
 
 lemma map_equiv_symm_apply (y : f β) :
   (map_equiv f e).symm y = equiv_functor.map e.symm y := rfl
@@ -74,7 +76,7 @@ equiv.ext $ λ x, by simp [map_equiv, map_trans']
 
 end
 
-@[priority 100]
+@[priority 100, simps]
 instance of_is_lawful_functor
   (f : Type u₀ → Type u₁) [functor f] [is_lawful_functor f] : equiv_functor f :=
 { map := λ α β e, functor.map e,

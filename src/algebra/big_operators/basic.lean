@@ -32,6 +32,8 @@ Let `s` be a `finset α`, and `f : α → β` a function.
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
+open multiplicative additive
+
 namespace finset
 
 /--
@@ -45,6 +47,16 @@ protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1
 @[simp, to_additive] lemma prod_mk [comm_monoid β] (s : multiset α) (hs) (f : α → β) :
   (⟨s, hs⟩ : finset α).prod f = (s.map f).prod :=
 rfl
+
+@[simp]
+lemma to_mul_sum [comm_monoid β] (s : finset α) (f : α → additive β) :
+  to_mul (s.sum f) = s.prod (to_mul ∘ f) :=
+show to_mul (multiset.sum _) = multiset.prod _, by simp [multiset.to_mul_sum]
+
+@[simp]
+lemma to_add_prod [add_comm_monoid β] (s : finset α) (f : α → multiplicative β) :
+  to_add (s.prod f) = s.sum (to_add ∘ f) :=
+show to_add (multiset.prod _) = multiset.sum _, by simp [multiset.to_add_prod]
 
 end finset
 
@@ -191,7 +203,7 @@ by rw [prod_insert (not_mem_singleton.2 h), prod_singleton]
 by simp only [finset.prod, multiset.map_const, multiset.prod_repeat, one_pow]
 @[simp, priority 1100] lemma sum_const_zero {β} {s : finset α} [add_comm_monoid β] :
   (∑ x in s, (0 : β)) = 0 :=
-@prod_const_one _ (multiplicative β) _ _
+by simp only [finset.sum.equations._eqn_1, multiset.map_const, multiset.sum_repeat, nsmul_zero]
 attribute [to_additive] prod_const_one
 
 @[simp, to_additive]
@@ -203,6 +215,20 @@ fold_image
 lemma prod_map (s : finset α) (e : α ↪ γ) (f : γ → β) :
   (∏ x in (s.map e), f x) = ∏ x in s, f (e x) :=
 by rw [finset.prod, finset.map_val, multiset.map_map]; refl
+
+@[simp, to_additive]
+lemma prod_map' {γ} [∀ P, decidable P] (s : finset α) (e : α ↪ γ) (f : γ → β) :
+  (∏ x in e <$> s, f x) = ∏ x in s, f (e x) :=
+by { unfold functor.map, rw [← map_eq_image, prod_map] }
+
+@[simp, to_additive]
+lemma prod_map'' {γ} [∀ P, decidable P] (s : finset α) (e : α ≃ γ) (f : γ → β) :
+  (∏ x in e <$> s, f x) = ∏ x in s, f (e x) :=
+prod_map' s e.to_embedding f
+
+lemma prod_multiplicative (s : finset (multiplicative α)) (f : multiplicative α → β) :
+  ∏ x in s, f x = ∏ x in s.map to_add.to_embedding, f (of_add x) :=
+by simp
 
 @[congr, to_additive]
 lemma prod_congr (h : s₁ = s₂) : (∀x∈s₂, f x = g x) → s₁.prod f = s₂.prod g :=
@@ -679,11 +705,11 @@ by rw [range_zero, prod_empty]
 
 lemma prod_range_one (f : ℕ → β) :
   (∏ k in range 1, f k) = f 0 :=
-by { rw [range_one], apply @prod_singleton ℕ β 0 f }
+by simp
 
 lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
   (∑ k in range 1, f k) = f 0 :=
-@prod_range_one (multiplicative δ) _ f
+by simp
 
 attribute [to_additive finset.sum_range_one] prod_range_one
 
@@ -710,7 +736,7 @@ end
 lemma sum_multiset_map_count [decidable_eq α] (s : multiset α)
   {M : Type*} [add_comm_monoid M] (f : α → M) :
   (s.map f).sum = ∑ m in s.to_finset, s.count m •ℕ f m :=
-@prod_multiset_map_count _ _ _ (multiplicative M) _ f
+by simpa [multiset.to_add_prod] using congr_arg to_add (prod_multiset_map_count s (of_add ∘ f))
 attribute [to_additive] prod_multiset_map_count
 
 lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
@@ -719,7 +745,8 @@ by { convert prod_multiset_map_count s id, rw map_id }
 
 lemma sum_multiset_count [decidable_eq α] [add_comm_monoid α] (s : multiset α) :
   s.sum = ∑ m in s.to_finset, s.count m •ℕ m :=
-@prod_multiset_count (multiplicative α) _ _ s
+by simpa [multiset.to_add_prod, prod_multiplicative, map_to_finset, to_add_pow_nsmul] using
+  congr_arg to_add (prod_multiset_count (s.map of_add))
 attribute [to_additive] prod_multiset_count
 
 /--
@@ -768,7 +795,7 @@ of the fundamental theorem of calculus.
 lemma sum_range_induction {M : Type*} [add_comm_monoid M]
   (f s : ℕ → M) (h0 : s 0 = 0) (h : ∀ n, s (n + 1) = s n + f n) (n : ℕ) :
   ∑ k in finset.range n, f k = s n :=
-@prod_range_induction (multiplicative M) _ f s h0 h n
+by simpa using congr_arg to_add (prod_range_induction (of_add ∘ f) (of_add ∘ s) _ _ n); simp [h0, h]
 
 /-- A telescoping sum along `{0, ..., n-1}` of an additive commutative group valued function
 reduces to the difference of the last and first terms.-/
@@ -785,12 +812,12 @@ reduces to the ratio of the last and first factors.-/
 @[to_additive]
 lemma prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
   ∏ i in range n, (f (i+1) * (f i)⁻¹) = f n * (f 0)⁻¹ :=
-by simpa only [← div_eq_mul_inv] using @sum_range_sub (additive M) _ f n
+by simpa [div_eq_mul_inv] using congr_arg to_mul (sum_range_sub (of_mul ∘ f) n)
 
 @[to_additive]
 lemma prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
   ∏ i in range n, (f i * (f (i+1))⁻¹) = (f 0) * (f n)⁻¹ :=
-by simpa only [← div_eq_mul_inv] using @sum_range_sub' (additive M) _ f n
+by simpa [div_eq_mul_inv] using congr_arg to_mul (sum_range_sub' (of_mul ∘ f) n)
 
 /--
 A telescoping sum along `{0, ..., n-1}` of an `ℕ`-valued function
@@ -1026,12 +1053,12 @@ attribute [to_additive] prod_update_of_mem
 
 lemma sum_nsmul [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :
   (∑ x in s, n •ℕ (f x)) = n •ℕ ((∑ x in s, f x)) :=
-@prod_pow _ (multiplicative β) _ _ _ _
+by simpa [to_add_pow_nsmul] using congr_arg to_add (prod_pow s n (of_add ∘ f))
 attribute [to_additive sum_nsmul] prod_pow
 
 @[simp] lemma sum_const [add_comm_monoid β] (b : β) :
   (∑ x in s, b) = s.card •ℕ b :=
-@prod_const _ (multiplicative β) _ _ _
+by simpa [-prod_const] using congr_arg to_add (prod_const (of_add b))
 attribute [to_additive] prod_const
 
 lemma card_eq_sum_ones (s : finset α) : s.card = ∑ _ in s, 1 :=
@@ -1061,24 +1088,24 @@ lemma sum_int_cast [add_comm_group β] [has_one β] (s : finset α) (f : α → 
 
 lemma sum_comp [add_comm_monoid β] [decidable_eq γ] {s : finset α} (f : γ → β) (g : α → γ) :
   ∑ a in s, f (g a) = ∑ b in s.image g, (s.filter (λ a, g a = b)).card •ℕ (f b) :=
-@prod_comp _ (multiplicative β) _ _ _ _ _ _
+by simpa [to_add_pow_nsmul] using congr_arg to_add (prod_comp (of_add ∘ f) _)
 attribute [to_additive "The sum of the composition of functions `f` and `g`, is the sum
 over `b ∈ s.image g` of `f b` times of the cardinality of the fibre of `b`"] prod_comp
 
-lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
-  ∀ n : ℕ, (∑ i in range (n + 1), f i) = (∑ i in range n, f (i + 1)) + f 0 :=
-@prod_range_succ' (multiplicative β) _ _
+lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) (n : ℕ) :
+  (∑ i in range (n + 1), f i) = (∑ i in range n, f (i + 1)) + f 0 :=
+by simpa using congr_arg to_add (prod_range_succ' (of_add ∘ f) n)
 attribute [to_additive] prod_range_succ'
 
 lemma sum_range_add {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) (m : ℕ) :
   (∑ x in range (n + m), f x) =
   (∑ x in range n, f x) + (∑ x in range m, f (n + x)) :=
-@prod_range_add (multiplicative β) _ _ _ _
+by simpa using congr_arg to_add (prod_range_add (of_add ∘ f) n m)
 attribute [to_additive] prod_range_add
 
 lemma sum_flip [add_comm_monoid β] {n : ℕ} (f : ℕ → β) :
   (∑ i in range (n + 1), f (n - i)) = (∑ i in range (n + 1), f i) :=
-@prod_flip (multiplicative β) _ _ _
+by simpa using congr_arg to_add (prod_flip (of_add ∘ f))
 attribute [to_additive] prod_flip
 
 section opposite

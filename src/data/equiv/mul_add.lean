@@ -67,11 +67,14 @@ variables [has_mul M] [has_mul N] [has_mul P] [has_mul Q]
 @[simp, to_additive]
 lemma to_fun_eq_coe {f : M ≃* N} : f.to_fun = f := rfl
 
-@[simp, to_additive]
+@[to_additive]
 lemma coe_to_equiv {f : M ≃* N} : ⇑f.to_equiv = f := rfl
 
 @[simp, to_additive]
 lemma coe_to_mul_hom {f : M ≃* N} : ⇑f.to_mul_hom = f := rfl
+
+@[simp, to_additive]
+lemma coe_fn_to_equiv {f : M ≃* N} : (f.to_equiv : M → N) = f := rfl
 
 /-- A multiplicative isomorphism preserves multiplication (canonical form). -/
 @[simp, to_additive]
@@ -460,48 +463,77 @@ end group
 end equiv
 
 section type_tags
+open multiplicative additive
+
+/-- Add-isomorphism between `additive (multiplicative A)` and `A`. -/
+@[simps] def additive.to_mul_to_add [add_monoid A] : additive (multiplicative A) ≃+ A :=
+{ to_fun := to_add ∘ to_mul, inv_fun := of_mul ∘ of_add,
+  left_inv := λ _, by simp, right_inv := λ _, by simp, map_add' := by simp }
+
+/-- Mul-isomorphism between `multiplicative (additive G)` and `G`. -/
+@[simps] def multiplicative.to_add_to_mul [monoid G] : multiplicative (additive G) ≃* G :=
+{ to_fun := to_mul ∘ to_add, inv_fun := of_add ∘ of_mul,
+  left_inv := λ _, by simp, right_inv := λ _, by simp, map_mul' := by simp }
 
 /-- Reinterpret `G ≃+ H` as `multiplicative G ≃* multiplicative H`. -/
+@[simps {simp_rhs := tt}]
 def add_equiv.to_multiplicative [add_monoid G] [add_monoid H] :
   (G ≃+ H) ≃ (multiplicative G ≃* multiplicative H) :=
 { to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative,
-                  f.symm.to_add_monoid_hom.to_multiplicative, f.3, f.4, f.5⟩,
-  inv_fun := λ f, ⟨f.to_monoid_hom, f.symm.to_monoid_hom, f.3, f.4, f.5⟩,
-  left_inv := λ x, by { ext, refl, },
-  right_inv := λ x, by { ext, refl, }, }
+                  f.symm.to_add_monoid_hom.to_multiplicative,
+                  λ _, by simp, λ _, by simp, λ _, by simp⟩,
+  inv_fun := λ f, ⟨add_monoid_hom.to_multiplicative.symm f.to_monoid_hom,
+                   add_monoid_hom.to_multiplicative.symm f.symm.to_monoid_hom,
+                   λ _, by simp, λ _, by simp, λ _, by simp⟩,
+  left_inv := λ x, by { ext, simp },
+  right_inv := λ x, by { ext, simp }, }
 
 /-- Reinterpret `G ≃* H` as `additive G ≃+ additive H`. -/
+@[simps {simp_rhs := tt}]
 def mul_equiv.to_additive [monoid G] [monoid H] :
   (G ≃* H) ≃ (additive G ≃+ additive H) :=
-{ to_fun := λ f, ⟨f.to_monoid_hom.to_additive, f.symm.to_monoid_hom.to_additive, f.3, f.4, f.5⟩,
-  inv_fun := λ f, ⟨f.to_add_monoid_hom, f.symm.to_add_monoid_hom, f.3, f.4, f.5⟩,
-  left_inv := λ x, by { ext, refl, },
-  right_inv := λ x, by { ext, refl, }, }
+{ to_fun := λ f, ⟨f.to_monoid_hom.to_additive,
+                  f.symm.to_monoid_hom.to_additive,
+                  λ _, by simp, λ _, by simp, λ _, by simp⟩,
+  inv_fun := λ f, ⟨monoid_hom.to_additive.symm f.to_add_monoid_hom,
+                   monoid_hom.to_additive.symm f.symm.to_add_monoid_hom,
+                   λ _, by simp, λ _, by simp, λ _, by simp⟩,
+  left_inv := λ x, by { ext, simp },
+  right_inv := λ x, by { ext, simp }, }
 
 /-- Reinterpret `additive G ≃+ H` as `G ≃* multiplicative H`. -/
+@[simps {simp_rhs := tt}]
 def add_equiv.to_multiplicative' [monoid G] [add_monoid H] :
   (additive G ≃+ H) ≃ (G ≃* multiplicative H) :=
 { to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative',
-                  f.symm.to_add_monoid_hom.to_multiplicative'', f.3, f.4, f.5⟩,
-  inv_fun := λ f, ⟨f.to_monoid_hom, f.symm.to_monoid_hom, f.3, f.4, f.5⟩,
-  left_inv := λ x, by { ext, refl, },
-  right_inv := λ x, by { ext, refl, }, }
+                  f.symm.to_add_monoid_hom.to_multiplicative'',
+                  λ _, by simp, λ _, by simp, λ _, by simp⟩,
+  inv_fun := λ f, ⟨f.to_monoid_hom.to_additive',
+                   f.symm.to_monoid_hom.to_additive'',
+                   λ _, by simp, λ _, by simp, λ _, by simp⟩,
+  left_inv := λ x, by { ext, simp },
+  right_inv := λ x, by { ext, simp }, }
 
 /-- Reinterpret `G ≃* multiplicative H` as `additive G ≃+ H` as. -/
+@[simps {value_md := semireducible, simp_rhs := tt}]
 def mul_equiv.to_additive' [monoid G] [add_monoid H] :
   (G ≃* multiplicative H) ≃ (additive G ≃+ H) :=
 add_equiv.to_multiplicative'.symm
 
 /-- Reinterpret `G ≃+ additive H` as `multiplicative G ≃* H`. -/
+@[simps {simp_rhs := tt}]
 def add_equiv.to_multiplicative'' [add_monoid G] [monoid H] :
   (G ≃+ additive H) ≃ (multiplicative G ≃* H) :=
 { to_fun := λ f, ⟨f.to_add_monoid_hom.to_multiplicative'',
-                  f.symm.to_add_monoid_hom.to_multiplicative', f.3, f.4, f.5⟩,
-  inv_fun := λ f, ⟨f.to_monoid_hom, f.symm.to_monoid_hom, f.3, f.4, f.5⟩,
-  left_inv := λ x, by { ext, refl, },
-  right_inv := λ x, by { ext, refl, }, }
+                  f.symm.to_add_monoid_hom.to_multiplicative',
+                  λ _, by simp, λ _, by simp, λ _, by simp⟩,
+  inv_fun := λ f, ⟨f.to_monoid_hom.to_additive'', f.symm.to_monoid_hom.to_additive',
+                   λ _, by simp, λ _, by simp, λ _, by simp⟩,
+  left_inv := λ x, by { ext, simp, },
+  right_inv := λ x, by { ext, simp, }, }
 
 /-- Reinterpret `multiplicative G ≃* H` as `G ≃+ additive H` as. -/
+@[simps {value_md := semireducible, simp_rhs := tt}]
 def mul_equiv.to_additive'' [add_monoid G] [monoid H] :
   (multiplicative G ≃* H) ≃ (G ≃+ additive H) :=
 add_equiv.to_multiplicative''.symm

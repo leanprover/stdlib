@@ -844,11 +844,23 @@ begin
   rw [←gsmul_eq_smul, gsmul_eq_mul],
 end
 
+open additive multiplicative
+
+lemma of_add_smul_int {A} [add_comm_group A] (a : A) (n : ℤ) :
+  of_add (n • a) = of_add a ^ n :=
+of_add_gsmul _ _
+
+lemma to_mul_smul_int {G} [comm_group G] (a : additive G) (n : ℤ) :
+  to_mul (n • a) = to_mul a ^ n :=
+by simpa [(•), gsmul, -monoid_hom.map_gpow] using
+  (@to_add_to_mul G _).to_monoid_hom.map_gpow _ _
+
 /-- Möbius inversion for functions to a `comm_group`. -/
 theorem prod_eq_iff_prod_pow_moebius_eq [comm_group R] {f g : ℕ → R} :
   (∀ (n : ℕ), 0 < n → ∏ i in (n.divisors), f i = g n) ↔
     ∀ (n : ℕ), 0 < n → ∏ (x : ℕ × ℕ) in n.divisors_antidiagonal, g x.snd ^ (μ x.fst) = f n :=
-@sum_eq_iff_sum_smul_moebius_eq (additive R) _ _ _
+by simpa [additive.ext_iff, to_mul_smul_int]
+   using @sum_eq_iff_sum_smul_moebius_eq _ _ (of_mul ∘ f) (of_mul ∘ g)
 
 /-- Möbius inversion for functions to a `comm_group_with_zero`. -/
 theorem prod_eq_iff_prod_pow_moebius_eq_of_nonzero [comm_group_with_zero R] {f g : ℕ → R}

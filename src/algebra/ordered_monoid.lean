@@ -536,7 +536,7 @@ local attribute [reducible] with_zero
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := (+),
-  ..@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _ }
+  add_assoc := by rintros ⟨_|_⟩ ⟨_|_⟩ ⟨_|_⟩; refl <|> exact congr_arg some (add_assoc _ _ _) }
 
 @[norm_cast] lemma coe_add [has_add α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
 
@@ -565,20 +565,17 @@ lemma add_eq_coe [has_add α] : ∀ {a b : with_top α} {c : α},
     by simp only [some_eq_coe, ← coe_add, coe_eq_coe, exists_and_distrib_left, exists_eq_left]
 
 instance [add_comm_semigroup α] : add_comm_semigroup (with_top α) :=
-{ ..@additive.add_comm_semigroup _ $
-    @with_zero.comm_semigroup (multiplicative α) _ }
+{ add_comm := by rintros ⟨_|_⟩ ⟨_|_⟩; refl <|> exact congr_arg some (add_comm _ _),
+  ..with_top.add_semigroup }
 
 instance [add_monoid α] : add_monoid (with_top α) :=
 { zero := some 0,
-  add := (+),
-  ..@additive.add_monoid _ $ @monoid_with_zero.to_monoid _ $
-    @with_zero.monoid_with_zero (multiplicative α) _ }
+  zero_add := by rintros ⟨_|_⟩; refl <|> exact congr_arg some (zero_add _),
+  add_zero := by rintros ⟨_|_⟩; refl <|> exact congr_arg some (add_zero _),
+  ..with_top.add_semigroup }
 
 instance [add_comm_monoid α] : add_comm_monoid (with_top α) :=
-{ zero := 0,
-  add := (+),
-  ..@additive.add_comm_monoid _ $ @comm_monoid_with_zero.to_comm_monoid _ $
-    @with_zero.comm_monoid_with_zero (multiplicative α) _ }
+{ ..with_top.add_monoid, ..with_top.add_comm_semigroup }
 
 instance [ordered_add_comm_monoid α] : ordered_add_comm_monoid (with_top α) :=
 { add_le_add_left :=
@@ -1227,34 +1224,116 @@ instance [ordered_cancel_comm_monoid M] [ordered_cancel_comm_monoid N] :
 end prod
 
 section type_tags
+open multiplicative additive
 
-instance : Π [preorder α], preorder (multiplicative α) := id
-instance : Π [preorder α], preorder (additive α) := id
-instance : Π [partial_order α], partial_order (multiplicative α) := id
-instance : Π [partial_order α], partial_order (additive α) := id
-instance : Π [linear_order α], linear_order (multiplicative α) := id
-instance : Π [linear_order α], linear_order (additive α) := id
+@[simps]
+instance [preorder α] : preorder (multiplicative α) :=
+{ le := λ x y, x.to_add ≤ y.to_add,
+  lt := λ x y, x.to_add < y.to_add,
+  lt_iff_le_not_le := by { equiv_rw multiplicative.to_add, simpa using @lt_iff_le_not_le _ _ },
+  le_refl := by { equiv_rw multiplicative.to_add, simpa using le_refl },
+  le_trans := by { equiv_rw multiplicative.to_add, simpa using @le_trans _ _ } }
+
+@[simps]
+instance [preorder α] : preorder (additive α) :=
+{ le := λ x y, x.to_mul ≤ y.to_mul,
+  lt := λ x y, x.to_mul < y.to_mul,
+  lt_iff_le_not_le := by { equiv_rw additive.to_mul, simpa using @lt_iff_le_not_le _ _ },
+  le_refl := by { equiv_rw additive.to_mul, simpa using le_refl },
+  le_trans := by { equiv_rw additive.to_mul, simpa using @le_trans _ _ } }
+
+instance [partial_order α] : partial_order (multiplicative α) :=
+{ le_antisymm := by { equiv_rw multiplicative.to_add, simpa using @le_antisymm _ _ },
+  ..multiplicative.preorder }
+
+instance [partial_order α] : partial_order (additive α) :=
+{ le_antisymm := by { equiv_rw additive.to_mul, simpa using @le_antisymm _ _ },
+  ..additive.preorder }
+
+instance [linear_order α] : linear_order (multiplicative α) :=
+{ le_total := by { equiv_rw multiplicative.to_add, simpa using @le_total _ _ },
+  decidable_le := λ _ _, by { simp, apply_instance },
+  ..multiplicative.partial_order }
+
+@[simp]
+lemma multiplicative.to_add_max [linear_order α] {a b : multiplicative α} :
+  to_add (max a b) = max (to_add a) (to_add b) :=
+by simp [max]; split_ifs; refl
+
+@[simp]
+lemma multiplicative.of_add_max [linear_order α] {a b : α} :
+  of_add (max a b) = max (of_add a) (of_add b) :=
+by simp [max]; split_ifs; refl
+
+@[simp]
+lemma multiplicative.to_add_min [linear_order α] {a b : multiplicative α} :
+  to_add (min a b) = min (to_add a) (to_add b) :=
+by simp [min]; split_ifs; refl
+
+@[simp]
+lemma multiplicative.of_add_min [linear_order α] {a b : α} :
+  of_add (min a b) = min (of_add a) (of_add b) :=
+by simp [min]; split_ifs; refl
+
+instance [linear_order α] : linear_order (additive α) :=
+{ le_total := by { equiv_rw additive.to_mul, simpa using @le_total _ _ },
+  decidable_le := λ _ _, by { simp, apply_instance },
+  ..additive.partial_order }
+
+@[simp]
+lemma additive.to_mul_max [linear_order α] {a b : additive α} :
+  to_mul (max a b) = max (to_mul a) (to_mul b) :=
+by simp [max]; split_ifs; refl
+
+@[simp]
+lemma additive.of_mul_max [linear_order α] {a b : α} :
+  of_mul (max a b) = max (of_mul a) (of_mul b) :=
+by simp [max]; split_ifs; refl
+
+@[simp]
+lemma additive.to_mul_min [linear_order α] {a b : additive α} :
+  to_mul (min a b) = min (to_mul a) (to_mul b) :=
+by simp [min]; split_ifs; refl
+
+@[simp]
+lemma additive.of_mul_min [linear_order α] {a b : α} :
+  of_mul (min a b) = min (of_mul a) (of_mul b) :=
+by simp [min]; split_ifs; refl
 
 instance [ordered_add_comm_monoid α] : ordered_comm_monoid (multiplicative α) :=
-{ mul_le_mul_left := @ordered_add_comm_monoid.add_le_add_left α _,
-  lt_of_mul_lt_mul_left := @ordered_add_comm_monoid.lt_of_add_lt_add_left α _,
+{ mul_le_mul_left := begin
+    equiv_rw multiplicative.to_add,
+    intros x y h, equiv_rw multiplicative.to_add, revert x y, -- TODO: equiv_rw bug
+    simpa using @add_le_add_left _ _
+  end,
+  lt_of_mul_lt_mul_left := begin
+    equiv_rw multiplicative.to_add,
+    simpa using @lt_of_add_lt_add_left _ _
+  end,
   ..multiplicative.partial_order,
   ..multiplicative.comm_monoid }
 
 instance [ordered_comm_monoid α] : ordered_add_comm_monoid (additive α) :=
-{ add_le_add_left := @ordered_comm_monoid.mul_le_mul_left α _,
-  lt_of_add_lt_add_left := @ordered_comm_monoid.lt_of_mul_lt_mul_left α _,
+{ add_le_add_left := begin
+    equiv_rw additive.to_mul,
+    intros x y h, equiv_rw additive.to_mul, revert x y, -- TODO: equiv_rw bug
+    simpa using @mul_le_mul_left' _ _
+  end,
+  lt_of_add_lt_add_left := begin
+    equiv_rw additive.to_mul,
+    simpa using @lt_of_mul_lt_mul_left' _ _
+  end,
   ..additive.partial_order,
   ..additive.add_comm_monoid }
 
 instance [ordered_cancel_add_comm_monoid α] : ordered_cancel_comm_monoid (multiplicative α) :=
-{ le_of_mul_le_mul_left := @ordered_cancel_add_comm_monoid.le_of_add_le_add_left α _,
+{ le_of_mul_le_mul_left := by { equiv_rw multiplicative.to_add, simp },
   ..multiplicative.right_cancel_semigroup,
   ..multiplicative.left_cancel_semigroup,
   ..multiplicative.ordered_comm_monoid }
 
 instance [ordered_cancel_comm_monoid α] : ordered_cancel_add_comm_monoid (additive α) :=
-{ le_of_add_le_add_left := @ordered_cancel_comm_monoid.le_of_mul_le_mul_left α _,
+{ le_of_add_le_add_left := by { equiv_rw additive.to_mul, simp },
   ..additive.add_right_cancel_semigroup,
   ..additive.add_left_cancel_semigroup,
   ..additive.ordered_add_comm_monoid }

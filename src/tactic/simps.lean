@@ -305,6 +305,9 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
     for the purposes of finding out whether the type is a function type.
     Default: `instances`. This will unfold coercion instances (so that a coercion to a function type
     is recognized as a function type), but not declarations like `set`.
+  * `value_md` specifies how aggressively definitions in the declaration are unfolded.  The value
+    of the definition is then reduced to whnf with this transparency setting.
+    Default: `none`
   * `rhs_md` specifies how aggressively definition in the declaration are unfolded for the purposes
     of finding out whether it is a constructor.
     Default: `none`
@@ -326,6 +329,7 @@ meta def simps_get_projection_exprs (e : environment) (tgt : expr)
 (short_name    := ff)
 (simp_rhs      := ff)
 (type_md       := transparency.instances)
+(value_md      := transparency.none)
 (rhs_md        := transparency.none)
 (fully_applied := tt)
 (not_recursive := [`prod, `pprod])
@@ -478,7 +482,9 @@ do
   let todo := todo.erase_dup.map $ λ proj, "_" ++ proj,
   b ← has_attribute' `to_additive nm,
   let cfg := if b then { attrs := cfg.attrs ++ [`to_additive], ..cfg } else cfg,
-  simps_add_projections e nm "" d.type lhs d.value [] d.univ_params tt cfg todo
+  (xs, val) ← open_lambdas_whnf d.value cfg.value_md,
+  value ← whnf val cfg.value_md >>= tactic.lambdas xs,
+  simps_add_projections e nm "" d.type lhs value [] d.univ_params tt cfg todo
 
 /-- The parser for the `@[simps]` attribute. -/
 meta def simps_parser : parser (list string × simps_cfg) := do

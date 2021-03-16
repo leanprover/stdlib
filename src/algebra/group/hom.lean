@@ -378,6 +378,15 @@ add_decl_doc add_hom.id
 /-- The identity map from an additive monoid to itself. -/
 add_decl_doc add_monoid_hom.id
 
+@[simp, to_additive] lemma one_hom.coe_id {M : Type*} [has_one M] :
+  (one_hom.id M : M → M) = id := rfl
+@[simp, to_additive] lemma mul_hom.coe_id {M : Type*} [has_mul M] :
+  (mul_hom.id M : M → M) = id := rfl
+@[simp, to_additive] lemma monoid_hom.coe_id {M : Type*} [monoid M] :
+  (monoid_hom.id M : M → M) = id := rfl
+@[simp] lemma monoid_with_zero_hom.coe_id {M : Type*} [monoid_with_zero M] :
+  (monoid_with_zero_hom.id M : M → M) = id := rfl
+
 @[simp, to_additive] lemma one_hom.id_apply {M : Type*} [has_one M] (x : M) :
   one_hom.id M x = x := rfl
 @[simp, to_additive] lemma mul_hom.id_apply {M : Type*} [has_mul M] (x : M) :

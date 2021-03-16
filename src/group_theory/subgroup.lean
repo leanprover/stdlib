@@ -80,6 +80,7 @@ subgroup, subgroups
 -/
 
 open_locale big_operators
+open multiplicative additive
 
 variables {G : Type*} [group G]
 variables {A : Type*} [add_group A]
@@ -104,38 +105,6 @@ add_decl_doc subgroup.to_submonoid
 
 /-- Reinterpret an `add_subgroup` as an `add_submonoid`. -/
 add_decl_doc add_subgroup.to_add_submonoid
-
-/-- Map from subgroups of group `G` to `add_subgroup`s of `additive G`. -/
-def subgroup.to_add_subgroup {G : Type*} [group G] (H : subgroup G) :
-  add_subgroup (additive G) :=
-{ neg_mem' := H.inv_mem',
-  .. submonoid.to_add_submonoid H.to_submonoid}
-
-/-- Map from `add_subgroup`s of `additive G` to subgroups of `G`. -/
-def subgroup.of_add_subgroup {G : Type*} [group G] (H : add_subgroup (additive G)) :
-  subgroup G :=
-{ inv_mem' := H.neg_mem',
-  .. submonoid.of_add_submonoid H.to_add_submonoid}
-
-/-- Map from `add_subgroup`s of `add_group G` to subgroups of `multiplicative G`. -/
-def add_subgroup.to_subgroup {G : Type*} [add_group G] (H : add_subgroup G) :
-  subgroup (multiplicative G) :=
-{ inv_mem' := H.neg_mem',
-  .. add_submonoid.to_submonoid H.to_add_submonoid}
-
-/-- Map from subgroups of `multiplicative G` to `add_subgroup`s of `add_group G`. -/
-def add_subgroup.of_subgroup {G : Type*} [add_group G] (H : subgroup (multiplicative G)) :
-  add_subgroup G :=
-{ neg_mem' := H.inv_mem',
-  .. add_submonoid.of_submonoid H.to_submonoid }
-
-/-- Subgroups of group `G` are isomorphic to additive subgroups of `additive G`. -/
-def subgroup.add_subgroup_equiv (G : Type*) [group G] :
-subgroup G ≃ add_subgroup (additive G) :=
-{ to_fun := subgroup.to_add_subgroup,
-  inv_fun := subgroup.of_add_subgroup,
-  left_inv := λ x, by cases x; refl,
-  right_inv := λ x, by cases x; refl }
 
 namespace subgroup
 
@@ -190,6 +159,10 @@ protected def copy (K : subgroup G) (s : set G) (hs : s = K) : subgroup G :=
   one_mem' := hs.symm ▸ K.one_mem',
   mul_mem' := hs.symm ▸ K.mul_mem',
   inv_mem' := hs.symm ▸ K.inv_mem' }
+
+@[simp, to_additive]
+lemma mem_copy (K : subgroup G) (s : set G) (hs : s = K) (x) : x ∈ K.copy s hs ↔ x ∈ K :=
+by subst hs; refl
 
 /- Two subgroups are equal if the underlying set are the same. -/
 @[to_additive "Two `add_group`s are equal if the underlying subsets are equal."]
@@ -837,6 +810,67 @@ attribute [class] normal
 
 end subgroup
 
+section type_tags
+open multiplicative additive
+
+/-- Map from subgroups of group `G` to `add_subgroup`s of `additive G`. -/
+def subgroup.to_add_subgroup {G : Type*} [group G] (H : subgroup G) :
+  add_subgroup (additive G) :=
+{ neg_mem' := by { equiv_rw to_mul, simpa using H.inv_mem' },
+  .. submonoid.to_add_submonoid H.to_submonoid}
+
+@[simp] lemma subgroup.mem_to_add_subgroup {G : Type*} [group G] (H : subgroup G) (x) :
+  x ∈ H.to_add_subgroup ↔ to_mul x ∈ H :=
+iff.rfl
+
+/-- Map from `add_subgroup`s of `additive G` to subgroups of `G`. -/
+def subgroup.of_add_subgroup {G : Type*} [group G] (H : add_subgroup (additive G)) :
+  subgroup G :=
+{ inv_mem' := by { equiv_rw of_mul, simpa using H.neg_mem' },
+  .. submonoid.of_add_submonoid H.to_add_submonoid}
+
+@[simp]
+lemma subgroup.mem_of_add_subgroup {G : Type*} [group G] (H : add_subgroup (additive G)) (x) :
+  x ∈ subgroup.of_add_subgroup H ↔ of_mul x ∈ H :=
+iff.rfl
+
+/-- Map from `add_subgroup`s of `add_group G` to subgroups of `multiplicative G`. -/
+def add_subgroup.to_subgroup {G : Type*} [add_group G] (H : add_subgroup G) :
+  subgroup (multiplicative G) :=
+{ inv_mem' := by { equiv_rw to_add, simpa using H.neg_mem' },
+  .. add_submonoid.to_submonoid H.to_add_submonoid}
+
+@[simp]
+lemma add_subgroup.mem_to_subgroup {G : Type*} [add_group G] (H : add_subgroup G) (x) :
+  x ∈ H.to_subgroup ↔ to_add x ∈ H :=
+iff.rfl
+
+@[simp]
+lemma add_subgroup.to_subgroup_le_to_subgroup {G : Type*} [add_group G] (H I : add_subgroup G) :
+  H.to_subgroup ≤ I.to_subgroup ↔ H ≤ I :=
+by simp [subgroup.le_def, add_subgroup.le_def, forall_multiplicative_iff]
+
+/-- Map from subgroups of `multiplicative G` to `add_subgroup`s of `add_group G`. -/
+def add_subgroup.of_subgroup {G : Type*} [add_group G] (H : subgroup (multiplicative G)) :
+  add_subgroup G :=
+{ neg_mem' := by { equiv_rw of_add, simpa using H.inv_mem' },
+  .. add_submonoid.of_submonoid H.to_submonoid }
+
+@[simp]
+lemma add_subgroup.mem_of_subgroup {G : Type*} [add_group G] (H : subgroup (multiplicative G)) (x) :
+  x ∈ add_subgroup.of_subgroup H ↔ of_add x ∈ H :=
+iff.rfl
+
+/-- Subgroups of group `G` are isomorphic to additive subgroups of `additive G`. -/
+def subgroup.add_subgroup_equiv (G : Type*) [group G] :
+  subgroup G ≃ add_subgroup (additive G) :=
+{ to_fun := subgroup.to_add_subgroup,
+  inv_fun := subgroup.of_add_subgroup,
+  left_inv := λ x, by { ext, simp },
+  right_inv := λ x, by { ext, simp } }
+
+end type_tags
+
 namespace add_subgroup
 
 /-- An add_subgroup is normal if whenever `n ∈ H`, then `g + n - g ∈ H` for every `g : G` -/
@@ -1356,14 +1390,16 @@ namespace subgroup
 
 /-- The subgroup generated by an element. -/
 def gpowers (g : G) : subgroup G :=
-subgroup.copy (gpowers_hom G g).range (set.range ((^) g : ℤ → G)) rfl
+subgroup.copy (gpowers_hom G g).range (set.range ((^) g : ℤ → G))
+begin ext, simp [exists_multiplicative_iff] end
 
 @[simp] lemma mem_gpowers (g : G) : g ∈ gpowers g := ⟨1, gpow_one _⟩
 
 lemma gpowers_eq_closure (g : G) : gpowers g = closure {g} :=
 by { ext, exact mem_closure_singleton.symm }
 
-@[simp] lemma range_gpowers_hom (g : G) : (gpowers_hom G g).range = gpowers g := rfl
+@[simp] lemma range_gpowers_hom (g : G) : (gpowers_hom G g).range = gpowers g :=
+begin ext, simp [exists_multiplicative_iff, gpowers] end
 
 lemma gpowers_subset {a : G} {K : subgroup G} (h : a ∈ K) : gpowers a ≤ K :=
 λ x hx, match x, hx with _, ⟨i, rfl⟩ := K.gpow_mem h i end
@@ -1376,15 +1412,18 @@ namespace add_subgroup
 def gmultiples (a : A) : add_subgroup A :=
 add_subgroup.copy (gmultiples_hom A a).range (set.range ((•ℤ a) : ℤ → A)) rfl
 
+lemma gpowers_of_add (a : A) : subgroup.gpowers (of_add a) = (gmultiples a).to_subgroup :=
+subgroup.ext $ λ x, exists_congr $ λ n, by simp [← of_add_gsmul, multiplicative.ext_iff]
+
 @[simp] lemma mem_gmultiples (a : A) : a ∈ gmultiples a := ⟨1, one_gsmul _⟩
 
 lemma gmultiples_eq_closure (a : A) : gmultiples a = closure {a} :=
 by { ext, exact mem_closure_singleton.symm }
 
-@[simp] lemma range_gmultiples_hom (a : A) : (gmultiples_hom A a).range = gmultiples a := rfl
-
 lemma gmultiples_subset {a : A} {B : add_subgroup A} (h : a ∈ B) : gmultiples a ≤ B :=
-@subgroup.gpowers_subset (multiplicative A) _ _ (B.to_subgroup) h
+by simpa [gpowers_of_add] using subgroup.gpowers_subset (show of_add a ∈ B.to_subgroup, by simpa)
+
+@[simp] lemma range_gmultiples_hom (a : A) : (gmultiples_hom A a).range = gmultiples a := rfl
 
 attribute [to_additive add_subgroup.gmultiples] subgroup.gpowers
 attribute [to_additive add_subgroup.mem_gmultiples] subgroup.mem_gpowers

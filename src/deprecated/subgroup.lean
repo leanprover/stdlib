@@ -8,6 +8,8 @@ import group_theory.subgroup
 import deprecated.submonoid
 
 open set function
+open additive (to_mul of_mul)
+open multiplicative (to_add of_add)
 
 variables {G : Type*} {H : Type*} {A : Type*} {a a₁ a₂ b c: G}
 
@@ -28,25 +30,29 @@ lemma is_subgroup.div_mem {s : set G} [is_subgroup s] {x y : G} (hx : x ∈ s) (
   x / y ∈ s :=
 by simpa only [div_eq_mul_inv] using is_submonoid.mul_mem hx (is_subgroup.inv_mem hy)
 
-lemma additive.is_add_subgroup
-  (s : set G) [is_subgroup s] : @is_add_subgroup (additive G) _ s :=
-@is_add_subgroup.mk (additive G) _ _ (additive.is_add_submonoid _)
-  (@is_subgroup.inv_mem _ _ _ _)
+lemma additive.is_add_subgroup (s : set G) [is_subgroup s] : is_add_subgroup (to_mul ⁻¹' s) :=
+{ neg_mem := by simpa [forall_additive_iff] using @is_subgroup.inv_mem _ _ s _,
+  ..additive.is_add_submonoid s }
 
-theorem additive.is_add_subgroup_iff
-  {s : set G} : @is_add_subgroup (additive G) _ s ↔ is_subgroup s :=
-⟨by rintro ⟨⟨h₁, h₂⟩, h₃⟩; exact @is_subgroup.mk G _ _ ⟨h₁, @h₂⟩ @h₃,
-  λ h, by exactI additive.is_add_subgroup _⟩
+lemma multiplicative.is_subgroup' (s : set G) [is_add_subgroup (to_mul ⁻¹' s)] : is_subgroup s :=
+{ inv_mem := by simpa [forall_additive_iff] using @is_add_subgroup.neg_mem _ _ (to_mul ⁻¹' s) _,
+  ..multiplicative.is_submonoid' s }
 
-lemma multiplicative.is_subgroup
-  (s : set A) [is_add_subgroup s] : @is_subgroup (multiplicative A) _ s :=
-@is_subgroup.mk (multiplicative A) _ _ (multiplicative.is_submonoid _)
-  (@is_add_subgroup.neg_mem _ _ _ _)
+@[simp] theorem additive.is_add_subgroup_iff {s : set G} :
+  is_add_subgroup (to_mul ⁻¹' s) ↔ is_subgroup s :=
+⟨@multiplicative.is_subgroup' _ _ s, @additive.is_add_subgroup _ _ s⟩
 
-theorem multiplicative.is_subgroup_iff
-  {s : set A} : @is_subgroup (multiplicative A) _ s ↔ is_add_subgroup s :=
-⟨by rintro ⟨⟨h₁, h₂⟩, h₃⟩; exact @is_add_subgroup.mk A _ _ ⟨h₁, @h₂⟩ @h₃,
-  λ h, by exactI multiplicative.is_subgroup _⟩
+lemma multiplicative.is_subgroup (s : set A) [is_add_subgroup s] : is_subgroup (to_add ⁻¹' s) :=
+{ inv_mem := by simpa [forall_multiplicative_iff] using @is_add_subgroup.neg_mem _ _ s _,
+  ..multiplicative.is_submonoid s }
+
+lemma additive.is_add_subgroup' (s : set A) [is_subgroup (to_add ⁻¹' s)] : is_add_subgroup s :=
+{ neg_mem := by simpa [forall_multiplicative_iff] using @is_subgroup.inv_mem _ _ (to_add ⁻¹' s) _,
+  ..additive.is_add_submonoid' s }
+
+@[simp] theorem multiplicative.is_subgroup_iff {s : set A} :
+  is_subgroup (to_add ⁻¹' s) ↔ is_add_subgroup s :=
+⟨@additive.is_add_subgroup' _ _ s, @multiplicative.is_subgroup _ _ s⟩
 
 /-- The group structure on a subgroup coerced to a type. -/
 @[to_additive "The additive group structure on an additive subgroup coerced to a type."]
@@ -125,13 +131,16 @@ def gpowers (x : G) : set G := set.range ((^) x : ℤ → G)
 def gmultiples (x : A) : set A := set.range (λ i, gsmul i x)
 attribute [to_additive gmultiples] gpowers
 
+lemma gpowers_of_add (a : A) : gpowers (of_add a) = to_add ⁻¹' gmultiples a :=
+set.ext $ λ x, exists_congr (by simp [multiplicative.ext_iff, ← of_add_gsmul])
+
 instance gpowers.is_subgroup (x : G) : is_subgroup (gpowers x) :=
 { one_mem := ⟨(0:ℤ), by simp⟩,
   mul_mem := assume x₁ x₂ ⟨i₁, h₁⟩ ⟨i₂, h₂⟩, ⟨i₁ + i₂, by simp [gpow_add, *]⟩,
   inv_mem := assume x₀ ⟨i, h⟩, ⟨-i, by simp [h.symm]⟩ }
 
 instance gmultiples.is_add_subgroup (x : A) : is_add_subgroup (gmultiples x) :=
-multiplicative.is_subgroup_iff.1 $ gpowers.is_subgroup _
+by simpa [gpowers_of_add] using gpowers.is_subgroup (of_add x)
 attribute [to_additive] gpowers.is_subgroup
 
 lemma is_subgroup.gpow_mem {a : G} {s : set G} [is_subgroup s] (h : a ∈ s) : ∀{i:ℤ}, a ^ i ∈ s
@@ -140,13 +149,14 @@ lemma is_subgroup.gpow_mem {a : G} {s : set G} [is_subgroup s] (h : a ∈ s) : �
 
 lemma is_add_subgroup.gsmul_mem {a : A} {s : set A} [is_add_subgroup s] :
   a ∈ s → ∀{i:ℤ}, gsmul i a ∈ s :=
-@is_subgroup.gpow_mem (multiplicative A) _ _ _ (multiplicative.is_subgroup _)
+by simpa using @is_subgroup.gpow_mem _ _ (of_add a) (to_add ⁻¹' s) (multiplicative.is_subgroup _)
 
 lemma gpowers_subset {a : G} {s : set G} [is_subgroup s] (h : a ∈ s) : gpowers a ⊆ s :=
 λ x hx, match x, hx with _, ⟨i, rfl⟩ := is_subgroup.gpow_mem h end
 
-lemma gmultiples_subset {a : A} {s : set A} [is_add_subgroup s] (h : a ∈ s) : gmultiples a ⊆ s :=
-@gpowers_subset (multiplicative A) _ _ _ (multiplicative.is_subgroup _) h
+lemma gmultiples_subset {a : A} {s : set A} [is_add_subgroup s] : a ∈ s → gmultiples a ⊆ s :=
+by simpa [gpowers_of_add] using
+  @gpowers_subset _ _ (of_add a) (to_add ⁻¹' s) (multiplicative.is_subgroup _)
 
 attribute [to_additive gmultiples_subset] gpowers_subset
 
@@ -187,29 +197,35 @@ lemma normal_subgroup_of_comm_group [comm_group G] (s : set G) [hs : is_subgroup
 { normal := λ n hn g, by rwa [mul_right_comm, mul_right_inv, one_mul],
   ..hs }
 
-lemma additive.normal_add_subgroup [group G]
-  (s : set G) [normal_subgroup s] : @normal_add_subgroup (additive G) _ s :=
-@normal_add_subgroup.mk (additive G) _ _
-  (@additive.is_add_subgroup G _ _ _)
-  (@normal_subgroup.normal _ _ _ _)
+lemma additive.normal_add_subgroup [group G] (s : set G) [normal_subgroup s] :
+  normal_add_subgroup (to_mul ⁻¹' s) :=
+{ normal := by simpa [forall_additive_iff] using normal_subgroup.normal,
+  ..additive.is_add_subgroup _ }
 
-theorem additive.normal_add_subgroup_iff [group G]
-  {s : set G} : @normal_add_subgroup (additive G) _ s ↔ normal_subgroup s :=
-⟨by rintro ⟨h₁, h₂⟩; exact
-    @normal_subgroup.mk G _ _ (additive.is_add_subgroup_iff.1 h₁) @h₂,
-  λ h, by exactI additive.normal_add_subgroup _⟩
+lemma multiplicative.normal_subgroup' [group G] (s : set G) [normal_add_subgroup (to_mul ⁻¹' s)] :
+  normal_subgroup s :=
+{ normal := λ g, by simpa [forall_additive_iff] using
+    @normal_add_subgroup.normal _ _ (to_mul ⁻¹' s) _ (of_mul g),
+  ..multiplicative.is_subgroup' _ }
 
-lemma multiplicative.normal_subgroup [add_group A]
-  (s : set A) [normal_add_subgroup s] : @normal_subgroup (multiplicative A) _ s :=
-@normal_subgroup.mk (multiplicative A) _ _
-  (@multiplicative.is_subgroup A _ _ _)
-  (@normal_add_subgroup.normal _ _ _ _)
+theorem additive.normal_add_subgroup_iff [group G] {s : set G} :
+  normal_add_subgroup (to_mul ⁻¹' s) ↔ normal_subgroup s :=
+⟨@multiplicative.normal_subgroup' _ _ _, @additive.normal_add_subgroup _ _ _⟩
 
-theorem multiplicative.normal_subgroup_iff [add_group A]
-  {s : set A} : @normal_subgroup (multiplicative A) _ s ↔ normal_add_subgroup s :=
-⟨by rintro ⟨h₁, h₂⟩; exact
-    @normal_add_subgroup.mk A _ _ (multiplicative.is_subgroup_iff.1 h₁) @h₂,
-  λ h, by exactI multiplicative.normal_subgroup _⟩
+lemma multiplicative.normal_subgroup [add_group A] (s : set A) [normal_add_subgroup s] :
+  normal_subgroup (to_add ⁻¹' s) :=
+{ normal := by simpa [forall_multiplicative_iff] using normal_add_subgroup.normal,
+  ..multiplicative.is_subgroup _ }
+
+lemma additive.normal_add_subgroup' [add_group A] (s : set A) [normal_subgroup (to_add ⁻¹' s)] :
+  normal_add_subgroup s :=
+{ normal := λ a, by simpa [forall_multiplicative_iff] using
+    @normal_subgroup.normal _ _ (to_add ⁻¹' s) _ (of_add a),
+  ..additive.is_add_subgroup' _ }
+
+theorem multiplicative.normal_subgroup_iff [add_group A] {s : set A} :
+  normal_subgroup (to_add ⁻¹' s) ↔ normal_add_subgroup s :=
+⟨@additive.normal_add_subgroup' _ _ _, @multiplicative.normal_subgroup _ _ _⟩
 
 namespace is_subgroup
 variable [group G]
@@ -241,6 +257,30 @@ lemma eq_trivial_iff {s : set G} [is_subgroup s] :
   s = trivial G ↔ (∀ x ∈ s, x = (1 : G)) :=
 by simp only [set.ext_iff, is_subgroup.mem_trivial];
   exact ⟨λ h x, (h x).1, λ h x, ⟨h x, λ hx, hx.symm ▸ is_submonoid.one_mem⟩⟩
+
+lemma to_mul_preimage_trivial :
+  to_mul ⁻¹' is_subgroup.trivial G = is_add_subgroup.trivial (additive G) :=
+by { ext, simp [additive.ext_iff] }
+
+lemma to_add_preimage_trivial [add_group A] :
+  to_add ⁻¹' is_add_subgroup.trivial A = is_subgroup.trivial (multiplicative A) :=
+by { ext, simp [multiplicative.ext_iff] }
+
+@[simp] lemma to_mul_image_trivial :
+  to_mul '' is_add_subgroup.trivial (additive G) = is_subgroup.trivial G :=
+by rw [← equiv.eq_preimage_iff_image_eq, to_mul_preimage_trivial]
+
+@[simp] lemma to_add_image_trivial [add_group A] :
+  to_add '' is_subgroup.trivial (multiplicative A) = is_add_subgroup.trivial A :=
+by rw [← equiv.eq_preimage_iff_image_eq, to_add_preimage_trivial]
+
+lemma of_mul_image_trivial :
+  of_mul '' is_subgroup.trivial G = is_add_subgroup.trivial (additive G) :=
+by { ext, simp [additive.ext_iff], }
+
+lemma of_add_image_trivial [add_group A]:
+  of_add '' is_add_subgroup.trivial A = is_subgroup.trivial (multiplicative A) :=
+by { ext, simp [multiplicative.ext_iff] }
 
 @[to_additive]
 instance univ_subgroup : normal_subgroup (@univ G) :=
@@ -660,6 +700,7 @@ theorem normal_closure_mono {s t : set G} : s ⊆ t → normal_closure s ⊆ nor
 end group
 
 section simple_group
+universes u
 
 class simple_group (G : Type*) [group G] : Prop :=
 (simple : ∀ (N : set G) [normal_subgroup N], N = is_subgroup.trivial G ∨ N = set.univ)
@@ -671,17 +712,32 @@ attribute [to_additive] simple_group
 
 theorem additive.simple_add_group_iff [group G] :
   simple_add_group (additive G) ↔ simple_group G :=
-⟨λ hs, ⟨λ N h, @simple_add_group.simple _ _ hs _ (by exactI additive.normal_add_subgroup_iff.2 h)⟩,
-  λ hs, ⟨λ N h, @simple_group.simple _ _ hs _ (by exactI additive.normal_add_subgroup_iff.1 h)⟩⟩
+⟨λ ⟨h⟩, ⟨begin
+  introsI N _,
+  simpa [to_mul.preimage_eq_iff_eq_image] using
+   @h (to_mul ⁻¹' N) (by exact additive.normal_add_subgroup _),
+end⟩,
+λ ⟨h⟩, ⟨begin
+  introsI N _,
+  simpa [of_mul.preimage_eq_iff_eq_image, is_subgroup.of_mul_image_trivial] using
+    @h (of_mul ⁻¹' N) (by simpa [← additive.normal_add_subgroup_iff])
+end⟩⟩
 
 instance additive.simple_add_group [group G] [simple_group G] :
   simple_add_group (additive G) := additive.simple_add_group_iff.2 (by apply_instance)
 
 theorem multiplicative.simple_group_iff [add_group A] :
   simple_group (multiplicative A) ↔ simple_add_group A :=
-⟨λ hs, ⟨λ N h, @simple_group.simple _ _ hs _ (by exactI multiplicative.normal_subgroup_iff.2 h)⟩,
-  λ hs, ⟨λ N h,
-          @simple_add_group.simple _ _ hs _ (by exactI multiplicative.normal_subgroup_iff.1 h)⟩⟩
+⟨λ ⟨h⟩, ⟨begin
+  introsI N _,
+  simpa [to_add.preimage_eq_iff_eq_image] using
+   @h (to_add ⁻¹' N) (by exact multiplicative.normal_subgroup _),
+end⟩,
+λ ⟨h⟩, ⟨begin
+  introsI N _,
+  simpa [of_add.preimage_eq_iff_eq_image, is_subgroup.of_add_image_trivial] using
+    @h (of_add ⁻¹' N) (by simpa [← multiplicative.normal_subgroup_iff])
+end⟩⟩
 
 instance multiplicative.simple_group [add_group A] [simple_add_group A] :
 simple_group (multiplicative A) := multiplicative.simple_group_iff.2 (by apply_instance)

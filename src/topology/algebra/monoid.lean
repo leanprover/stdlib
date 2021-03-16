@@ -297,10 +297,69 @@ attribute [continuity] continuous_finset_sum
 
 end
 
+section type_tags
+open multiplicative additive
+
+instance {M} [topological_space M] : topological_space (additive M) :=
+{ is_open := λ X, is_open (of_mul ⁻¹' X),
+  is_open_univ := by simp,
+  is_open_inter := λ s t, by simpa using is_open_inter,
+  is_open_sUnion := λ s hs, begin
+    rw of_mul.preimage_sUnion,
+    refine is_open_sUnion _,
+    simpa [to_mul.set_forall_iff] using hs
+  end }
+
+protected lemma additive.is_open {M} [topological_space M] (X : set (additive M)) :
+  is_open X ↔ is_open (of_mul ⁻¹' X) :=
+iff.rfl
+
+instance {A} [topological_space A] : topological_space (multiplicative A) :=
+{ is_open := λ X, is_open (of_add ⁻¹' X),
+  is_open_univ := by simp,
+  is_open_inter := λ s t, by simpa using is_open_inter,
+  is_open_sUnion := λ s hs, begin
+    rw of_add.preimage_sUnion,
+    refine is_open_sUnion _,
+    simpa [to_add.set_forall_iff] using hs
+  end }
+
+protected lemma multiplicative.is_open {A} [topological_space A] (X : set (multiplicative A)) :
+  is_open X ↔ is_open (of_add ⁻¹' X) :=
+iff.rfl
+
+@[continuity]
+lemma multiplicative.to_mul.continuous {M} [topological_space M] :
+  continuous (to_mul : additive M → M) :=
+⟨by rw of_mul.set_forall_iff; simp [additive.is_open]⟩
+
+@[continuity]
+lemma multiplicative.of_add.continuous {A} [topological_space A] :
+  continuous (of_add : A → multiplicative A) :=
+⟨by rw of_mul.set_forall_iff; simp [multiplicative.is_open]⟩
+
+@[continuity]
+lemma additive.of_mul.continuous {M} [topological_space M] :
+  continuous (of_mul : M → additive M) :=
+⟨by rw of_mul.set_forall_iff; simp [additive.is_open]⟩
+
+@[continuity]
+lemma additive.to_add.continuous {A} [topological_space A] :
+  continuous (to_add : multiplicative A → A) :=
+⟨by rw of_mul.set_forall_iff; simp [multiplicative.is_open]⟩
+
+open multiplicative additive
+
 instance additive.has_continuous_add {M} [h : topological_space M] [has_mul M]
-  [has_continuous_mul M] : @has_continuous_add (additive M) h _ :=
-{ continuous_add := @continuous_mul M _ _ _  }
+  [has_continuous_mul M] : has_continuous_add (additive M) :=
+{ continuous_add := by simpa using
+  show continuous (λ a : additive M × additive M, of_mul (a.1.to_mul * a.2.to_mul)),
+    by continuity }
 
 instance multiplicative.has_continuous_mul {M} [h : topological_space M] [has_add M]
-  [has_continuous_add M] : @has_continuous_mul (multiplicative M) h _ :=
-{ continuous_mul := @continuous_add M _ _ _  }
+  [has_continuous_add M] : has_continuous_mul (multiplicative M) :=
+{ continuous_mul := by simpa using
+  show continuous (λ a : multiplicative M × multiplicative M, of_add (a.1.to_add + a.2.to_add)),
+    by continuity }
+
+end type_tags

@@ -134,7 +134,7 @@ lemma mem_vectors_prod_eq_one_iff {n : ℕ} (v : vector G (n + 1)) :
 `vectors_prod_eq_one G n`, where `G` is a multiplicative group. -/
 def rotate_vectors_prod_eq_one (G : Type*) [group G] (n : ℕ)
   (m : multiplicative (zmod n)) (v : vectors_prod_eq_one G n) : vectors_prod_eq_one G n :=
-⟨⟨v.1.to_list.rotate m.val, by simp⟩, prod_rotate_eq_one_of_prod_eq_one v.2 _⟩
+⟨⟨v.1.to_list.rotate m.to_add.val, by simp⟩, prod_rotate_eq_one_of_prod_eq_one v.2 _⟩
 
 instance rotate_vectors_prod_eq_one.mul_action (n : ℕ) [fact (0 < n)] :
   mul_action (multiplicative (zmod n)) (vectors_prod_eq_one G n) :=
@@ -146,8 +146,10 @@ instance rotate_vectors_prod_eq_one.mul_action (n : ℕ) [fact (0 < n)] :
     exact rotate_zero v.1.to_list
   end,
   mul_smul := λ a b ⟨⟨v, hv₁⟩, hv₂⟩, subtype.eq $ vector.eq _ _ $
-    show v.rotate ((a + b : zmod n).val) = list.rotate (list.rotate v (b.val)) (a.val),
-    by rw [zmod.val_add, rotate_rotate, ← rotate_mod _ (b.val + a.val), add_comm, hv₁] }
+    show v.rotate ((a.to_add + b.to_add).val) =
+      list.rotate (list.rotate v (b.to_add.val)) (a.to_add.val),
+    by rw [zmod.val_add, rotate_rotate,
+      ← rotate_mod _ (b.to_add.val + a.to_add.val), add_comm, hv₁] }
 
 lemma one_mem_vectors_prod_eq_one (n : ℕ) : vector.repeat (1 : G) n ∈ vectors_prod_eq_one G n :=
 by simp [vector.repeat, vectors_prod_eq_one]
@@ -168,7 +170,7 @@ have hcard : card (vectors_prod_eq_one G (n + 1)) = card G ^ (n : ℕ),
   by rw [set.ext mem_vectors_prod_eq_one_iff,
     set.card_range_of_injective (mk_vector_prod_eq_one_injective _), card_vector],
 have hzmod : fintype.card (multiplicative (zmod p)) = p ^ 1,
-  by { rw pow_one p, exact zmod.card p },
+  by simp [zmod.card],
 have hmodeq : _ = _ := @mul_action.card_modeq_card_fixed_points
   (multiplicative (zmod p)) (vectors_prod_eq_one G p) _ _ _ _ _ _ 1 hp hzmod,
 have hdvdcard : p ∣ fintype.card (vectors_prod_eq_one G (n + 1)) :=
@@ -188,7 +190,7 @@ let ⟨⟨⟨⟨x, hx₁⟩, hx₂⟩, hx₃⟩, hx₄⟩ := fintype.exists_ne_o
 have hx : x ≠ list.repeat (1 : G) p, from λ h, by simpa [h, vector.repeat] using hx₄,
 have ∃ a, x = list.repeat a x.length := by exactI rotate_eq_self_iff_eq_repeat.1 (λ n,
   have list.rotate x (n : zmod p).val = x :=
-    subtype.mk.inj (subtype.mk.inj (hx₃ (n : zmod p))),
+    subtype.mk.inj (subtype.mk.inj (hx₃ (multiplicative.of_add (n : zmod p)))),
   by rwa [zmod.val_nat_cast, ← hx₁, rotate_mod] at this),
 let ⟨a, ha⟩ := this in
 ⟨a, have hx1 : x.prod = 1 := hx₂,

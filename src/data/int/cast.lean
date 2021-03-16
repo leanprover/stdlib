@@ -209,12 +209,12 @@ namespace monoid_hom
 variables {M : Type*} [monoid M]
 open multiplicative
 
-theorem ext_int {f g : multiplicative ℤ →* M}
-  (h1 : f (of_add 1) = g (of_add 1)) : f = g :=
+theorem ext_int {f g : multiplicative ℤ →* M} :
+  f (of_add 1) = g (of_add 1) → f = g :=
 begin
-  ext,
-  exact add_monoid_hom.ext_iff.1
-    (@add_monoid_hom.ext_int _ _ f.to_additive g.to_additive h1) _,
+  revert f g,
+  equiv_rw monoid_hom.to_additive'',
+  simpa using @add_monoid_hom.ext_int _ _
 end
 
 end monoid_hom

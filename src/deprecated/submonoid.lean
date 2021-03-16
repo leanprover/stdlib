@@ -27,6 +27,7 @@ submonoid, submonoids, is_submonoid
 -/
 
 open_locale big_operators
+open additive multiplicative
 
 variables {M : Type*} [monoid M] {s : set M}
 variables {A : Type*} [add_monoid A] {t : set A}
@@ -42,21 +43,33 @@ class is_submonoid (s : set M) : Prop :=
 (one_mem : (1:M) ∈ s)
 (mul_mem {a b} : a ∈ s → b ∈ s → a * b ∈ s)
 
-lemma additive.is_add_submonoid
-  (s : set M) : ∀ [is_submonoid s], @is_add_submonoid (additive M) _ s
-| ⟨h₁, h₂⟩ := ⟨h₁, @h₂⟩
+lemma additive.is_add_submonoid (s : set M) [is_submonoid s] :
+  is_add_submonoid (to_mul ⁻¹' s) :=
+{ add_mem := by { equiv_rw to_mul, simpa using @is_submonoid.mul_mem _ _ s _ },
+  zero_mem := by simpa using is_submonoid.one_mem }
 
-theorem additive.is_add_submonoid_iff
-  {s : set M} : @is_add_submonoid (additive M) _ s ↔ is_submonoid s :=
-⟨λ ⟨h₁, h₂⟩, ⟨h₁, @h₂⟩, λ h, by exactI additive.is_add_submonoid _⟩
+lemma multiplicative.is_submonoid' (s : set M) [is_add_submonoid (to_mul ⁻¹' s)] :
+  is_submonoid s :=
+{ mul_mem := by { equiv_rw of_mul, simpa using @is_add_submonoid.add_mem _ _ (to_mul ⁻¹' s) _ },
+  one_mem := by simpa using @is_add_submonoid.zero_mem _ _ (to_mul ⁻¹' s) _ }
 
-lemma multiplicative.is_submonoid
-  (s : set A) : ∀ [is_add_submonoid s], @is_submonoid (multiplicative A) _ s
-| ⟨h₁, h₂⟩ := ⟨h₁, @h₂⟩
+lemma multiplicative.is_submonoid (s : set A) [is_add_submonoid s] :
+  is_submonoid (to_add ⁻¹' s) :=
+{ mul_mem := by { equiv_rw to_add, simpa using @is_add_submonoid.add_mem _ _ s _ },
+  one_mem := by simpa using is_add_submonoid.zero_mem }
 
-theorem multiplicative.is_submonoid_iff
-  {s : set A} : @is_submonoid (multiplicative A) _ s ↔ is_add_submonoid s :=
-⟨λ ⟨h₁, h₂⟩, ⟨h₁, @h₂⟩, λ h, by exactI multiplicative.is_submonoid _⟩
+lemma additive.is_add_submonoid' (s : set A) [is_submonoid (to_add ⁻¹' s)] :
+  is_add_submonoid s :=
+{ add_mem := by { equiv_rw of_add, simpa using @is_submonoid.mul_mem _ _ (to_add ⁻¹' s) _ },
+  zero_mem := by simpa using @is_submonoid.one_mem _ _ (to_add ⁻¹' s) _ }
+
+@[simp] theorem additive.is_add_submonoid_iff {s : set M} :
+  is_add_submonoid (to_mul ⁻¹' s) ↔ is_submonoid s :=
+⟨@multiplicative.is_submonoid' _ _ s, @additive.is_add_submonoid _ _ s⟩
+
+@[simp] theorem multiplicative.is_submonoid_iff {s : set A} :
+  is_submonoid (to_add ⁻¹' s) ↔ is_add_submonoid s :=
+⟨@additive.is_add_submonoid' _ _ s, @multiplicative.is_submonoid _ _ s⟩
 
 /-- The intersection of two submonoids of a monoid `M` is a submonoid of `M`. -/
 @[to_additive "The intersection of two `add_submonoid`s of an `add_monoid` `M` is
@@ -99,6 +112,12 @@ def powers (x : M) : set M := {y | ∃ n:ℕ, x^n = y}
 def multiples (x : A) : set A := {y | ∃ n:ℕ, n •ℕ x = y}
 attribute [to_additive multiples] powers
 
+lemma of_add_powers (x : A) : powers (of_add x) = to_add ⁻¹' multiples x :=
+set.ext $ λ y, exists_congr $ λ n, by rw multiplicative.ext_iff; simp [to_add_pow_nsmul]
+
+lemma of_mul_multiples (x : M) : multiples (of_mul x) = to_mul ⁻¹' powers x :=
+set.ext $ λ y, exists_congr $ λ n, by rw additive.ext_iff; simp [to_mul_nsmul]
+
 /-- 1 is in the set of natural number powers of an element of a monoid. -/
 lemma powers.one_mem {x : M} : (1 : M) ∈ powers x := ⟨0, pow_zero _⟩
 
@@ -121,7 +140,7 @@ lemma powers.mul_mem {x y z : M} : (y ∈ powers x) → (z ∈ powers x) → (y 
     addition. -/
 lemma multiples.add_mem {x y z : A} :
   (y ∈ multiples x) → (z ∈ multiples x) → (y + z ∈ multiples x) :=
-@powers.mul_mem (multiplicative A) _ _ _ _
+by simpa [of_add_powers] using @powers.mul_mem _ _ (of_add x) (of_add y) (of_add z)
 attribute [to_additive] powers.mul_mem
 
 /-- The set of natural number powers of an element of a monoid `M` is a submonoid of `M`. -/
@@ -168,7 +187,8 @@ lemma is_submonoid.pow_mem {a : M} [is_submonoid s] (h : a ∈ s) : ∀ {n : ℕ
 /-- An `add_submonoid` is closed under multiplication by naturals. -/
 lemma is_add_submonoid.smul_mem {a : A} [is_add_submonoid t] :
   ∀ (h : a ∈ t) {n : ℕ}, n •ℕ a ∈ t :=
-@is_submonoid.pow_mem (multiplicative A) _ _ _ (multiplicative.is_submonoid _)
+by simpa [to_add_pow_nsmul] using
+  @is_submonoid.pow_mem _ _ (to_add ⁻¹' t) (of_add a) (multiplicative.is_submonoid _)
 attribute [to_additive smul_mem] is_submonoid.pow_mem
 
 /-- The set of natural number powers of an element of a submonoid is a subset of the submonoid. -/
@@ -179,7 +199,8 @@ assume x ⟨n, hx⟩, hx ▸ is_submonoid.pow_mem h
     `add_submonoid`. -/
 lemma is_add_submonoid.multiple_subset {a : A} [is_add_submonoid t] :
   a ∈ t → multiples a ⊆ t :=
-@is_submonoid.power_subset (multiplicative A) _ _ _ (multiplicative.is_submonoid _)
+by simpa [of_add_powers] using
+  @is_submonoid.power_subset _ _ (to_add ⁻¹' t) (of_add a) (multiplicative.is_submonoid _)
 attribute [to_additive multiple_subset] is_submonoid.power_subset
 
 end powers

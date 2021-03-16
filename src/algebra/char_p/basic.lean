@@ -25,13 +25,11 @@ class char_p (α : Type u) [semiring α] (p : ℕ) : Prop :=
 theorem char_p.cast_eq_zero (α : Type u) [semiring α] (p : ℕ) [char_p α p] : (p:α) = 0 :=
 (char_p.cast_eq_zero_iff α p p).2 (dvd_refl p)
 
+open multiplicative
 @[simp] lemma char_p.cast_card_eq_zero (R : Type*) [ring R] [fintype R] :
   (fintype.card R : R) = 0 :=
-begin
-  have : fintype.card R •ℕ (1 : R) = 0 :=
-    @pow_card_eq_one (multiplicative R) _ _ (multiplicative.of_add 1),
-  simpa only [mul_one, nsmul_eq_mul]
-end
+by rw [← nsmul_one, ← to_add_of_add (1 : R), ← to_add_pow_nsmul, fintype.card_congr (@of_add R),
+  pow_card_eq_one, to_add_one]
 
 lemma char_p.int_cast_eq_zero_iff (R : Type u) [ring R] (p : ℕ) [char_p R p] (a : ℤ) :
   (a : R) = 0 ↔ (p:ℤ) ∣ a :=

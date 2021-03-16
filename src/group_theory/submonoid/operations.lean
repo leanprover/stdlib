@@ -61,6 +61,8 @@ submonoid, range, product, map, comap
 
 variables {M N P : Type*} [monoid M] [monoid N] [monoid P] (S : submonoid M)
 
+open additive multiplicative
+
 /-!
 ### Conversion to/from `additive`/`multiplicative`
 -/
@@ -68,38 +70,59 @@ variables {M N P : Type*} [monoid M] [monoid N] [monoid P] (S : submonoid M)
 /-- Map from submonoids of monoid `M` to `add_submonoid`s of `additive M`. -/
 def submonoid.to_add_submonoid {M : Type*} [monoid M] (S : submonoid M) :
   add_submonoid (additive M) :=
-{ carrier := S.carrier,
+{ carrier := { x | to_mul x ∈ S.carrier },
   zero_mem' := S.one_mem',
-  add_mem' := S.mul_mem' }
+  add_mem' := by { equiv_rw to_mul, exact S.mul_mem' } }
+
+@[simp]
+lemma submonoid.mem_to_add_submonoid {M : Type*} [monoid M] (S : submonoid M) (x) :
+  x ∈ S.to_add_submonoid ↔ to_mul x ∈ S :=
+iff.rfl
 
 /-- Map from `add_submonoid`s of `additive M` to submonoids of `M`. -/
 def submonoid.of_add_submonoid {M : Type*} [monoid M] (S : add_submonoid (additive M)) :
   submonoid M :=
-{ carrier := S.carrier,
+{ carrier := { x | of_mul x ∈ S.carrier },
   one_mem' := S.zero_mem',
-  mul_mem' := S.add_mem' }
+  mul_mem' := by { equiv_rw of_mul, simpa using S.add_mem' } }
+
+@[simp]
+lemma submonoid.mem_of_add_submonoid {M : Type*} [monoid M] (S : add_submonoid (additive M)) (x) :
+  x ∈ submonoid.of_add_submonoid S ↔ of_mul x ∈ S :=
+iff.rfl
 
 /-- Map from `add_submonoid`s of `add_monoid M` to submonoids of `multiplicative M`. -/
 def add_submonoid.to_submonoid {M : Type*} [add_monoid M] (S : add_submonoid M) :
   submonoid (multiplicative M) :=
-{ carrier := S.carrier,
+{ carrier := { x | to_add x ∈ S.carrier },
   one_mem' := S.zero_mem',
-  mul_mem' := S.add_mem' }
+  mul_mem' := by { equiv_rw to_add, exact S.add_mem' } }
+
+@[simp]
+lemma add_submonoid.mem_to_submonoid {M : Type*} [add_monoid M] (S : add_submonoid M) (x) :
+  x ∈ S.to_submonoid ↔ to_add x ∈ S :=
+iff.rfl
 
 /-- Map from submonoids of `multiplicative M` to `add_submonoid`s of `add_monoid M`. -/
 def add_submonoid.of_submonoid {M : Type*} [add_monoid M] (S : submonoid (multiplicative M)) :
   add_submonoid M :=
-{ carrier := S.carrier,
+{ carrier := { x | of_add x ∈ S.carrier },
   zero_mem' := S.one_mem',
-  add_mem' := S.mul_mem' }
+  add_mem' := by { equiv_rw of_add, simpa using S.mul_mem' } }
+
+@[simp]
+lemma add_submonoid.mem_of_submonoid {M : Type*} [add_monoid M] (S : submonoid (multiplicative M))
+  (x : M) : x ∈ add_submonoid.of_submonoid S ↔ of_add x ∈ S :=
+iff.rfl
 
 /-- Submonoids of monoid `M` are isomorphic to additive submonoids of `additive M`. -/
+@[simps]
 def submonoid.add_submonoid_equiv (M : Type*) [monoid M] :
   submonoid M ≃ add_submonoid (additive M) :=
 { to_fun := submonoid.to_add_submonoid,
   inv_fun := submonoid.of_add_submonoid,
   left_inv := λ x, by cases x; refl,
-  right_inv := λ x, by cases x; refl }
+  right_inv := λ x, by { ext, simp } }
 
 namespace submonoid
 

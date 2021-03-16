@@ -5,7 +5,7 @@ Authors: Scott Morrison
 -/
 import tactic.simp_result
 import tactic.clear
-import control.equiv_functor.instances
+import control.equiv_functor
 
 /-!
 # The `equiv_rw` tactic transports goals or hypotheses along equivalences.

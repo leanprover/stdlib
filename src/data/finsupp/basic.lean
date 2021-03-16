@@ -773,17 +773,17 @@ verify `f (single a 1) = g (single a 1)`. -/
   f = g :=
 add_hom_ext $ λ x, add_monoid_hom.congr_fun (H x)
 
-lemma mul_hom_ext [monoid N] ⦃f g : multiplicative (α →₀ M) →* N⦄
-  (H : ∀ x y, f (multiplicative.of_add $ single x y) = g (multiplicative.of_add $ single x y)) :
-  f = g :=
-monoid_hom.ext $ add_monoid_hom.congr_fun $
-  @add_hom_ext α M (additive N) _ _ f.to_additive'' g.to_additive'' H
-
 @[ext] lemma mul_hom_ext' [monoid N] {f g : multiplicative (α →₀ M) →* N}
   (H : ∀ x, f.comp (single_add_hom x).to_multiplicative =
     g.comp (single_add_hom x).to_multiplicative) :
   f = g :=
-mul_hom_ext $ λ x, monoid_hom.congr_fun (H x)
+suffices f.to_additive'' = g.to_additive'', by simpa using this,
+by { ext x y, simpa using monoid_hom.ext_iff.1 (H x) (multiplicative.of_add y) }
+
+lemma mul_hom_ext [monoid N] ⦃f g : multiplicative (α →₀ M) →* N⦄
+  (H : ∀ x y, f (multiplicative.of_add $ single x y) = g (multiplicative.of_add $ single x y)) :
+  f = g :=
+by { ext x y, simp [H] }
 
 lemma map_range_add [add_monoid N]
   {f : M → N} {hf : f 0 = 0} (hf' : ∀ x y, f (x + y) = f x + f y) (v₁ v₂ : α →₀ M) :
@@ -974,7 +974,7 @@ lemma prod_add_index' [add_comm_monoid M] [comm_monoid N] {f g : α →₀ M}
   (h : α → multiplicative M →* N) :
   (f + g).prod (λ a b, h a (multiplicative.of_add b)) =
     f.prod (λ a b, h a (multiplicative.of_add b)) * g.prod (λ a b, h a (multiplicative.of_add b)) :=
-prod_add_index (λ a, (h a).map_one) (λ a, (h a).map_mul)
+prod_add_index (λ a, (h a).map_one) (by simp)
 
 /-- The canonical isomorphism between families of additive monoid homomorphisms `α → (M →+ N)`
 and monoid homomorphisms `(α →₀ M) →+ N`. -/
@@ -1112,6 +1112,10 @@ begin
   { assume b _ hba, exact single_eq_of_ne (hf.ne hba) },
   { assume h, rw [not_mem_support_iff.1 h, single_zero, zero_apply] }
 end
+
+@[simp] lemma map_domain_apply_equiv (f : α ≃ β) (x : α →₀ M) (b : β) :
+  map_domain f x b = x (f.symm b) :=
+by rw [← f.apply_symm_apply b, map_domain_apply f.injective, f.apply_symm_apply]
 
 lemma map_domain_notin_range {f : α → β} (x : α →₀ M) (a : β) (h : a ∉ set.range f) :
   map_domain f x a = 0 :=
@@ -1808,6 +1812,7 @@ end
 
 /-- Given `add_comm_monoid M` and `e : α ≃ β`, `dom_congr e` is the corresponding `equiv` between
 `α →₀ M` and `β →₀ M`. -/
+@[simps]
 protected def dom_congr [add_comm_monoid M] (e : α ≃ β) : (α →₀ M) ≃+ (β →₀ M) :=
 { to_fun := map_domain e,
   inv_fun := map_domain e.symm,

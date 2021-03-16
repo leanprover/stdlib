@@ -49,6 +49,7 @@ free commutative ring, free ring
 
 noncomputable theory
 open_locale classical
+open multiplicative
 
 universes u v
 
@@ -65,11 +66,10 @@ variables {α}
 
 /-- The canonical map from `α` to the free commutative ring on `α`. -/
 def of (x : α) : free_comm_ring α :=
-free_abelian_group.of $ multiplicative.of_add ({x} : multiset α)
+free_abelian_group.of (of_add {x})
 
 lemma of_injective : function.injective (of : α → free_comm_ring α) :=
-free_abelian_group.of_injective.comp (λ x y,
-  (multiset.coe_eq_coe.trans list.singleton_perm_singleton).mp)
+free_abelian_group.of_injective.comp $ λ _ _, by simp
 
 @[elab_as_eliminator] protected lemma induction_on
   {C : free_comm_ring α → Prop} (z : free_comm_ring α)
@@ -80,7 +80,7 @@ have hn : ∀ x, C x → C (-x), from λ x ih, neg_one_mul x ▸ hm _ _ hn1 ih,
 have h1 : C 1, from neg_neg (1 : free_comm_ring α) ▸ hn _ hn1,
 free_abelian_group.induction_on z
   (add_left_neg (1 : free_comm_ring α) ▸ ha _ _ hn1 h1)
-  (λ m, multiset.induction_on m h1 $ λ a m ih, hm _ _ (hb a) ih)
+  (λ ⟨m⟩, multiset.induction_on m h1 $ λ a m ih, hm _ _ (hb a) ih)
   (λ m ih, hn _ ih)
   ha
 section lift
@@ -90,20 +90,15 @@ variables {R : Type v} [comm_ring R] (f : α → R)
 /-- A helper to implement `lift`. This is essentially `free_comm_monoid.lift`, but this does not
 currently exist. -/
 private def lift_to_multiset : (α → R) ≃ (multiplicative (multiset α) →* R) :=
-{ to_fun := λ f,
-  { to_fun := λ s, (s.to_add.map f).prod,
-    map_mul' := λ x y, calc _ = multiset.prod ((multiset.map f x) + (multiset.map f y)) :
-                                    by {congr' 1, exact multiset.map_add _ _ _}
-                          ... = _ : multiset.prod_add _ _,
-    map_one' := rfl},
-  inv_fun := λ F x, F (multiplicative.of_add ({x} : multiset α)),
-  left_inv := λ f, funext $ λ x, show (multiset.map f (x ::ₘ 0)).prod = _, by simp,
-  right_inv := λ F, monoid_hom.ext $ λ x,
-    let F' := F.to_additive'', x' := x.to_add in show (multiset.map (λ a, F' {a}) x').sum = F' x',
-    begin
-      rw [←multiset.map_map, ←add_monoid_hom.map_multiset_sum],
-      exact F.congr_arg (multiset.sum_map_singleton x'),
-    end }
+{ to_fun := λ f, { to_fun := λ s, (s.to_add.map f).prod, map_mul' := by simp, map_one' := rfl },
+  inv_fun := λ F x, F (of_add {x}),
+  left_inv := λ _, by simp,
+  right_inv := λ F, begin
+    ext x,
+    simp only [monoid_hom.coe_mk, multiset.singleton_eq_singleton],
+    rw [← multiset.map_map, ← F.map_multiset_prod, ← multiset.map_map, ← multiset.of_add_sum,
+      multiset.sum_map_singleton, of_add_to_add]
+  end }
 
 /-- Lift a map `α → R` to a additive group homomorphism `free_comm_ring α → R`.
 For a version producing a bundled homomorphism, see `lift_hom`. -/
@@ -283,29 +278,22 @@ end
 
 lemma coe_eq :
   (coe : free_ring α → free_comm_ring α) =
-  @functor.map free_abelian_group _ _ _ (λ (l : list α), (l : multiset α)) :=
+  @functor.map free_abelian_group _ _ _ (λ (l : list α), of_add (l : multiset α)) :=
 funext $ λ x, free_abelian_group.lift.unique _ _ $ λ L,
 by { simp_rw [free_abelian_group.lift.of, (∘)], exact free_monoid.rec_on L rfl
 (λ hd tl ih, by { rw [(free_monoid.lift _).map_mul, free_monoid.lift_eval_of, ih], refl }) }
 
--- FIXME This was in `deprecated.ring`, but only used here.
--- It would be good to inline it into the next construction.
-/-- Interpret an equivalence `f : R ≃ S` as a ring equivalence `R ≃+* S`. -/
-def of' {R S : Type*} [ring R] [ring S] (e : R ≃ S) [is_ring_hom e] : R ≃+* S :=
-{ .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }
+/--
+The free monoid on a subsingleton is isomorphic to the multiplicative structure on the multiset.
+-/
+@[simps] def subsingleton_equiv_free_monoid [subsingleton α] :
+  free_monoid α ≃* multiplicative (multiset α) :=
+{ map_mul' := λ x y, rfl, ..(multiset.subsingleton_equiv α).trans of_add }
 
 /-- If α has size at most 1 then the natural map from the free ring on `α` to the
     free commutative ring on `α` is an isomorphism of rings. -/
-def subsingleton_equiv_free_comm_ring [subsingleton α] :
-  free_ring α ≃+* free_comm_ring α :=
-@of' (free_ring α) (free_comm_ring α) _ _
-  (functor.map_equiv free_abelian_group (multiset.subsingleton_equiv α)) $
-  begin
-    delta functor.map_equiv,
-    rw congr_arg is_ring_hom _,
-    work_on_goal 2 { symmetry, exact coe_eq α },
-    apply_instance
-  end
+def subsingleton_equiv_free_comm_ring [subsingleton α] : free_ring α ≃+* free_comm_ring α :=
+free_abelian_group.ring_equiv_of_monoid_equiv (subsingleton_equiv_free_monoid _)
 
 instance [subsingleton α] : comm_ring (free_ring α) :=
 { mul_comm := λ x y,

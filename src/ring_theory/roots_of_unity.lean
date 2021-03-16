@@ -453,7 +453,7 @@ begin
   split,
   { rw add_monoid_hom.injective_iff,
     intros i hi,
-    rw subtype.ext_iff at hi,
+    rw [additive.ext_iff, subtype.ext_iff] at hi,
     have := (h.gpow_eq_one_iff_dvd _).mp hi,
     rw [← (char_p.int_cast_eq_zero_iff (zmod k) k _).mpr this, eq_comm],
     exact classical.some_spec (zmod.int_cast_surjective i) },
@@ -487,31 +487,25 @@ end
   h.zmod_equiv_gpowers.symm (additive.of_mul (⟨ζ ^ i, i, rfl⟩ : subgroup.gpowers ζ)) = i :=
 by rw [← h.zmod_equiv_gpowers.symm_apply_apply i, zmod_equiv_gpowers_apply_coe_int]
 
-@[simp] lemma zmod_equiv_gpowers_symm_apply_gpow' (i : ℤ) :
-  h.zmod_equiv_gpowers.symm ⟨ζ ^ i, i, rfl⟩ = i :=
-h.zmod_equiv_gpowers_symm_apply_gpow i
-
 @[simp] lemma zmod_equiv_gpowers_symm_apply_pow (i : ℕ) :
   h.zmod_equiv_gpowers.symm (additive.of_mul (⟨ζ ^ i, i, rfl⟩ : subgroup.gpowers ζ)) = i :=
 by rw [← h.zmod_equiv_gpowers.symm_apply_apply i, zmod_equiv_gpowers_apply_coe_nat]
-
-@[simp] lemma zmod_equiv_gpowers_symm_apply_pow' (i : ℕ) :
-  h.zmod_equiv_gpowers.symm ⟨ζ ^ i, i, rfl⟩ = i :=
-h.zmod_equiv_gpowers_symm_apply_pow i
 
 lemma gpowers_eq {k : ℕ+} {ζ : units R} (h : is_primitive_root ζ k) :
   subgroup.gpowers ζ = roots_of_unity k R :=
 begin
   apply subgroup.ext',
   haveI : fact (0 < (k : ℕ)) := k.pos,
-  haveI F : fintype (subgroup.gpowers ζ) := fintype.of_equiv _ (h.zmod_equiv_gpowers).to_equiv,
+  haveI F : fintype (subgroup.gpowers ζ) :=
+    fintype.of_equiv _ ((h.zmod_equiv_gpowers).to_equiv.trans additive.to_mul),
   refine @set.eq_of_subset_of_card_le (units R) (subgroup.gpowers ζ) (roots_of_unity k R)
     F (roots_of_unity.fintype R k)
     (subgroup.gpowers_subset $ show ζ ∈ roots_of_unity k R, from h.pow_eq_one) _,
   calc fintype.card (roots_of_unity k R)
       ≤ k                                 : card_roots_of_unity R k
   ... = fintype.card (zmod k)             : (zmod.card k).symm
-  ... = fintype.card (subgroup.gpowers ζ) : fintype.card_congr (h.zmod_equiv_gpowers).to_equiv
+  ... = fintype.card (subgroup.gpowers ζ) :
+    fintype.card_congr ((h.zmod_equiv_gpowers).to_equiv.trans additive.to_mul)
 end
 
 lemma eq_pow_of_mem_roots_of_unity {k : ℕ+} {ζ ξ : units R}
@@ -534,8 +528,7 @@ lemma eq_pow_of_pow_eq_one {k : ℕ} {ζ ξ : R}
   (h : is_primitive_root ζ k) (hξ : ξ ^ k = 1) (h0 : 0 < k) :
   ∃ i < k, ζ ^ i = ξ :=
 begin
-  obtain ⟨ζ, rfl⟩ := h.is_unit h0,
-  obtain ⟨ξ, rfl⟩ := is_unit_of_pow_eq_one ξ k hξ h0,
+  obtain ⟨ζ, rfl⟩ := h.is_unit h0, obtain ⟨ξ, rfl⟩ := is_unit_of_pow_eq_one ξ k hξ h0,
   obtain ⟨k, rfl⟩ : ∃ k' : ℕ+, k = k' := ⟨⟨k, h0⟩, rfl⟩,
   simp only [← units.coe_pow, ← units.ext_iff],
   rw coe_units_iff at h,
@@ -570,10 +563,11 @@ lemma card_roots_of_unity' {n : ℕ+} (h : is_primitive_root ζ n) :
 begin
   haveI : fact (0 < ↑n) := n.pos,
   let e := h.zmod_equiv_gpowers,
-  haveI F : fintype (subgroup.gpowers ζ) := fintype.of_equiv _ e.to_equiv,
+  haveI F : fintype (subgroup.gpowers ζ) := fintype.of_equiv _ (e.to_equiv.trans additive.to_mul),
   calc fintype.card (roots_of_unity n R)
       = fintype.card (subgroup.gpowers ζ) : fintype.card_congr $ by rw h.gpowers_eq
-  ... = fintype.card (zmod n)             : fintype.card_congr e.to_equiv.symm
+  ... = fintype.card (zmod n)             :
+    fintype.card_congr (additive.of_mul.trans e.to_equiv.symm)
   ... = n                                 : zmod.card n
 end
 

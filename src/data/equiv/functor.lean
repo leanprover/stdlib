@@ -66,13 +66,17 @@ def map_equiv (h : α ≃ β) (h' : α' ≃ β') : F α α' ≃ F β β' :=
   left_inv  := λ x, by simp [bimap_bimap, id_bimap],
   right_inv := λ x, by simp [bimap_bimap, id_bimap] }
 
-@[simp]
 lemma map_equiv_apply (h : α ≃ β) (h' : α' ≃ β') (x : F α α') :
   (map_equiv F h h' : F α α' ≃ F β β') x = bimap h h' x := rfl
 
-@[simp]
+@[simp] lemma map_equiv_apply' (h : α ≃ β) (h' : α' ≃ β') :
+  (map_equiv F h h' : F α α' → F β β') = bimap h h' := rfl
+
 lemma map_equiv_symm_apply (h : α ≃ β) (h' : α' ≃ β') (y : F β β') :
   (map_equiv F h h' : F α α' ≃ F β β').symm y = bimap h.symm h'.symm y := rfl
+
+@[simp] lemma map_equiv_symm (h : α ≃ β) (h' : α' ≃ β') :
+  (map_equiv F h h').symm = map_equiv F h.symm h'.symm := rfl
 
 @[simp]
 lemma map_equiv_refl_refl : map_equiv F (equiv.refl α) (equiv.refl α') = equiv.refl (F α α') :=

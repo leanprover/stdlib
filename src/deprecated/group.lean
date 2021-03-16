@@ -341,28 +341,30 @@ h.map (monoid_hom.of f)
 
 end is_unit
 
+open additive multiplicative
+
 lemma additive.is_add_hom [has_mul α] [has_mul β] (f : α → β) [is_mul_hom f] :
-  @is_add_hom (additive α) (additive β) _ _ f :=
-{ map_add := @is_mul_hom.map_mul α β _ _ f _ }
+  is_add_hom (of_mul ∘ f ∘ to_mul) :=
+⟨by { equiv_rw additive.to_mul, intros, ext, simp [is_mul_hom.map_mul f] }⟩
 
 lemma multiplicative.is_mul_hom [has_add α] [has_add β] (f : α → β) [is_add_hom f] :
-  @is_mul_hom (multiplicative α) (multiplicative β) _ _ f :=
-{ map_mul := @is_add_hom.map_add α β _ _ f _ }
+  is_mul_hom (of_add ∘ f ∘ to_add) :=
+⟨by { equiv_rw multiplicative.to_add, intros, ext, simp [is_add_hom.map_add f] }⟩
 
 lemma additive.is_add_monoid_hom [monoid α] [monoid β] (f : α → β) [is_monoid_hom f] :
-  @is_add_monoid_hom (additive α) (additive β) _ _ f :=
-{ map_zero := @is_monoid_hom.map_one α β _ _ f _,
+  is_add_monoid_hom (of_mul ∘ f ∘ to_mul) :=
+{ map_zero := by { ext, simp [is_monoid_hom.map_one f] },
   ..additive.is_add_hom f }
 
 lemma multiplicative.is_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) [is_add_monoid_hom f] :
-  @is_monoid_hom (multiplicative α) (multiplicative β) _ _ f :=
-{ map_one := @is_add_monoid_hom.map_zero α β _ _ f _,
+  is_monoid_hom (of_add ∘ f ∘ to_add) :=
+{ map_one := by { ext, simp [is_add_monoid_hom.map_zero f] },
   ..multiplicative.is_mul_hom f }
 
 lemma additive.is_add_group_hom [group α] [group β] (f : α → β) [is_group_hom f] :
-  @is_add_group_hom (additive α) (additive β) _ _ f :=
-{ map_add := @is_mul_hom.map_mul α β _ _ f _ }
+  is_add_group_hom (of_mul ∘ f ∘ to_mul) :=
+{ map_add := by { equiv_rw additive.to_mul, intros, ext, simp [is_mul_hom.map_mul f] } }
 
 lemma multiplicative.is_group_hom [add_group α] [add_group β] (f : α → β) [is_add_group_hom f] :
-  @is_group_hom (multiplicative α) (multiplicative β) _ _ f :=
-{ map_mul := @is_add_hom.map_add α β _ _ f _ }
+  is_group_hom (of_add ∘ f ∘ to_add) :=
+{ map_mul := by { equiv_rw multiplicative.to_add, intros, ext, simp [is_add_hom.map_add f] } }

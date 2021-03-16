@@ -359,7 +359,7 @@ end
 @[simp]
 lemma prod_divisors_prime {α : Type*} [comm_monoid α] {p : ℕ} {f : ℕ → α} (h : p.prime) :
   ∏ x in p.divisors, f x = f p * f 1 :=
-@prime.sum_divisors (additive α) _ _ _ h
+by simpa using congr_arg additive.to_mul (@prime.sum_divisors _ _ _ (additive.of_mul ∘ f) h)
 
 @[simp]
 lemma sum_divisors_prime_pow {α : Type*} [add_comm_monoid α] {k p : ℕ} {f : ℕ → α} (h : p.prime) :
@@ -369,7 +369,7 @@ by simp [h, divisors_prime_pow]
 @[simp]
 lemma prod_divisors_prime_pow {α : Type*} [comm_monoid α] {k p : ℕ} {f : ℕ → α} (h : p.prime) :
   ∏ x in (p ^ k).divisors, f x = ∏ x in range (k + 1), f (p ^ x) :=
-@sum_divisors_prime_pow (additive α) _ _ _ _ h
+by simpa using congr_arg additive.to_mul (@sum_divisors_prime_pow _ _ _ _ (additive.of_mul ∘ f) h)
 
 @[simp]
 lemma filter_dvd_eq_divisors {n : ℕ} (h : n ≠ 0) :

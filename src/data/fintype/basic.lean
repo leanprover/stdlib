@@ -546,9 +546,19 @@ instance : fintype bool := ⟨⟨tt ::ₘ ff ::ₘ 0, by simp⟩, λ x, by cases
 instance units_int.fintype : fintype (units ℤ) :=
 ⟨{1, -1}, λ x, by cases int.units_eq_one_or x; simp *⟩
 
-instance additive.fintype : Π [fintype α], fintype (additive α) := id
+instance additive.fintype [fintype α] : fintype (additive α) :=
+fintype.of_equiv α additive.of_mul
 
-instance multiplicative.fintype : Π [fintype α], fintype (multiplicative α) := id
+instance multiplicative.fintype [fintype α] : fintype (multiplicative α) :=
+fintype.of_equiv α multiplicative.of_add
+
+@[simp] lemma fintype.card_additive [fintype α] :
+  fintype.card (additive α) = fintype.card α :=
+fintype.card_congr additive.to_mul
+
+@[simp] lemma fintype.card_multiplicative [fintype α] :
+  fintype.card (multiplicative α) = fintype.card α :=
+fintype.card_congr multiplicative.to_add
 
 @[simp] theorem fintype.card_units_int : fintype.card (units ℤ) = 2 := rfl
 
