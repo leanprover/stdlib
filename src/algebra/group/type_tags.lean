@@ -242,3 +242,5 @@ def add_monoid_hom.to_multiplicative'' [add_monoid α] [monoid β] :
 def monoid_hom.to_additive'' [add_monoid α] [monoid β] :
   (multiplicative α →* β) ≃ (α →+ additive β) :=
 add_monoid_hom.to_multiplicative''.symm
+
+attribute [irreducible] multiplicative additive

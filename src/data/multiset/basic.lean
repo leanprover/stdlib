@@ -833,6 +833,9 @@ lemma prod_nsmul {α : Type*} [comm_monoid α] (m : multiset α) :
 | (n + 1) :=
   by rw [add_nsmul, one_nsmul, pow_add, pow_one, prod_add, prod_nsmul n]
 
+section
+local attribute [reducible] multiplicative
+
 @[simp] theorem prod_repeat [comm_monoid α] (a : α) (n : ℕ) : prod (multiset.repeat a n) = a ^ n :=
 by simp [repeat, list.prod_repeat]
 @[simp] theorem sum_repeat [add_comm_monoid α] :
@@ -861,6 +864,8 @@ lemma sum_map_sum_map [add_comm_monoid γ] : ∀ (m : multiset α) (n : multiset
   sum (m.map $ λa, sum $ n.map $ λb, f a b) = sum (n.map $ λb, sum $ m.map $ λa, f a b) :=
 @prod_map_prod_map _ _ (multiplicative γ) _
 attribute [to_additive] prod_map_prod_map
+
+end
 
 lemma sum_map_mul_left [semiring β] {b : β} {s : multiset α} {f : α → β} :
   sum (s.map (λa, b * f a)) = b * sum (s.map f) :=

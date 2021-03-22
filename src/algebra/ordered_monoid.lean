@@ -552,6 +552,8 @@ instance [has_add α] : has_add (with_top α) :=
 
 local attribute [reducible] with_zero
 
+local attribute [semireducible] additive multiplicative
+
 instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := (+),
   ..@additive.add_semigroup _ $ @with_zero.semigroup (multiplicative α) _ }
@@ -1130,6 +1132,8 @@ lemma with_bot.add_lt_add_iff_left :
 
 local attribute [reducible] with_zero
 
+local attribute [semireducible] multiplicative additive
+
 lemma with_top.add_lt_add_iff_right
   {a b c : with_top α} : a < ⊤ → (c + a < b + a ↔ c < b) :=
 by simpa [add_comm] using @with_top.add_lt_add_iff_left _ _ a b c
@@ -1250,6 +1254,8 @@ instance [ordered_cancel_comm_monoid M] [ordered_cancel_comm_monoid N] :
 end prod
 
 section type_tags
+
+local attribute [semireducible] multiplicative additive
 
 instance : Π [preorder α], preorder (multiplicative α) := id
 instance : Π [preorder α], preorder (additive α) := id

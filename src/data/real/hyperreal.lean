@@ -604,7 +604,8 @@ by simpa only [mul_zero] using is_st_mul hx hy
 
 theorem infinitesimal_of_tendsto_zero {f : ℕ → ℝ} :
   tendsto f at_top (𝓝 0) → infinitesimal (of_seq f) :=
-λ hf d hd, by rw [sub_eq_add_neg, ←coe_neg, ←coe_add, ←coe_add, zero_add, zero_add];
+λ hf d hd, by rw [sub_eq_add_neg, ←coe_neg, ←filter_product.of_add, ←filter_product.of_add,
+  zero_add, zero_add];
 exact ⟨neg_lt_of_tendsto_zero_of_pos hf hd, lt_of_tendsto_zero_of_pos hf hd⟩
 
 theorem infinitesimal_epsilon : infinitesimal ε :=
@@ -713,7 +714,7 @@ lemma infinite_pos_mul_of_infinite_pos_not_infinitesimal_pos {x y : ℝ*} :
 λ hx hy₁ hy₂ r, have hy₁' : _ := not_forall.mp (by rw infinitesimal_def at hy₁; exact hy₁),
 Exists.dcases_on hy₁' $ λ r₁ hy₁'',
 have hyr : _ := by rw [not_imp, ←abs_lt, not_lt, abs_of_pos hy₂] at hy₁''; exact hy₁'',
-by rw [←div_mul_cancel r (ne_of_gt hyr.1), coe_mul];
+by rw [←div_mul_cancel r (ne_of_gt hyr.1), filter_product.of_mul];
 exact mul_lt_mul (hx (r / r₁)) hyr.2 (coe_lt_coe.2 hyr.1) (le_of_lt (hx 0))
 
 lemma infinite_pos_mul_of_not_infinitesimal_pos_infinite_pos {x y : ℝ*} :
