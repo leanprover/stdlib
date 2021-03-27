@@ -6,13 +6,14 @@ Authors: Thomas Browning
 
 import data.polynomial.ring_division
 import algebra.big_operators.nat_antidiagonal
+import linear_algebra.quadratic_form
 
 /-!
 # "Mirror" of a univariate polynomial
 
-In this file we define `polynomial.mirror`, a variant of `polynomial.reverse`. The difference 
-between `reverse` and `mirror` is that `reverse` will decrease the degree if the polynomial is 
-divisible by `X`. We also define `polynomial.norm2`, which is the sum of the squares of the 
+In this file we define `polynomial.mirror`, a variant of `polynomial.reverse`. The difference
+between `reverse` and `mirror` is that `reverse` will decrease the degree if the polynomial is
+divisible by `X`. We also define `polynomial.norm2`, which is the sum of the squares of the
 coefficients of a polynomial. It is also a coefficient of `p * p.mirror`.
 
 ## Main definitions
@@ -30,9 +31,9 @@ coefficients of a polynomial. It is also a coefficient of `p * p.mirror`.
 
 namespace polynomial
 
-variables {R : Type*} [semiring R] (p : polynomial R)
-
 section mirror
+
+variables {R : Type*} [semiring R] (p : polynomial R)
 
 /-- mirror of a polynomial: reverses the coefficients while preserving `polynomial.nat_degree` -/
 noncomputable def mirror := p.reverse * X ^ p.nat_trailing_degree
@@ -182,5 +183,125 @@ begin
 end
 
 end mirror
+
+section norm2
+
+variables {R : Type*} [comm_ring R] (p q : polynomial R)
+
+noncomputable def norm2 : quadratic_form R (polynomial R) :=
+finsupp.norm_sq
+
+lemma norm2_apply : p.norm2 = p.sum (λ k c, c ^ 2) :=
+finsupp.norm_sq_apply p
+
+lemma norm2_eq_sum_of_support {s : finset ℕ}
+  (h : p.support ⊆ s) : p.norm2 = s.sum (λ k, (p.coeff k) ^ 2) :=
+p.norm2_apply.trans (finset.sum_subset h (λ k h1 h2, by
+{ rw [finsupp.not_mem_support_iff.mp h2], exact zero_pow zero_lt_two }))
+
+lemma norm2_monomial (k : ℕ) (a : R) : (monomial k a).norm2 = a ^ 2 :=
+by rw [norm2_eq_sum_of_support _ (support_monomial' k a),
+  finset.sum_singleton, coeff_monomial, if_pos rfl]
+
+lemma norm2_C (a : R) : (C a).norm2 = a ^ 2 := norm2_monomial 0 a
+
+lemma norm2_zero : (0 : polynomial R).norm2 = 0 := by rw [←C_0, norm2_C, pow_two, zero_mul]
+
+lemma norm2_eq_mul_reverse_coeff :
+  p.norm2 = (p * p.mirror).coeff (p.nat_degree + p.nat_trailing_degree) :=
+begin
+  have h : p.support ⊆ finset.range (p.nat_degree + p.nat_trailing_degree).succ :=
+  λ x hx, finset.mem_range_succ_iff.mpr ((le_nat_degree_of_ne_zero
+    (mem_support_iff_coeff_ne_zero.mp hx)).trans (nat.le_add_right _ _)),
+  rw [eq_comm, p.norm2_eq_sum_of_support h, coeff_mul,
+      finset.nat.sum_antidiagonal_eq_sum_range_succ_mk],
+  apply finset.sum_congr rfl,
+  intros k hk,
+  rw [pow_two, coeff_mirror, ←rev_at_le (finset.mem_range_succ_iff.mp hk), rev_at_invol],
+end
+
+-- `p.nat_degree` can be recovered from `p * p.mirror`
+lemma nat_degree_mul_mirror {R : Type*} [integral_domain R] (p : polynomial R) :
+  (p * p.mirror).nat_degree = 2 * p.nat_degree :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, zero_mul, nat_degree_zero, mul_zero] },
+  { rw [nat_degree_mul hp (mt p.mirror_eq_zero.mp hp), mirror_nat_degree, two_mul] },
+end
+
+-- `p.nat_trailing_degree` can be recovered from `p * p.mirror`
+lemma nat_trailing_degree_mul_mirror {R : Type*} [integral_domain R] (p : polynomial R) :
+  (p * p.mirror).nat_trailing_degree = 2 * p.nat_trailing_degree :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, zero_mul, nat_trailing_degree_zero, mul_zero] },
+  { rw [nat_trailing_degree_mul hp (mt p.mirror_eq_zero.mp hp),
+        mirror_nat_trailing_degree, two_mul] },
+end
+
+-- `p.norm2` can be recovered from `p * p.mirror`
+lemma central_coeff_mul_mirror {R : Type*} [integral_domain R] (p : polynomial R) :
+  (p * p.mirror).coeff (((p * p.mirror).nat_degree +
+    (p * p.mirror).nat_trailing_degree) / 2) = p.norm2 :=
+by rw [nat_degree_mul_mirror, nat_trailing_degree_mul_mirror,  ←mul_add,
+  nat.mul_div_cancel_left _ zero_lt_two, norm2_eq_mul_reverse_coeff]
+
+lemma norm2_nonneg {R : Type*} [linear_ordered_comm_ring R] (p : polynomial R) : 0 ≤ norm2 p :=
+begin
+  rw p.norm2_eq_sum_of_support (le_refl p.support),
+  exact finset.sum_nonneg (λ k hk, pow_two_nonneg (p.coeff k)),
+end
+
+lemma norm2_anisotropic {R : Type*} [linear_ordered_comm_ring R] :
+  (norm2 : quadratic_form R (polynomial R)).anisotropic :=
+λ p hp, finsupp.support_eq_empty.mp (finset.eq_empty_of_forall_not_mem
+  (λ k hk, mem_support_iff_coeff_ne_zero.mp hk (pow_eq_zero
+  ((finset.sum_eq_zero_iff_of_nonneg (λ k hk, pow_two_nonneg (p.coeff k))).mp
+  ((p.norm2_eq_sum_of_support (le_refl p.support)).symm.trans hp) k hk))))
+
+lemma norm2_pos_def {R : Type*} [linear_ordered_comm_ring R] :
+  (norm2 : quadratic_form R (polynomial R)).pos_def :=
+λ p hp, lt_of_le_of_ne p.norm2_nonneg (ne.symm (mt (norm2_anisotropic p) hp))
+
+lemma norm2_eq_zero {R : Type*} [linear_ordered_comm_ring R] {p : polynomial R} :
+  p.norm2 = 0 ↔ p = 0 :=
+⟨norm2_anisotropic p, λ h, (congr_arg norm2 h).trans norm2_zero⟩
+
+lemma coeff_sq_le_norm2 {R : Type*} [linear_ordered_comm_ring R] (p : polynomial R) (k : ℕ) :
+  p.coeff k ^ 2 ≤ p.norm2 :=
+begin
+  rw [p.norm2_eq_sum_of_support (le_refl p.support), ←finset.sum_insert_of_eq_zero_if_not_mem],
+  exact (le_of_eq (finset.sum_singleton.symm)).trans (finset.sum_le_sum_of_subset_of_nonneg
+    (finset.singleton_subset_iff.mpr (finset.mem_insert_self k p.support))
+    (λ j _ _, pow_two_nonneg (p.coeff j))),
+  exact λ h, (pow_eq_zero_iff zero_lt_two).mpr (not_mem_support_iff_coeff_zero.mp h),
+end
+
+lemma norm2_eq_card_support (hp : ∀ k, p.coeff k ≠ 0 → p.coeff k ^ 2 = 1) :
+  p.norm2 = p.support.card :=
+begin
+  rw [←ring_hom.eq_nat_cast (nat.cast_ring_hom R), finset.card_eq_sum_ones, ring_hom.map_sum,
+      ring_hom.map_one, p.norm2_eq_sum_of_support (le_refl p.support)],
+  exact finset.sum_congr rfl (λ k hk, hp k (mem_support_iff_coeff_ne_zero.mp hk)),
+end
+
+lemma coeff_sq_eq_one_of_norm2_le_three (p : polynomial ℤ) (hp : p.norm2 ≤ 3) (k : ℕ)
+  (hk : p.coeff k ≠ 0) : p.coeff k ^ 2 = 1 :=
+begin
+  replace hp := (p.coeff_sq_le_norm2 k).trans hp,
+  rw [←int.nat_abs_pow_two, ←int.coe_nat_pow, ←int.coe_nat_one, int.coe_nat_inj',
+      pow_two, nat.mul_eq_one_iff, and_self],
+  apply le_antisymm,
+  { rwa [←nat.lt_succ_iff, ←nat.pow_lt_iff_lt_left one_le_two, ←int.coe_nat_lt_coe_nat_iff,
+        int.coe_nat_pow, int.nat_abs_pow_two, ←int.le_sub_one_iff] },
+  { rwa [nat.succ_le_iff, pos_iff_ne_zero, ne, int.nat_abs_eq_zero] },
+end
+
+lemma card_support_eq_three_of_norm2_eq_three (p : polynomial ℤ) (hp : p.norm2 = 3) :
+  p.support.card = 3 :=
+nat.cast_inj.mp
+  ((p.norm2_eq_card_support (p.coeff_sq_eq_one_of_norm2_le_three (le_of_eq hp))).symm.trans hp)
+
+end norm2
 
 end polynomial

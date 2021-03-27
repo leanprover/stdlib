@@ -51,18 +51,18 @@ open_locale big_operators
 universes u v w
 
 /-- `bilin_form R M` is the type of `R`-bilinear functions `M → M → R`. -/
-structure bilin_form (R : Type u) (M : Type v) [semiring R] [add_comm_monoid M] [semimodule R M] :=
+structure bilin_form (R : Type*) (M : Type*) [semiring R] [add_comm_monoid M] [semimodule R M] :=
 (bilin : M → M → R)
 (bilin_add_left : ∀ (x y z : M), bilin (x + y) z = bilin x z + bilin y z)
 (bilin_smul_left : ∀ (a : R) (x y : M), bilin (a • x) y = a * (bilin x y))
 (bilin_add_right : ∀ (x y z : M), bilin x (y + z) = bilin x y + bilin x z)
 (bilin_smul_right : ∀ (a : R) (x y : M), bilin x (a • y) = a * (bilin x y))
 
-variables {R : Type u} {M : Type v} [semiring R] [add_comm_monoid M] [semimodule R M]
-variables {R₁ : Type u} {M₁ : Type v} [ring R₁] [add_comm_group M₁] [module R₁ M₁]
-variables {R₂ : Type u} {M₂ : Type v} [comm_semiring R₂] [add_comm_monoid M₂] [semimodule R₂ M₂]
-variables {R₃ : Type u} {M₃ : Type v} [comm_ring R₃] [add_comm_group M₃] [module R₃ M₃]
-variables {V : Type u} {K : Type v} [field K] [add_comm_group V] [vector_space K V]
+variables {R : Type*} {M : Type*} [semiring R] [add_comm_monoid M] [semimodule R M]
+variables {R₁ : Type*} {M₁ : Type*} [ring R₁] [add_comm_group M₁] [module R₁ M₁]
+variables {R₂ : Type*} {M₂ : Type*} [comm_semiring R₂] [add_comm_monoid M₂] [semimodule R₂ M₂]
+variables {R₃ : Type*} {M₃ : Type*} [comm_ring R₃] [add_comm_group M₃] [module R₃ M₃]
+variables {V : Type*} {K : Type*} [field K] [add_comm_group V] [vector_space K V]
 variables {B : bilin_form R M} {B₁ : bilin_form R₁ M₁} {B₂ : bilin_form R₂ M₂}
 
 namespace bilin_form
@@ -157,11 +157,10 @@ instance : inhabited (bilin_form R M) := ⟨0⟩
 
 section
 
-/-- `quadratic_form A M` inherits the scalar action from any algebra over `A`.
+/-- `bilin_form R M` inherits the scalar action from any commutative subalgebra `R₂` of `R`.
 
-When `A` is commutative, this provides an `A`-action via `algebra.id`. -/
-instance {R A : Type*} [comm_semiring R] [semiring A] [algebra R A] [semimodule A M] :
-  semimodule R (bilin_form A M) :=
+When `R` itself is commutative, this provides an `R`-action via `algebra.id`. -/
+instance [algebra R₂ R] : semimodule R₂ (bilin_form R M) :=
 { smul := λ c B,
   { bilin := λ x y, c • B x y,
     bilin_add_left := λ x y z,
@@ -179,13 +178,121 @@ instance {R A : Type*} [comm_semiring R] [semiring A] [algebra R A] [semimodule 
   zero_smul := λ B, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw zero_smul },
   smul_zero := λ B, by { ext, unfold coe_fn has_coe_to_fun.coe bilin, rw smul_zero } }
 
-@[simp]
-lemma smul_apply {R A : Type*} [comm_semiring R] [semiring A] [algebra R A] [semimodule A M]
-  (B : bilin_form A M) (a : R) (x y : M) :
+@[simp] lemma smul_apply [algebra R₂ R] (B : bilin_form R M) (a : R₂) (x y : M) :
   (a • B) x y = a • (B x y) :=
 rfl
 
 end
+
+section flip
+
+variables (R₂)
+
+/-- Auxiliary construction for the flip of a bilinear form, obtained by exchanging the left and
+right arguments. This is a verison is an `add_monoid_hom`; it is later upgraded to an `add_equiv`
+in `flip'`, and for a commutative ring to a `linear_equiv` in `flip`. -/
+def flip_hom_aux [algebra R₂ R] : bilin_form R M →ₗ[R₂] bilin_form R M :=
+{ to_fun := λ A,
+  { bilin := λ i j, A j i,
+    bilin_add_left := λ x y z, A.bilin_add_right z x y,
+    bilin_smul_left := λ a x y, A.bilin_smul_right a y x,
+    bilin_add_right := λ x y z, A.bilin_add_left y z x,
+    bilin_smul_right := λ a x y, A.bilin_smul_left a y x },
+  map_add' := λ A₁ A₂, by { ext, simp } ,
+  map_smul' := λ c A, by { ext, simp } }
+
+variables {R₂}
+
+lemma flip_flip_aux [algebra R₂ R] (A : bilin_form R M) :
+  (flip_hom_aux R₂) (flip_hom_aux R₂ A) = A :=
+by { ext A x y, simp [flip_hom_aux] }
+
+variables (R₂)
+
+/-- The flip of a bilinear form, obtained by exchanging the left and right arguments. This is a
+less structured version of the equiv which applies to general (noncommutative) rings `R` with a
+distinguished commutative subring `R₂`; over a commutative ring use `flip`. -/
+def flip_hom [algebra R₂ R] : bilin_form R M ≃ₗ[R₂] bilin_form R M :=
+{ inv_fun := flip_hom_aux R₂,
+  left_inv := flip_flip_aux,
+  right_inv := flip_flip_aux,
+  .. flip_hom_aux R₂ }
+
+variables {R₂}
+
+@[simp] lemma flip_apply [algebra R₂ R] (A : bilin_form R M) (x y : M) :
+  flip_hom R₂ A x y = A y x :=
+rfl
+
+lemma flip_flip [algebra R₂ R] :
+  (flip_hom R₂).trans (flip_hom R₂) = linear_equiv.refl R₂ (bilin_form R M) :=
+by { ext A x y, simp }
+
+/-- The flip of a bilinear form over a ring, obtained by exchanging the left and right arguments,
+here considered as an `ℕ`-linear map, i.e. an additive homomorphism. -/
+abbreviation flip' : bilin_form R M ≃ₗ[ℕ] bilin_form R M := flip_hom ℕ
+
+/-- The `flip` of a bilinear form over a commutative ring, obtained by exchanging the left and
+right arguments. -/
+abbreviation flip : bilin_form R₂ M₂ ≃ₗ[R₂] bilin_form R₂ M₂ := flip_hom R₂
+
+end flip
+
+section to_lin'
+
+variables (R₂) [algebra R₂ R] [semimodule R₂ M] [is_scalar_tower R₂ R M]
+
+/-- The linear map obtained from a `bilin_form` by fixing the left co-ordinate and evaluating in
+the right.
+This is the most general version of the construction; it is `R₂`-linear for some distinguished
+commutative subsemiring `R₂` of the scalar ring.  Over semiring with no particular distinguished
+such subsemiring, use `to_lin'`, which is `ℕ`-linear.  Over a commutative semiring, use `to_lin`,
+which is linear. -/
+def to_lin_hom : bilin_form R M →ₗ[R₂] M →ₗ[R₂] M →ₗ[R] R :=
+{ to_fun := λ A,
+  { to_fun := λ x,
+    { to_fun := λ y, A x y,
+      map_add' := A.bilin_add_right x,
+      map_smul' := λ c, A.bilin_smul_right c x },
+    map_add' := λ x₁ x₂, by { ext, simp },
+    map_smul' := λ c x, by { ext y, simpa using smul_left (c • (1 : R)) x y } },
+  map_add' := λ A₁ A₂, by { ext, simp },
+  map_smul' := λ c A, by { ext, simp } }
+
+variables {R₂}
+
+@[simp] lemma to_lin'_apply (A : bilin_form R M) (x : M) :
+  ⇑(to_lin_hom R₂ A x) = A x :=
+rfl
+
+/-- The linear map obtained from a `bilin_form` by fixing the left co-ordinate and evaluating in
+the right.
+Over a commutative semiring, use `to_lin`, which is linear rather than `ℕ`-linear. -/
+abbreviation to_lin' : bilin_form R M →ₗ[ℕ] M →ₗ[ℕ] M →ₗ[R] R := to_lin_hom ℕ
+
+variables (R₂)
+
+/-- The linear map obtained from a `bilin_form` by fixing the right co-ordinate and evaluating in
+the left.
+This is the most general version of the construction; it is `R₂`-linear for some distinguished
+commutative subsemiring `R₂` of the scalar ring.  Over semiring with no particular distinguished
+such subsemiring, use `to_lin'_flip`, which is `ℕ`-linear.  Over a commutative semiring, use
+`to_lin_flip`, which is linear. -/
+def to_lin_hom_flip : bilin_form R M →ₗ[R₂] M →ₗ[R₂] M →ₗ[R] R :=
+(to_lin_hom R₂).comp (flip_hom R₂).to_linear_map
+
+variables {R₂}
+
+@[simp] lemma to_lin'_flip_apply (A : bilin_form R M) (x : M) :
+  ⇑(to_lin_hom_flip R₂ A x) = λ y, A y x :=
+rfl
+
+/-- The linear map obtained from a `bilin_form` by fixing the right co-ordinate and evaluating in
+the left.
+Over a commutative semiring, use `to_lin_flip`, which is linear rather than `ℕ`-linear. -/
+abbreviation to_lin'_flip : bilin_form R M →ₗ[ℕ] M →ₗ[ℕ] M →ₗ[R] R := to_lin_hom_flip ℕ
+
+end to_lin'
 
 end bilin_form
 
@@ -202,19 +309,16 @@ def linear_map.to_bilin_aux (f : M₂ →ₗ[R₂] M₂ →ₗ[R₂] R₂) : bil
   bilin_add_right := λ x y z, linear_map.map_add (f x) y z,
   bilin_smul_right := λ a x y, linear_map.map_smul (f x) a y }
 
-/-- A map with two arguments that is linear in both is linearly equivalent to bilinear form. -/
-def linear_map.to_bilin : (M₂ →ₗ[R₂] M₂ →ₗ[R₂] R₂) ≃ₗ[R₂] bilin_form R₂ M₂ :=
-{ to_fun := linear_map.to_bilin_aux,
-  inv_fun := λ F, linear_map.mk₂ R₂ F
-    F.bilin_add_left F.bilin_smul_left F.bilin_add_right  F.bilin_smul_right,
-  map_add' := λ B D, rfl,
-  map_smul' := λ a B, rfl,
-  left_inv := λ B, by { ext, refl },
-  right_inv := λ B, by { ext, refl } }
-
 /-- Bilinear forms are linearly equivalent to maps with two arguments that are linear in both. -/
 def bilin_form.to_lin : bilin_form R₂ M₂ ≃ₗ[R₂] (M₂ →ₗ[R₂] M₂ →ₗ[R₂] R₂) :=
-linear_map.to_bilin.symm
+{ inv_fun := linear_map.to_bilin_aux,
+  left_inv := λ B, by { ext, simp [linear_map.to_bilin_aux] },
+  right_inv := λ B, by { ext, simp [linear_map.to_bilin_aux] },
+  .. bilin_form.to_lin_hom R₂ }
+
+/-- A map with two arguments that is linear in both is linearly equivalent to bilinear form. -/
+def linear_map.to_bilin : (M₂ →ₗ[R₂] M₂ →ₗ[R₂] R₂) ≃ₗ[R₂] bilin_form R₂ M₂ :=
+bilin_form.to_lin.symm
 
 @[simp] lemma linear_map.to_bilin_aux_eq (f : M₂ →ₗ[R₂] M₂ →ₗ[R₂] R₂) :
   linear_map.to_bilin_aux f = linear_map.to_bilin f :=
@@ -241,6 +345,13 @@ lemma map_sum_right {α} (t : finset α) (w : M₂) (g : α → M₂) :
   B₂ w (∑ i in t, g i) = ∑ i in t, B₂ w (g i) :=
 show bilin_form.to_lin B₂ w (∑ i in t, g i) = ∑ i in t, bilin_form.to_lin B₂ w (g i),
 from linear_map.map_sum _
+
+/-- Bilinear forms are linearly equivalent to maps with two arguments that are linear in both,
+"arguments-reversed" version. -/
+def bilin_form.to_lin_flip : bilin_form R₂ M₂ ≃ₗ[R₂] M₂ →ₗ[R₂] M₂ →ₗ[R₂] R₂ :=
+bilin_form.flip.trans bilin_form.to_lin
+
+@[simp] lemma bilin_form.to_lin_flip_eq_flip : B₂.to_lin_flip = B₂.to_lin.flip := rfl
 
 end equiv_lin
 
@@ -782,6 +893,75 @@ end to_matrix
 
 end matrix
 
+namespace finsupp
+
+variables {α β : Type*}
+variables {M' : Type*} [add_comm_monoid M']
+variables {N : Type*} [has_zero N]
+
+lemma bilin_add_left' (A : α → β → N → (M' →+ R)) (p q : α →₀ M') (r : β →₀ N) :
+  (p + q).sum (λ i x, r.sum (λ j y, A i j y x))
+  = p.sum (λ i x, r.sum (λ j y, A i j y x)) + q.sum (λ i x, r.sum (λ j y, A i j y x)) :=
+begin
+  rw finsupp.sum_add_index,
+  { simp },
+  { simp }
+end
+
+lemma bilin_add_right' (A : α → β → N → (M' →+ R)) (p : α →₀ N) (q r : β →₀ M') :
+  p.sum (λ i x, (q + r).sum (λ j y, A i j x y))
+  = p.sum (λ i x, q.sum (λ j y, A i j x y)) + p.sum (λ i x, r.sum (λ j y, A i j x y)) :=
+begin
+  rw ← finsupp.sum_add,
+  congr,
+  ext i x,
+  rw finsupp.sum_add_index,
+  { simp },
+  { simp [mul_add] }
+end
+
+lemma bilin_smul_left' (A : α → β → N → (M →ₗ[R] R)) (a : R)
+  (p : α →₀ M) (q : β →₀ N) :
+  (a • p).sum (λ i x, q.sum (λ j y, A i j y x))
+  = a • p.sum (λ i x, q.sum (λ j y, A i j y x)) :=
+begin
+  let h : α → M →ₗ[R] R := λ i, q.sum (λ j y, A i j y),
+  have := @finsupp.sum_smul_index_linear_map' _ _ _ _ _ _ _ _ _ _ _ h,
+  convert this;
+  { ext i x,
+    simp [h] },
+end
+
+lemma bilin_smul_right' (A : α → β → N → (M →ₗ[R] R)) (a : R)
+  (p : α →₀ N) (q : β →₀ M) :
+  p.sum (λ i x, (a • q).sum (λ j y, A i j x y))
+  = a • p.sum (λ i x, q.sum (λ j y, A i j x y)) :=
+begin
+  rw finsupp.smul_sum,
+  congr,
+  ext i x,
+  exact finsupp.sum_smul_index_linear_map'
+end
+
+open bilin_form
+
+/-- A collection of `bilin_form R M`, parametrized by two indices in `α`, induces a bilinear form
+on `α →₀ M`.  This can be thought of as an infinite-dimensional version of `matrix.to_bilin_form`.
+-/
+noncomputable def to_bilin_form (A : α → α → (bilin_form R M)) :
+  bilin_form R (α →₀ M) :=
+{ bilin := λ p q, p.sum (λ i x, q.sum (λ j y, A i j x y)),
+  bilin_add_left := bilin_add_left' (λ i j x, (to_lin'_flip (A i j) x).to_add_monoid_hom),
+  bilin_smul_left := bilin_smul_left' (λ i j, to_lin'_flip (A i j)),
+  bilin_add_right := bilin_add_right' (λ i j x, (to_lin' (A i j) x).to_add_monoid_hom),
+  bilin_smul_right := bilin_smul_right' (λ i j, to_lin' (A i j)) }
+
+@[simp] lemma to_bilin_form_apply (A : α → α → (bilin_form R M)) (p q : α →₀ M) :
+  finsupp.to_bilin_form A p q = p.sum (λ i x, q.sum (λ j y, A i j x y)) :=
+rfl
+
+end finsupp
+
 namespace refl_bilin_form
 
 open refl_bilin_form bilin_form
@@ -814,7 +994,34 @@ lemma is_refl : refl_bilin_form.is_refl B := λ x y H1, H x y ▸ H1
 lemma ortho_sym {x y : M} :
   is_ortho B x y ↔ is_ortho B y x := refl_bilin_form.ortho_sym (is_refl H)
 
+lemma is_sym_iff_flip' [algebra R₂ R] : is_sym B ↔ flip_hom R₂ B = B :=
+begin
+  split,
+  { intros h,
+    ext x y,
+    exact h y x },
+  { intros h x y,
+    conv_lhs { rw ← h },
+    simp }
+end
+
 end sym_bilin_form
+
+/-- A bilinear form on `finsupp` from an "infinite matrix" is symmetric, if the coefficients
+satisfy a symmetry condition. -/
+-- TODO the same for matrices
+lemma finsupp.is_sym_to_bilinear_form {α : Type*} (A : α → α → (bilin_form R M))
+  (hA : ∀ i j x y, A i j x y = A j i y x) :
+  sym_bilin_form.is_sym (finsupp.to_bilin_form A) :=
+begin
+  intros p q,
+  simp only [finsupp.to_bilin_form_apply, p.sum_comm q],
+  congr,
+  ext i x,
+  congr,
+  ext j y,
+  exact (hA i j x y).symm
+end
 
 namespace alt_bilin_form
 
