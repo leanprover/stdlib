@@ -613,7 +613,7 @@ lemma range_map_nonempty (N : submodule R M) :
 /-- The pullback of a submodule `p ⊆ M₂` along `f : M → M₂` -/
 def comap (f : M →ₗ[R] M₂) (p : submodule R M₂) : submodule R M :=
 { carrier   := f ⁻¹' p,
-  smul_mem' := λ a x h, by simp [p.smul_mem _ h],
+  smul_mem' := λ a x h, by simp [p.smul_mem a h],
   .. p.to_add_submonoid.comap f.to_add_monoid_hom }
 
 @[simp] lemma comap_coe (f : M →ₗ[R] M₂) (p : submodule R M₂) :
@@ -2171,7 +2171,7 @@ begin
   intros m h,
   change c • (f m) ∈ q,
   change f m ∈ q at h,
-  apply q.smul_mem _ h,
+  apply q.smul_mem c h,
 end
 
 lemma inf_comap_le_comap_add (f₁ f₂ : M →ₗ[R] M₂) :

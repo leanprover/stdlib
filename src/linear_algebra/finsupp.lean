@@ -184,8 +184,10 @@ begin
   { rintro _ ⟨_, hp, rfl ⟩ , exact single_mem_supported R 1 hp },
   { rw ← l.sum_single,
     refine sum_mem _ (λ i il, _),
-    convert @smul_mem R (α →₀ R) _ _ _ _ (single i 1) (l i) _,
+    convert smul_mem _ (l i) (_ : single i (1 : R) ∈ _),
     { simp },
+    apply_instance,
+    apply_instance,
     apply subset_span,
     apply set.mem_image_of_mem _ (hl il) }
 end

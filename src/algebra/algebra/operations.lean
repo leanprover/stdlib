@@ -89,7 +89,8 @@ begin
       work_on_goal 0 { intros, exact subset_span ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
     all_goals { intros, simp only [mul_zero, zero_mul, zero_mem,
         left_distrib, right_distrib, mul_smul_comm, smul_mul_assoc],
-      try {apply add_mem _ _ _}, try {apply smul_mem _ _ _} }, assumption' },
+      try {apply add_mem _ _ _}, try {apply smul_mem _ (_ : R) _} }, assumption',
+      repeat { apply_instance }, },
   { rw span_le, rintros _ ⟨a, b, ha, hb, rfl⟩,
     exact mul_mem_mul (subset_span ha) (subset_span hb) }
 end

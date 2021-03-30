@@ -56,7 +56,7 @@ by split_ifs; simp [h, nat_degree_X_sub_C_le]
 
 variable (M)
 lemma char_poly_sub_diagonal_degree_lt :
-(char_poly M - ∏ (i : n), (X - C (M i i))).degree < ↑(fintype.card n - 1) :=
+  (char_poly M - ∏ (i : n), (X - C (M i i))).degree < ↑(fintype.card n - 1) :=
 begin
   rw [char_poly, det_apply', ← insert_erase (mem_univ (equiv.refl n)),
     sum_insert (not_mem_erase (equiv.refl n) univ), add_comm],
@@ -64,7 +64,7 @@ begin
     units.coe_one, add_sub_cancel, equiv.coe_refl],
   rw ← mem_degree_lt, apply submodule.sum_mem (degree_lt R (fintype.card n - 1)),
   intros c hc, rw [← C_eq_int_cast, C_mul'],
-  apply submodule.smul_mem (degree_lt R (fintype.card n - 1)) ↑↑(equiv.perm.sign c),
+  refine submodule.smul_mem (degree_lt R (fintype.card n - 1)) ↑↑(equiv.perm.sign c) _,
   rw mem_degree_lt, apply lt_of_le_of_lt degree_le_nat_degree _, rw with_bot.coe_lt_coe,
   apply lt_of_le_of_lt _ (equiv.perm.fixed_point_card_lt_of_ne_one (ne_of_mem_erase hc)),
   apply le_trans (polynomial.nat_degree_prod_le univ (λ i : n, (char_matrix M (c i) i))) _,

@@ -333,7 +333,7 @@ begin
     rw [f.to_map.map_mul, mul_comm m, ←mul_assoc, mul_assoc _ _ n],
     erw ←hn', rw mul_assoc,
     apply hI,
-    exact submodule.smul_mem _ _ hm },
+    exact I.smul_mem (_ : R) hm },
   { rw [mul_zero],
     exact ⟨0, f.to_map.map_zero⟩ },
   { intros x y hx hy,
@@ -400,7 +400,7 @@ instance comm_semiring : comm_semiring (fractional_ideal f) :=
     { apply mul_le.mpr _ h,
       rintros x hx y ⟨y', y'_mem_R, y'_eq_y⟩,
       rw [←y'_eq_y, mul_comm],
-      exact submodule.smul_mem _ _ hx },
+      exact submodule.smul_mem _ (_ : R) hx },
     { have : x * 1 ∈ (I * 1) := mul_mem_mul h one_mem_one,
       rwa [mul_one] at this }
   end,
@@ -410,7 +410,7 @@ instance comm_semiring : comm_semiring (fractional_ideal f) :=
     { apply mul_le.mpr _ h,
       rintros x ⟨x', x'_mem_R, x'_eq_x⟩ y hy,
       rw ←x'_eq_x,
-      exact submodule.smul_mem _ _ hy },
+      exact submodule.smul_mem _ (_ : R) hy },
     { have : 1 * x ∈ (1 * I) := mul_mem_mul one_mem_one h,
       rwa [one_mul] at this }
   end,
@@ -652,7 +652,7 @@ begin
   { rw [ne.def, ← g.to_map_eq_zero_iff, hx],
     exact mul_ne_zero (g.to_map_ne_zero_of_mem_non_zero_divisors _) y_ne_zero },
   { rw hx,
-    exact smul_mem _ _ y_mem }
+    exact smul_mem _ (_ : R) y_mem }
 end
 
 lemma map_ne_zero [nontrivial R] (hI : I ≠ 0) : I.map h ≠ 0 :=

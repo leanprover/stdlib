@@ -200,24 +200,29 @@ begin
   have hsy : ∀ (yi yj yk ∈ y), f (yi * yj) yk ∈ s := λ yi yj yk hyi hyj hyk,
     show function.uncurry f (yi * yj, yk) ∈ s,
     from mem_image_of_mem _ $ mem_product.2 ⟨mem_union_right _ $ finset.mul_mem_mul hyi hyj, hyk⟩,
-  have hxy : ∀ xi ∈ x, xi ∈ span (algebra.adjoin A (↑s : set B))
+  let adjoin_s := algebra.adjoin A (↑s : set B),
+  have hxy : ∀ xi ∈ x, xi ∈ span adjoin_s
                (↑(insert 1 y : finset C) : set C) :=
-    λ xi hxi, hf xi ▸ sum_mem _ (λ yj hyj, smul_mem
-      (span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C))
-      ⟨f xi yj, algebra.subset_adjoin $ hsx xi hxi yj hyj⟩
-      (subset_span $ mem_insert_of_mem hyj)),
-  have hyy : span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C) *
-      span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C) ≤
-    span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C),
+    λ xi hxi, hf xi ▸ sum_mem _ (λ yj hyj,
+      let fij : ↥adjoin_s := ⟨f xi yj, algebra.subset_adjoin $ hsx xi hxi yj hyj⟩ in
+      show fij • yj ∈ _,
+      from smul_mem (span adjoin_s (↑(insert 1 y : finset C) : set C))
+                    fij (subset_span $ mem_insert_of_mem hyj)),
+  have hyy : span adjoin_s (↑(insert 1 y : finset C) : set C) *
+      span adjoin_s (↑(insert 1 y : finset C) : set C) ≤
+    span adjoin_s (↑(insert 1 y : finset C) : set C),
   { rw [span_mul_span, span_le, coe_insert], rintros _ ⟨yi, yj, rfl | hyi, rfl | hyj, rfl⟩,
     { rw mul_one, exact subset_span (set.mem_insert _ _) },
     { rw one_mul, exact subset_span (set.mem_insert_of_mem _ hyj) },
     { rw mul_one, exact subset_span (set.mem_insert_of_mem _ hyi) },
-    { rw ← hf (yi * yj), exact (submodule.mem_coe _).2 (sum_mem _ $ λ yk hyk, smul_mem
-        (span (algebra.adjoin A (↑s : set B)) (insert 1 ↑y : set C))
-        ⟨f (yi * yj) yk, algebra.subset_adjoin $ hsy yi yj yk hyi hyj hyk⟩
-        (subset_span $ set.mem_insert_of_mem _ hyk : yk ∈ _)) } },
-  refine ⟨algebra.adjoin A (↑s : set B), subalgebra.fg_adjoin_finset _, insert 1 y, _⟩,
+    { rw [←hf (yi * yj), submodule.mem_coe, ←coe_insert],
+      exact (sum_mem _ $ λ yk hyk,
+        let fijk : ↥adjoin_s :=
+          ⟨f (yi * yj) yk, algebra.subset_adjoin $ hsy yi yj yk hyi hyj hyk⟩ in
+        show fijk • yk ∈ _,
+        from smul_mem (span adjoin_s (↑(insert 1 y : finset C) : set C))
+                      fijk (subset_span $ mem_insert_of_mem hyk)) } },
+  refine ⟨adjoin_s, subalgebra.fg_adjoin_finset _, insert 1 y, _⟩,
   refine restrict_scalars_injective A _ _ _,
   rw [restrict_scalars_top, eq_top_iff, ← algebra.coe_top, ← hx, algebra.adjoin_eq_span, span_le],
   refine λ r hr, monoid.in_closure.rec_on hr hxy (subset_span $ mem_insert_self _ _)
