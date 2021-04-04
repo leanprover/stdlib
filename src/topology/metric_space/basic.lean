@@ -820,6 +820,14 @@ theorem real.dist_eq (x y : ℝ) : dist x y = abs (x - y) := rfl
 theorem real.dist_0_eq_abs (x : ℝ) : dist x 0 = abs x :=
 by simp [real.dist_eq]
 
+theorem real.dist_left_le_of_mem_interval {x y z : ℝ} (h : y ∈ interval x z) :
+  dist x y ≤ dist x z :=
+by simpa only [dist_comm x] using abs_sub_left_of_mem_interval h
+
+theorem real.dist_right_le_of_mem_interval {x y z : ℝ} (h : y ∈ interval x z) :
+  dist y z ≤ dist x z :=
+by simpa only [dist_comm _ z] using abs_sub_right_of_mem_interval h
+
 instance : order_topology ℝ :=
 order_topology_of_nhds_abs $ λ x,
   by simp only [nhds_basis_ball.eq_binfi, ball, real.dist_eq, abs_sub]
