@@ -6,6 +6,7 @@ Authors: Johannes Hölzl
 Type class hierarchy for Boolean algebras.
 -/
 import order.bounded_lattice
+import order.heyting_algebra
 
 set_option old_structure_cmd true
 
@@ -142,3 +143,45 @@ instance boolean_algebra_Prop : boolean_algebra Prop :=
 instance pi.boolean_algebra {α : Type u} {β : Type v} [boolean_algebra β] :
   boolean_algebra (α → β) :=
 by pi_instance
+
+instance has_internal_imp_of_boolean {α} [H : boolean_algebra α] : has_internal_imp α :=
+  {imp := λ x y, xᶜ ⊔ y}
+
+@[simp] lemma boolean_imp_eq {α} [H : boolean_algebra α] (x y : α) : (x ⇨ y) = xᶜ ⊔ y := rfl
+
+lemma heyting_of_boolean_aux_aux {α}
+  [H : boolean_algebra α]
+  (x y z : α)
+  (h_1 : x ≤ yᶜ ⊔ z)
+  (h_2 : x ≤ y)
+  : x ≤ z :=
+  calc
+    x ≤ (y ⊓ (yᶜ ⊔ z)) : le_inf h_2 h_1
+    ... = (y ⊓ yᶜ) ⊔ (y ⊓ z) : inf_sup_left
+    ... ≤ ((y ⊓ yᶜ) ⊔ z) : sup_le_sup_left inf_le_right (y ⊓ yᶜ)
+    ... = ⊥ ⊔ z : by {congr, exact inf_compl_eq_bot}
+    ... = z : by {exact bot_sup_eq}
+
+lemma heyting_of_boolean_aux {α}
+  [H : boolean_algebra α]
+  (x y z : α)
+  (h : x ⊓ y ≤ yᶜ ⊔ z) :
+  x ⊓ y ≤ z := heyting_of_boolean_aux_aux (x ⊓ y) y z h inf_le_right
+
+instance heyting_of_boolean {α} [H : boolean_algebra α] : heyting_algebra α :=
+  {
+    imp_adjoint := λ x y z,
+      begin
+        rw boolean_imp_eq,
+        symmetry,
+        split; intros h,
+        refine heyting_of_boolean_aux x y z (le_trans inf_le_left h),
+        {
+          transitivity x ⊓ (y ⊔ yᶜ),
+          refine le_inf (le_refl x) (le_trans le_top (boolean_algebra.top_le_sup_compl y)),
+          refine le_trans inf_sup_left.le (le_trans (sup_le_sup h inf_le_right) sup_comm.le),
+        }
+      end,
+    ..H,
+    .. @has_internal_imp_of_boolean α H,
+  }
