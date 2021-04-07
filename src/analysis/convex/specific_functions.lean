@@ -85,11 +85,10 @@ end
 /-- `x^m`, `m : ℤ` is convex on `(0, +∞)` for all `m` -/
 lemma convex_on_fpow (m : ℤ) : convex_on (Ioi 0) (λ x : ℝ, x^m) :=
 begin
-  apply convex_on_of_deriv2_nonneg (convex_Ioi 0); try { rw [interior_Ioi] },
-  { exact (differentiable_on_fpow $ lt_irrefl _).continuous_on },
+  apply convex_on_open_of_deriv2_nonneg (convex_Ioi 0) (is_open_Ioi),
   { exact differentiable_on_fpow (lt_irrefl _) },
   { have : eq_on (deriv (λx:ℝ, x^m)) (λx, ↑m * x^(m-1)) (Ioi 0),
-      from λ x hx, deriv_fpow (ne_of_gt hx),
+      from λ x hx, deriv_fpow,
     refine (differentiable_on_congr this).2 _,
     exact (differentiable_on_fpow (lt_irrefl _)).const_mul _ },
   { intros x hx,
@@ -128,10 +127,7 @@ begin
   { refine ((times_cont_diff_on_log.deriv_of_open _ le_top).differentiable_on le_top).mono h₁,
     exact is_open_compl_singleton },
   { intros x hx,
-    rw [function.iterate_succ, function.iterate_one],
-    change (deriv (deriv log)) x ≤ 0,
-    rw [deriv_log', deriv_inv (show x ≠ 0, by {rintro rfl, exact lt_irrefl 0 hx})],
-    exact neg_nonpos.mpr (inv_nonneg.mpr (pow_two_nonneg x)) }
+    simp [function.iterate_succ, function.iterate_one, pow_two_nonneg x] }
 end
 
 lemma concave_on_log_Iio : concave_on (Iio 0) log :=
@@ -146,8 +142,5 @@ begin
   { refine ((times_cont_diff_on_log.deriv_of_open _ le_top).differentiable_on le_top).mono h₁,
     exact is_open_compl_singleton },
   { intros x hx,
-    rw [function.iterate_succ, function.iterate_one],
-    change (deriv (deriv log)) x ≤ 0,
-    rw [deriv_log', deriv_inv (show x ≠ 0, by {rintro rfl, exact lt_irrefl 0 hx})],
-    exact neg_nonpos.mpr (inv_nonneg.mpr (pow_two_nonneg x)) }
+    simp [function.iterate_succ, function.iterate_one, pow_two_nonneg x] }
 end
