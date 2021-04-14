@@ -28,6 +28,12 @@ arguments of the same type.
 * `multilinear_map.alternatization`, which makes an alternating map out of a non-alternating one.
 * `alternating_map.dom_coprod`, which behaves as a product between two alternating maps.
 
+## Notation
+
+This introduces `V →ₗₘₐ[R] N` as notation for a multilinear map from `V` to `N`. Typically, this is
+used as `(ι → M) →ₗₘₐ[R] N` for
+non-dependently typed arguments.
+
 ## Implementation notes
 `alternating_map` is defined in terms of `map_eq_zero_of_eq`, as this is easier to work with than
 using `map_swap` as a definition, and does not require `has_neg N`.
@@ -63,6 +69,9 @@ An alternating map is a multilinear map that vanishes when two of its arguments 
 structure alternating_map extends multilinear_map R (λ i : ι, M) N :=
 (map_eq_zero_of_eq' : ∀ (v : ι → M) (i j : ι) (h : v i = v j) (hij : i ≠ j), to_fun v = 0)
 end
+
+notation A ` →ₗₘ[`:25 R:25 `] ` N :=
+alternating_map R (typeinfo.codomain (typeinfo.of A)) N (typeinfo.domain (typeinfo.of A))
 
 /-- The multilinear map associated to an alternating map -/
 add_decl_doc alternating_map.to_multilinear_map

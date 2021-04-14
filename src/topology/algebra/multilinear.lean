@@ -50,6 +50,9 @@ structure continuous_multilinear_map (R : Type u) {ι : Type v} (M₁ : ι → T
 
 notation M `[×`:25 n `]→L[`:25 R `] ` M' := continuous_multilinear_map R (λ (i : fin n), M) M'
 
+notation A ` →Lₘ[`:25 R:25 `] ` N :=
+continuous_multilinear_map R (typeinfo.pi_codomain (typeinfo.of A)) N
+
 namespace continuous_multilinear_map
 
 section semiring
