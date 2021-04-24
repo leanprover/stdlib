@@ -1474,6 +1474,14 @@ def inner_product_space.is_R_or_C_to_real : inner_product_space ℝ E :=
   ..has_inner.is_R_or_C_to_real 𝕜 E,
   ..normed_space.restrict_scalars ℝ 𝕜 E }
 
+instance pi_Lp.inner_product_space_real {ι : Type*} [fintype ι] (f : ι → Type*)
+  [Π i, inner_product_space 𝕜 (f i)] : inner_product_space ℝ (pi_Lp 2 one_le_two f) :=
+inner_product_space.is_R_or_C_to_real 𝕜 _
+
+instance pi_Lp.is_scalar_tower {ι : Type*} [fintype ι] (f : ι → Type*)
+  [Π i, inner_product_space 𝕜 (f i)] : is_scalar_tower ℝ 𝕜 (pi_Lp 2 one_le_two f) :=
+restrict_scalars.is_scalar_tower _ _ _
+
 variable {E}
 
 lemma real_inner_eq_re_inner (x y : E) :
@@ -1784,6 +1792,14 @@ variables {ι : Type*} [fintype ι]
 instance : finite_dimensional 𝕜 (euclidean_space 𝕜 ι) := by apply_instance
 instance : inner_product_space 𝕜 (euclidean_space 𝕜 ι) := by apply_instance
 
+instance euclidean_space.inner_product_space_real {ι : Type*} [fintype ι] :
+  inner_product_space ℝ (euclidean_space 𝕜 ι) :=
+pi_Lp.inner_product_space_real 𝕜 _
+
+instance euclidean_space.is_scalar_tower {ι : Type*} [fintype ι] :
+  is_scalar_tower ℝ 𝕜 (euclidean_space 𝕜 ι) :=
+by apply_instance
+
 @[simp] lemma findim_euclidean_space :
   finite_dimensional.findim 𝕜 (euclidean_space 𝕜 ι) = fintype.card ι := by simp
 
@@ -1839,7 +1855,6 @@ by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
 by { conv_rhs { rw ← complex.isometry_euclidean_proj_eq_self z }, simp }
 
 end pi_Lp
-
 
 /-! ### Orthogonal projection in inner product spaces -/
 
