@@ -222,6 +222,16 @@ hu.continuous_on.interval_integrable
 
 end
 
+namespace interval_integrable
+
+@[simp]
+lemma comp [borel_space E] {μ : measure ℝ} [locally_finite_measure μ] {a b : ℝ}
+  {f : ℝ → E} {g : ℝ → ℝ} (hf : continuous f) (hg : continuous g) :
+  interval_integrable (λ x, (f ∘ g) x) μ a b :=
+(hf.comp hg).interval_integrable a b
+
+end interval_integrable
+
 /-- Let `l'` be a measurably generated filter; let `l` be a of filter such that each `s ∈ l'`
 eventually includes `Ioc u v` as both `u` and `v` tend to `l`. Let `μ` be a measure finite at `l'`.
 
