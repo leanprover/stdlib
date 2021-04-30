@@ -615,6 +615,10 @@ theorem subset_union_left (s₁ s₂ : finset α) : s₁ ⊆ s₁ ∪ s₂ := λ
 
 theorem subset_union_right (s₁ s₂ : finset α) : s₂ ⊆ s₁ ∪ s₂ := λ x, mem_union_right _
 
+theorem union_subset_iff {s₁ s₂ s₃ : finset α} : s₁ ∪ s₂ ⊆ s₃ ↔ s₁ ⊆ s₃ ∧ s₂ ⊆ s₃ :=
+⟨λ h, ⟨subset.trans (subset_union_left _ _) h, subset.trans (subset_union_right _ _) h⟩,
+  and.rec union_subset⟩
+
 lemma union_subset_union {s1 t1 s2 t2 : finset α} (h1 : s1 ⊆ t1) (h2 : s2 ⊆ t2) :
   s1 ∪ s2 ⊆ t1 ∪ t2 :=
 by { intros x hx, rw finset.mem_union at hx ⊢, tauto }
@@ -864,6 +868,14 @@ instance : distrib_lattice (finset α) :=
     by simp only [subset_iff, mem_inter, mem_union, and_imp, or_imp_distrib] {contextual:=tt};
     simp only [true_or, imp_true_iff, true_and, or_true],
   ..finset.lattice }
+
+@[simp] theorem union_left_idem (s t : finset α) : s ∪ (s ∪ t) = s ∪ t := sup_left_idem
+
+@[simp] theorem union_right_idem (s t : finset α) : s ∪ t ∪ t = s ∪ t := sup_right_idem
+
+@[simp] theorem inter_left_idem (s t : finset α) : s ∩ (s ∩ t) = s ∩ t := inf_left_idem
+
+@[simp] theorem inter_right_idem (s t : finset α) : s ∩ t ∩ t = s ∩ t := inf_right_idem
 
 theorem inter_distrib_left (s t u : finset α) : s ∩ (t ∪ u) = (s ∩ t) ∪ (s ∩ u) := inf_sup_left
 
@@ -2336,6 +2348,10 @@ by simp only [mem_def, bUnion_val, mem_erase_dup, mem_bind, exists_prop]
 ext $ λ x, by simp only [mem_bUnion, exists_prop, mem_union, mem_insert,
   or_and_distrib_right, exists_or_distrib, exists_eq_left]
 -- ext $ λ x, by simp [or_and_distrib_right, exists_or_distrib]
+
+theorem bUnion_subset {s' : finset β} : s.bUnion t ⊆ s' ↔ ∀ x ∈ s, t x ⊆ s' :=
+by simp only [subset_iff, mem_bUnion]; exact
+⟨λ H a ha b hb, H ⟨a, ha, hb⟩, λ H b ⟨a, ha, hb⟩, H a ha hb⟩
 
 @[simp] lemma singleton_bUnion {a : α} : finset.bUnion {a} t = t a :=
 begin

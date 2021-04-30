@@ -2172,12 +2172,12 @@ open_locale classical
 
 /-- The set of machine states accessible from an initial TM2 statement. -/
 noncomputable def tr_stmts₁ : stmt₂ → finset Λ'
-| Q@(TM2.stmt.push k f q)     := {go k (st_act.push f) q, ret q} ∪ tr_stmts₁ q
-| Q@(TM2.stmt.peek k f q)     := {go k (st_act.peek f) q, ret q} ∪ tr_stmts₁ q
-| Q@(TM2.stmt.pop k f q)      := {go k (st_act.pop f) q, ret q} ∪ tr_stmts₁ q
-| Q@(TM2.stmt.load a q)       := tr_stmts₁ q
-| Q@(TM2.stmt.branch f q₁ q₂) := tr_stmts₁ q₁ ∪ tr_stmts₁ q₂
-| _                           := ∅
+| (TM2.stmt.push k f q)     := {go k (st_act.push f) q, ret q} ∪ tr_stmts₁ q
+| (TM2.stmt.peek k f q)     := {go k (st_act.peek f) q, ret q} ∪ tr_stmts₁ q
+| (TM2.stmt.pop k f q)      := {go k (st_act.pop f) q, ret q} ∪ tr_stmts₁ q
+| (TM2.stmt.load a q)       := tr_stmts₁ q
+| (TM2.stmt.branch f q₁ q₂) := tr_stmts₁ q₁ ∪ tr_stmts₁ q₂
+| _                         := ∅
 
 theorem tr_stmts₁_run {k s q} : tr_stmts₁ (st_run s q) = {go k s q, ret q} ∪ tr_stmts₁ q :=
 by rcases s with _|_|_; unfold tr_stmts₁ st_run

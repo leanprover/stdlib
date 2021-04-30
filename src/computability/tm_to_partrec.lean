@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import computability.halting
 import computability.turing_machine
 import data.num.lemmas
+import tactic.derive_fintype
 
 /-!
 # Modelling partial recursive functions using Turing machines
@@ -66,7 +67,7 @@ namespace to_partrec
 
 /-- The type of codes for primitive recursive functions. Unlike `nat.partrec.code`, this uses a set
 of operations on `list ℕ`. See `code.eval` for a description of the behavior of the primitives. -/
-@[derive inhabited]
+@[derive [decidable_eq, inhabited]]
 inductive code
 | zero'
 | succ
@@ -342,7 +343,13 @@ def cont.eval : cont → list ℕ →. list ℕ
 | (cont.comp f k) := λ v, code.eval f v >>= cont.eval k
 | (cont.fix f k) := λ v, if v.head = 0 then k.eval v.tail else f.fix.eval v.tail >>= k.eval
 
-/-- The semantics of a continuation. -/
+/-- The set of configurations of the machine:
+
+* `halt v`: The machine is about to stop and `v : list ℕ` is the result.
+* `ret k v`: The machine is about to pass `v : list ℕ` to continuation `k : cont`.
+
+We don't have a state corresponding to normal evaluation because these are evaluated immediately
+to a `ret` "in zero steps" using the `step_normal` function. -/
 @[derive inhabited]
 inductive cfg
 | halt : list ℕ → cfg
@@ -723,7 +730,7 @@ open to_partrec
 /-- The alphabet for the stacks in the program. `bit0` and `bit1` are used to represent `ℕ` values
 as lists of binary digits, `cons` is used to separate `list ℕ` values, and `Cons` is used to
 separate `list (list ℕ)` values. See the section documentation. -/
-@[derive [decidable_eq, inhabited]]
+@[derive [decidable_eq, inhabited, fintype]]
 inductive Γ' | Cons | cons | bit0 | bit1
 
 /-- The four stacks used by the program. `main` is used to store the input value in `tr_normal`
@@ -738,7 +745,7 @@ open K'
 the set of all continuations in the program to be finite (so that it can ultimately be encoded into
 the finite state machine of a Turing machine), but a continuation can handle a potentially infinite
 number of data values during execution. -/
-@[derive inhabited]
+@[derive [decidable_eq, inhabited]]
 inductive cont'
 | halt
 | cons₁ : code → cont' → cont'
@@ -762,6 +769,12 @@ inductive Λ'
 | ret (k : cont')
 
 instance : inhabited Λ' := ⟨Λ'.ret cont'.halt⟩
+
+instance : decidable_eq Λ' :=
+λ a b, begin
+  induction a generalizing b; cases b; try { apply decidable.is_false, rintro ⟨⟨⟩⟩, done },
+  all_goals { exactI decidable_of_iff' _ (by simp [function.funext_iff]) },
+end
 
 /-- The type of TM2 statements used by this machine. -/
 @[derive inhabited]
@@ -1252,7 +1265,7 @@ theorem tr_ret_respects (k v s) : ∃ b₂, tr_cfg (step_ret k v) b₂ ∧
     ⟨some (Λ'.ret (tr_cont k)), s, K'.elim (tr_list v) [] [] (tr_cont_stack k)⟩ b₂ :=
 begin
   induction k generalizing v s,
-  case halt : { exact ⟨_, rfl, trans_gen.single rfl⟩ },
+  case halt { exact ⟨_, rfl, trans_gen.single rfl⟩ },
   case cons₁ : fs as k IH {
     obtain ⟨s', h₁, h₂⟩ := tr_normal_respects fs (cont.cons₂ v k) as none,
     refine ⟨s', h₁, trans_gen.head rfl _⟩, simp,
@@ -1317,6 +1330,318 @@ begin
     obtain ⟨_, ⟨⟩, h⟩ := this _ hv rfl,
     exact h }
 end
+
+/-- The set of machine states reachable via downward label jumps, discounting jumps via `ret`. -/
+def tr_stmts₁ : Λ' → finset Λ'
+| Q@(Λ'.move p k₁ k₂ q) := insert Q $ tr_stmts₁ q
+| Q@(Λ'.push k f q)     := insert Q $ tr_stmts₁ q
+| Q@(Λ'.read q)         := insert Q $ finset.univ.bUnion $ λ s, tr_stmts₁ (q s)
+| Q@(Λ'.clear p k q)    := insert Q $ tr_stmts₁ q
+| Q@(Λ'.copy q)         := insert Q $ tr_stmts₁ q
+| Q@(Λ'.succ q)         := insert Q $ insert (unrev q) $ tr_stmts₁ q
+| Q@(Λ'.pred q₁ q₂)     := insert Q $ tr_stmts₁ q₁ ∪ insert (unrev q₂) (tr_stmts₁ q₂)
+| Q@(Λ'.ret k)          := {Q}
+
+theorem tr_stmts₁_trans {q q'} : q' ∈ tr_stmts₁ q → tr_stmts₁ q' ⊆ tr_stmts₁ q :=
+begin
+  induction q;
+    simp only [tr_stmts₁, finset.mem_insert, finset.mem_union, or_imp_distrib,
+      finset.mem_singleton, finset.subset.refl, imp_true_iff, true_and] {contextual := tt},
+  iterate 4 { exact λ h, finset.subset.trans (q_ih h) (finset.subset_insert _ _) },
+  { simp, intros s h x h', simp, exact or.inr ⟨_, q_ih s h h'⟩ },
+  { split,
+    { rintro rfl, apply finset.subset_insert },
+    { intros h x h', simp, exact or.inr (or.inr $ q_ih h h') } },
+  { refine ⟨λ h x h', _, λ h x h', _, λ h x h', _⟩; simp,
+    { exact or.inr (or.inr $ or.inl $ q_ih_q₁ h h') },
+    { cases finset.mem_insert.1 h' with h' h'; simp [h', unrev] },
+    { exact or.inr (or.inr $ or.inr $ q_ih_q₂ h h') } },
+end
+
+theorem tr_stmts₁_self (q) : q ∈ tr_stmts₁ q :=
+by induction q; { apply finset.mem_singleton_self <|> apply finset.mem_insert_self }
+
+/-- The (finite!) set of machine states visited during the course of evaluation of `c`,
+including the state `ret k` but not any states after that (that is, the states visited while
+evaluating `k`). -/
+def code_supp' : code → cont' → finset Λ'
+| c@code.zero' k := tr_stmts₁ (tr_normal c k)
+| c@code.succ k := tr_stmts₁ (tr_normal c k)
+| c@code.tail k := tr_stmts₁ (tr_normal c k)
+| c@(code.cons f fs) k :=
+  tr_stmts₁ (tr_normal c k) ∪ (code_supp' f (cont'.cons₁ fs k) ∪
+  (tr_stmts₁ (
+    move₂ (λ _, ff) main aux $
+    move₂ (λ s, s = Γ'.Cons) stack main $
+    move₂ (λ _, ff) aux stack $
+    tr_normal fs (cont'.cons₂ k)) ∪ (code_supp' fs (cont'.cons₂ k) ∪
+  tr_stmts₁ (head stack $ Λ'.ret k))))
+| c@(code.comp f g) k :=
+  tr_stmts₁ (tr_normal c k) ∪ (code_supp' g (cont'.comp f k) ∪
+  (tr_stmts₁ (tr_normal f k) ∪ code_supp' f k))
+| c@(code.case f g) k := tr_stmts₁ (tr_normal c k) ∪ (code_supp' f k ∪ code_supp' g k)
+| c@(code.fix f) k :=
+  tr_stmts₁ (tr_normal c k) ∪ (code_supp' f (cont'.fix f k) ∪
+  (tr_stmts₁ (Λ'.clear nat_end main $ tr_normal f (cont'.fix f k)) ∪ {Λ'.ret k}))
+
+@[simp] theorem code_supp'_self (c k) : tr_stmts₁ (tr_normal c k) ⊆ code_supp' c k :=
+by cases c; refl <|> exact finset.subset_union_left _ _
+
+/-- The (finite!) set of machine states visited during the course of evaluation of a continuation
+`k`, not including the initial state `ret k`. -/
+def cont_supp : cont' → finset Λ'
+| (cont'.cons₁ fs k) :=
+  tr_stmts₁ (
+    move₂ (λ _, ff) main aux $
+    move₂ (λ s, s = Γ'.Cons) stack main $
+    move₂ (λ _, ff) aux stack $
+    tr_normal fs (cont'.cons₂ k)) ∪ (code_supp' fs (cont'.cons₂ k) ∪
+  (tr_stmts₁ (head stack $ Λ'.ret k) ∪ cont_supp k))
+| (cont'.cons₂ k) := tr_stmts₁ (head stack $ Λ'.ret k) ∪ cont_supp k
+| (cont'.comp f k) := code_supp' f k ∪ cont_supp k
+| (cont'.fix f k) := code_supp' (code.fix f) k ∪ cont_supp k
+| cont'.halt := ∅
+
+/-- The (finite!) set of machine states visited during the course of evaluation of `c` in
+continuation `k`. This is actually closed under forward simulation (see `tr_supports`), and the
+existence of this set means that the machine constructed in this section is in fact a proper
+Turing machine, with a finite set of states. -/
+def code_supp (c : code) (k : cont') : finset Λ' := code_supp' c k ∪ cont_supp k
+
+@[simp] theorem code_supp_self (c k) : tr_stmts₁ (tr_normal c k) ⊆ code_supp c k :=
+finset.subset.trans (code_supp'_self _ _) (finset.subset_union_left _ _)
+
+@[simp] theorem code_supp_zero (k) : code_supp code.zero' k =
+  tr_stmts₁ (tr_normal code.zero' k) ∪ cont_supp k := rfl
+
+@[simp] theorem code_supp_succ (k) : code_supp code.succ k =
+  tr_stmts₁ (tr_normal code.succ k) ∪ cont_supp k := rfl
+
+@[simp] theorem code_supp_tail (k) : code_supp code.tail k =
+  tr_stmts₁ (tr_normal code.tail k) ∪ cont_supp k := rfl
+
+@[simp] theorem code_supp_cons (f fs k) : code_supp (code.cons f fs) k =
+  tr_stmts₁ (tr_normal (code.cons f fs) k) ∪ code_supp f (cont'.cons₁ fs k) :=
+by simp [code_supp, code_supp', cont_supp, finset.union_assoc]
+
+@[simp] theorem code_supp_comp (f g k) : code_supp (code.comp f g) k =
+  tr_stmts₁ (tr_normal (code.comp f g) k) ∪ code_supp g (cont'.comp f k) :=
+begin
+  simp [code_supp, code_supp', cont_supp, finset.union_assoc],
+  rw [← finset.union_assoc _ _ (cont_supp k),
+      finset.union_eq_right_iff_subset.2 (code_supp'_self _ _)]
+end
+
+@[simp] theorem code_supp_case (f g k) : code_supp (code.case f g) k =
+  tr_stmts₁ (tr_normal (code.case f g) k) ∪ (code_supp f k ∪ code_supp g k) :=
+by simp [code_supp, code_supp', cont_supp, finset.union_assoc, finset.union_left_comm]
+
+@[simp] theorem code_supp_fix (f k) : code_supp (code.fix f) k =
+  tr_stmts₁ (tr_normal (code.fix f) k) ∪ code_supp f (cont'.fix f k) :=
+by simp [code_supp, code_supp', cont_supp, finset.union_assoc,
+  finset.union_left_comm, finset.union_left_idem]
+
+@[simp] theorem cont_supp_cons₁ (fs k) : cont_supp (cont'.cons₁ fs k) =
+  tr_stmts₁ (move₂ (λ _, ff) main aux $ move₂ (λ s, s = Γ'.Cons) stack main $
+    move₂ (λ _, ff) aux stack $ tr_normal fs (cont'.cons₂ k)) ∪ code_supp fs (cont'.cons₂ k) :=
+by simp [code_supp, code_supp', cont_supp, finset.union_assoc]
+
+@[simp] theorem cont_supp_cons₂ (k) : cont_supp (cont'.cons₂ k) =
+  tr_stmts₁ (head stack $ Λ'.ret k) ∪ cont_supp k := rfl
+
+@[simp] theorem cont_supp_comp (f k) : cont_supp (cont'.comp f k) = code_supp f k := rfl
+
+theorem cont_supp_fix (f k) : cont_supp (cont'.fix f k) = code_supp f (cont'.fix f k) :=
+by simp [code_supp, code_supp', cont_supp, finset.union_assoc,
+  finset.subset_iff] {contextual := tt}
+
+@[simp] theorem cont_supp_halt : cont_supp cont'.halt = ∅ := rfl
+
+/-- The statement `Λ'.supports S q` means that `cont_supp k ⊆ S` for any `ret k`
+reachable from `q`.
+(This is a technical condition used in the proof that the machine is supported.) -/
+def Λ'.supports (S : finset Λ') : Λ' → Prop
+| Q@(Λ'.move p k₁ k₂ q) := Λ'.supports q
+| Q@(Λ'.push k f q)     := Λ'.supports q
+| Q@(Λ'.read q)         := ∀ s, Λ'.supports (q s)
+| Q@(Λ'.clear p k q)    := Λ'.supports q
+| Q@(Λ'.copy q)         := Λ'.supports q
+| Q@(Λ'.succ q)         := Λ'.supports q
+| Q@(Λ'.pred q₁ q₂)     := Λ'.supports q₁ ∧ Λ'.supports q₂
+| Q@(Λ'.ret k)          := cont_supp k ⊆ S
+
+/-- A shorthand for the predicate that we are proving in the main theorems `tr_stmts₁_supports`,
+`code_supp'_supports`, `cont_supp_supports`, `code_supp_supports`. The set `S` is fixed throughout
+the proof, and denotes the full set of states in the machine, while `K` is a subset that we are
+currently proving a property about. The predicate asserts that every state in `K` is closed in `S`
+under forward simulation, i.e. stepping forward through evaluation starting from any state in `K`
+stays entirely within `S`. -/
+def supports (K S : finset Λ') := ∀ q ∈ K, TM2.supports_stmt S (tr q)
+
+theorem supports_insert {K S q} :
+  supports (insert q K) S ↔ TM2.supports_stmt S (tr q) ∧ supports K S :=
+by simp [supports]
+
+theorem supports_singleton {S q} : supports {q} S ↔ TM2.supports_stmt S (tr q) :=
+by simp [supports]
+
+theorem supports_union {K₁ K₂ S} :
+  supports (K₁ ∪ K₂) S ↔ supports K₁ S ∧ supports K₂ S :=
+by simp [supports, or_imp_distrib, forall_and_distrib]
+
+theorem supports_bUnion {K:option Γ' → finset Λ'} {S} :
+  supports (finset.univ.bUnion K) S ↔ ∀ a, supports (K a) S :=
+by simp [supports]; apply forall_swap
+
+theorem head_supports {S k q} (H : (q:Λ').supports S) : (head k q).supports S :=
+λ _, by dsimp only; split_ifs; exact H
+
+theorem ret_supports {S k} (H₁: cont_supp k ⊆ S) : TM2.supports_stmt S (tr (Λ'.ret k)) :=
+begin
+  have W := λ {q}, tr_stmts₁_self q,
+  cases k,
+  case halt { trivial },
+  case cons₁ { rw [cont_supp_cons₁, finset.union_subset_iff] at H₁, exact λ _, H₁.1 W },
+  case cons₂ { rw [cont_supp_cons₂, finset.union_subset_iff] at H₁, exact λ _, H₁.1 W },
+  case comp { rw [cont_supp_comp] at H₁, exact λ _, H₁ (code_supp_self _ _ W) },
+  case fix {
+    rw [cont_supp_fix] at H₁,
+    have L := @finset.mem_union_left, have R := @finset.mem_union_right,
+    intro s, dsimp only, cases nat_end s.iget,
+    { refine H₁ (R _ $ L _ $ R _ $ R _ $ L _ W) },
+    { exact H₁ (R _ $ L _ $ R _ $ R _ $ R _ $ finset.mem_singleton_self _) } }
+end
+
+theorem tr_stmts₁_supports {S q}
+  (H₁ : (q:Λ').supports S) (HS₁ : tr_stmts₁ q ⊆ S) : supports (tr_stmts₁ q) S :=
+begin
+  have W := λ {q}, tr_stmts₁_self q,
+  induction q; simp [tr_stmts₁] at HS₁ ⊢,
+  any_goals {
+    cases finset.insert_subset.1 HS₁ with h₁ h₂,
+    id { have h₃ := h₂ W } <|> try { simp [finset.subset_iff] at h₂ } },
+  { exact supports_insert.2 ⟨⟨λ _, h₃, λ _, h₁⟩, q_ih H₁ h₂⟩ }, -- move
+  { exact supports_insert.2 ⟨⟨λ _, h₃, λ _, h₁⟩, q_ih H₁ h₂⟩ }, -- clear
+  { exact supports_insert.2 ⟨⟨λ _, h₁, λ _, h₃⟩, q_ih H₁ h₂⟩ }, -- copy
+  { exact supports_insert.2 ⟨⟨λ _, h₃, λ _, h₃⟩, q_ih H₁ h₂⟩ }, -- push
+  -- read
+  { refine supports_insert.2 ⟨λ _, h₂ _ W, _⟩,
+    exact supports_bUnion.2 (λ _, q_ih _ (H₁ _) (λ _ h, h₂ _ h)) },
+  -- succ
+  { refine supports_insert.2 ⟨⟨λ _, h₁, λ _, h₂.1, λ _, h₂.1⟩, _⟩,
+    exact supports_insert.2 ⟨⟨λ _, h₂.2 _ W, λ _, h₂.1⟩, q_ih H₁ h₂.2⟩ },
+  -- pred
+  { refine supports_insert.2 ⟨⟨λ _, h₁, λ _, h₂.2 _ (or.inl W), λ _, h₂.1, λ _, h₂.1⟩, _⟩,
+    refine supports_insert.2 ⟨⟨λ _, h₂.2 _ (or.inr W), λ _, h₂.1⟩, _⟩,
+    refine supports_union.2 ⟨_, _⟩,
+    { exact q_ih_q₁ H₁.1 (λ _ h, h₂.2 _ (or.inl h)) },
+    { exact q_ih_q₂ H₁.2 (λ _ h, h₂.2 _ (or.inr h)) } },
+  -- ret
+  { exact supports_singleton.2 (ret_supports H₁) },
+end
+
+theorem tr_stmts₁_supports' {S q K} (H₁ : (q:Λ').supports S) (H₂ : tr_stmts₁ q ∪ K ⊆ S)
+  (H₃ : K ⊆ S → supports K S) : supports (tr_stmts₁ q ∪ K) S :=
+begin
+  simp [finset.union_subset_iff] at H₂,
+  exact supports_union.2 ⟨tr_stmts₁_supports H₁ H₂.1, H₃ H₂.2⟩,
+end
+
+theorem subset_left {α} [decidable_eq α] {s₁ s₂ s₃ : finset α} (h : s₁ ∪ s₂ ⊆ s₃) : s₁ ⊆ s₃ :=
+finset.subset.trans (finset.subset_union_left _ _) h
+
+theorem subset_right {α} [decidable_eq α] {s₁ s₂ s₃ : finset α} (h : s₁ ∪ s₂ ⊆ s₃) : s₂ ⊆ s₃ :=
+finset.subset.trans (finset.subset_union_right _ _) h
+
+theorem tr_normal_supports {S c k} (Hk : code_supp c k ⊆ S) : (tr_normal c k).supports S :=
+begin
+  induction c generalizing k; simp [Λ'.supports, head],
+  case zero' { exact subset_right Hk },
+  case succ { intro, split_ifs; exact subset_right Hk },
+  case tail { exact subset_right Hk },
+  case cons : f fs IHf IHfs { apply IHf, rw code_supp_cons at Hk, exact subset_right Hk },
+  case comp : f g IHf IHg { apply IHg, rw code_supp_comp at Hk, exact subset_right Hk },
+  case case : f g IHf IHg {
+    simp only [code_supp_case, finset.union_subset_iff] at Hk,
+    exact ⟨IHf Hk.2.1, IHg Hk.2.2⟩ },
+  case fix : f IHf { apply IHf, rw code_supp_fix at Hk, exact subset_right Hk },
+end
+
+theorem code_supp'_supports {S c k}
+  (H : code_supp c k ⊆ S) : supports (code_supp' c k) S :=
+begin
+  induction c generalizing k,
+  iterate 3 {
+    exact tr_stmts₁_supports (tr_normal_supports H)
+      (finset.subset.trans (code_supp_self _ _) H) },
+  case cons : f fs IHf IHfs {
+    have H' := H, simp only [code_supp_cons, finset.union_subset_iff] at H',
+    refine tr_stmts₁_supports' (tr_normal_supports H) (subset_left H) (λ h, _),
+    refine supports_union.2 ⟨IHf H'.2, _⟩,
+    refine tr_stmts₁_supports' (tr_normal_supports _) (subset_right h) (λ h, _),
+    { simp only [code_supp, finset.union_subset_iff, cont_supp] at h H ⊢,
+      exact ⟨h.2.2.1, h.2.2.2, H.2⟩ },
+    refine supports_union.2 ⟨IHfs _, _⟩,
+    { rw [code_supp, cont_supp_cons₁] at H',
+      exact subset_right (subset_right H'.2) },
+    exact tr_stmts₁_supports (head_supports $ subset_right H) (subset_right h) },
+  case comp : f g IHf IHg {
+    have H' := H, rw [code_supp_comp] at H', have H' := subset_right H',
+    refine tr_stmts₁_supports' (tr_normal_supports H) (subset_left H) (λ h, _),
+    refine supports_union.2 ⟨IHg H', _⟩,
+    refine tr_stmts₁_supports' (tr_normal_supports _) (subset_right h) (λ h, _),
+    { simp only [code_supp', code_supp, finset.union_subset_iff, cont_supp] at h H ⊢,
+      exact ⟨h.2.2, H.2⟩ },
+    exact IHf (subset_right H') },
+  case case : f g IHf IHg {
+    have H' := H, simp only [code_supp_case, finset.union_subset_iff] at H',
+    refine tr_stmts₁_supports' (tr_normal_supports H) (subset_left H) (λ h, _),
+    exact supports_union.2 ⟨IHf H'.2.1, IHg H'.2.2⟩ },
+  case fix : f IHf {
+    have H' := H, simp only [code_supp_fix, finset.union_subset_iff] at H',
+    refine tr_stmts₁_supports' (tr_normal_supports H) (subset_left H) (λ h, _),
+    refine supports_union.2 ⟨IHf H'.2, _⟩,
+    refine tr_stmts₁_supports' (tr_normal_supports _) (subset_right h) (λ h, _),
+    { simp only [code_supp', code_supp, finset.union_subset_iff, cont_supp,
+        tr_stmts₁, finset.insert_subset] at h H ⊢,
+      exact ⟨h.1, ⟨H.1.1, h⟩, H.2⟩ },
+    exact supports_singleton.2 (ret_supports $ subset_right H) },
+end
+
+theorem cont_supp_supports {S k}
+  (H : cont_supp k ⊆ S) : supports (cont_supp k) S :=
+begin
+  induction k,
+  { simp [cont_supp_halt, supports] },
+  case cons₁ : f k IH {
+    have H₁ := H, rw [cont_supp_cons₁] at H₁, have H₂ := subset_right H₁,
+    refine tr_stmts₁_supports' (tr_normal_supports H₂) H₁ (λ h, _),
+    refine supports_union.2 ⟨code_supp'_supports H₂, _⟩,
+    simp only [code_supp, cont_supp_cons₂, finset.union_subset_iff] at H₂,
+    exact tr_stmts₁_supports' (head_supports H₂.2.2) (subset_right h) IH },
+  case cons₂ : k IH {
+    have H' := H, rw [cont_supp_cons₂] at H',
+    exact tr_stmts₁_supports' (head_supports $ subset_right H') H' IH },
+  case comp : f k IH {
+    have H' := H, rw [cont_supp_comp] at H', have H₂ := subset_right H',
+    exact supports_union.2 ⟨code_supp'_supports H', IH H₂⟩ },
+  case fix : f k IH {
+    rw cont_supp at H,
+    exact supports_union.2 ⟨code_supp'_supports H, IH (subset_right H)⟩ }
+end
+
+theorem code_supp_supports {S c k}
+  (H : code_supp c k ⊆ S) : supports (code_supp c k) S :=
+supports_union.2 ⟨code_supp'_supports H, cont_supp_supports (subset_right H)⟩
+
+/-- The set `code_supp c k` is a finite set that witnesses the effective finiteness of the `tr`
+Turing machine. Starting from the initial state `tr_normal c k`, forward simulation uses only
+states in `code_supp c k`, so this is a finite state machine. Even though the underlying type of
+state labels `Λ'` is infinite, for a given partial recursive function `c` and continuation `k`,
+only finitely many states are accessed, corresponding roughly to subterms of `c`. -/
+theorem tr_supports (c k) : @TM2.supports _ _ _ _ _ ⟨tr_normal c k⟩ tr (code_supp c k) :=
+⟨code_supp_self _ _ (tr_stmts₁_self _),
+  λ l', code_supp_supports (finset.subset.refl _) _⟩
 
 end
 
