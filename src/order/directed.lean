@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import order.lattice
+import order.order_dual
 import data.set.basic
 
 universes u v w
@@ -47,25 +48,60 @@ theorem directed.mono_comp {ι} {rb : β → β → Prop} {g : α → β} {f : �
   directed rb (g ∘ f) :=
 directed_comp.2 $ hf.mono hg
 
-/-- A monotone function on a sup-semilattice is directed. -/
-lemma directed_of_sup [semilattice_sup α] {f : α → β} {r : β → β → Prop}
-  (H : ∀ ⦃i j⦄, i ≤ j → r (f i) (f j)) : directed r f :=
-λ a b, ⟨a ⊔ b, H le_sup_left, H le_sup_right⟩
-
-lemma monotone.directed_le [semilattice_sup α] [preorder β] {f : α → β} :
-  monotone f → directed (≤) f :=
-directed_of_sup
-
-/-- An antimonotone function on an inf-semilattice is directed. -/
-lemma directed_of_inf [semilattice_inf α] {r : β → β → Prop} {f : α → β}
-  (hf : ∀a₁ a₂, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=
-assume x y, ⟨x ⊓ y, hf _ _ inf_le_left, hf _ _ inf_le_right⟩
-
 /-- A `preorder` is a `directed_order` if for any two elements `i`, `j`
 there is an element `k` such that `i ≤ k` and `j ≤ k`. -/
 class directed_order (α : Type u) extends preorder α :=
 (directed : ∀ i j : α, ∃ k, i ≤ k ∧ j ≤ k)
 
+/-- A `preorder` is a `anti_directed_order` if for any two elements `i`, `j`
+there is an element `k` such that `k ≤ i` and `k ≤ j`. -/
+class anti_directed_order (α : Type u) extends preorder α :=
+(directed : ∀ i j : α, ∃ k, k ≤ i ∧ k ≤ j)
+
 @[priority 100]  -- see Note [lower instance priority]
-instance linear_order.to_directed_order (α) [linear_order α] : directed_order α :=
-⟨λ i j, or.cases_on (le_total i j) (λ hij, ⟨j, hij, le_refl j⟩) (λ hji, ⟨i, le_refl i, hji⟩)⟩
+instance semilattice_sup.to_directed_order (α) [semilattice_sup α] : directed_order α :=
+⟨λ i j, ⟨i ⊔ j, le_sup_left, le_sup_right⟩⟩
+
+@[priority 100]  -- see Note [lower instance priority]
+instance semilattice_inf.to_anti_directed_order (α) [semilattice_inf α] : anti_directed_order α :=
+⟨λ i j, ⟨i ⊓ j, inf_le_left, inf_le_right⟩⟩
+
+instance (α) [anti_directed_order α] : directed_order (order_dual α) :=
+⟨anti_directed_order.directed⟩
+
+instance (α) [directed_order α] : anti_directed_order (order_dual α) :=
+⟨directed_order.directed⟩
+
+/-- A monotone function on a directed order (in particular a sup-semilattice) is directed. -/
+lemma directed_of_sup [directed_order α] {f : α → β} {r : β → β → Prop}
+  (H : ∀ ⦃i j⦄, i ≤ j → r (f i) (f j)) : directed r f :=
+λ a b, (directed_order.directed a b).imp $ λ c, and.imp @@H @@H
+
+/-- An antimonotone function on an anti-directed order (in particular an inf-semilattice) is
+directed. -/
+lemma directed_of_inf [anti_directed_order α] {r : β → β → Prop} {f : α → β}
+  (H : ∀ ⦃i j⦄, i ≤ j → r (f j) (f i)) : directed r f :=
+λ a b, (anti_directed_order.directed a b).imp $ λ c, and.imp @@H @@H
+
+/-- A version of `directed_of_sup` acting on `monotone` -/
+lemma monotone.directed_le [directed_order α] [preorder β] {f : α → β} :
+  monotone f → directed (≤) f :=
+directed_of_sup
+
+/-! Lemmas about `order_dual`. -/
+
+lemma directed.le_to_dual [has_le β] {f : α → β} (h : directed (≤) f) :
+  directed (≥) (order_dual.to_dual ∘ f) :=
+h
+
+lemma directed.ge_to_dual [has_le β] {f : α → β} (h : directed (≥) f) :
+  directed (≤) (order_dual.to_dual ∘ f) :=
+h
+
+lemma directed.le_of_dual [has_le β] {f : α → order_dual β} (h : directed (≤) f) :
+  directed (≥) (order_dual.of_dual ∘ f) :=
+h
+
+lemma directed.ge_of_dual [has_le β] {f : α → order_dual β} (h : directed (≥) f) :
+  directed (≤) (order_dual.of_dual ∘ f) :=
+h

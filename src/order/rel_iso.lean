@@ -6,6 +6,7 @@ Authors: Mario Carneiro
 import logic.embedding
 import order.rel_classes
 import data.set.intervals.basic
+import order.directed
 
 open function
 
@@ -92,6 +93,9 @@ begin
   { rw [sup_eq_right.mpr h, sup_eq_right], exact strict_mono.monotone (λ x y, a.swap.map_rel) h, },
   { rw [sup_eq_left.mpr (le_of_lt h), sup_eq_left], exact le_of_lt (a.map_rel h), },
 end
+
+lemma directed [directed_order α] (f : ((≤) : α → α → Prop) →r s) : directed s f :=
+directed_of_sup $ λ _ _, f.map_rel
 
 end rel_hom
 
