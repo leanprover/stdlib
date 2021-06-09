@@ -181,10 +181,10 @@ instance subtype.opens_measurable_space {α : Type*} [topological_space α] [mea
 
 section
 variables [topological_space α] [measurable_space α] [opens_measurable_space α]
-   [topological_space β] [measurable_space β] [opens_measurable_space β]
-   [topological_space γ] [measurable_space γ] [borel_space γ]
-   [topological_space γ₂] [measurable_space γ₂] [borel_space γ₂]
-   [measurable_space δ]
+  [topological_space β] [measurable_space β] [opens_measurable_space β]
+  [topological_space γ] [measurable_space γ] [borel_space γ]
+  [topological_space γ₂] [measurable_space γ₂] [borel_space γ₂]
+  {mδ : measurable_space δ} [measurable_space δ]
 
 lemma is_open.measurable_set (h : is_open s) : measurable_set s :=
 opens_measurable_space.borel_le _ $ generate_measurable.basic _ h
@@ -363,19 +363,31 @@ lemma measurable.max {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, max (f a) (g a)) :=
 hf.piecewise (measurable_set_le hg hf) hg
 
+lemma ae_measurable'.max {f g : δ → α} {μ : measure δ}
+  (hf : ae_measurable' mδ f μ) (hg : ae_measurable' mδ g μ) :
+  ae_measurable' mδ (λ a, max (f a) (g a)) μ :=
+⟨λ a, max (hf.mk f a) (hg.mk g a),
+  @measurable.max _ δ _ _ _ mδ _ _ _ _ _ hf.measurable_mk hg.measurable_mk,
+  eventually_eq.comp₂ hf.ae_eq_mk _ hg.ae_eq_mk⟩
+
 lemma ae_measurable.max {f g : δ → α} {μ : measure δ}
   (hf : ae_measurable f μ) (hg : ae_measurable g μ) : ae_measurable (λ a, max (f a) (g a)) μ :=
-⟨λ a, max (hf.mk f a) (hg.mk g a), hf.measurable_mk.max hg.measurable_mk,
-  eventually_eq.comp₂ hf.ae_eq_mk _ hg.ae_eq_mk⟩
+hf.max hg
 
 lemma measurable.min {f g : δ → α} (hf : measurable f) (hg : measurable g) :
   measurable (λ a, min (f a) (g a)) :=
 hf.piecewise (measurable_set_le hf hg) hg
 
+lemma ae_measurable'.min {f g : δ → α} {μ : measure δ}
+  (hf : ae_measurable' mδ f μ) (hg : ae_measurable' mδ g μ) :
+  ae_measurable' mδ (λ a, min (f a) (g a)) μ :=
+⟨λ a, min (hf.mk f a) (hg.mk g a),
+  @measurable.min _ δ _ _ _ mδ _ _ _ _ _ hf.measurable_mk hg.measurable_mk,
+  eventually_eq.comp₂ hf.ae_eq_mk _ hg.ae_eq_mk⟩
+
 lemma ae_measurable.min {f g : δ → α} {μ : measure δ}
   (hf : ae_measurable f μ) (hg : ae_measurable g μ) : ae_measurable (λ a, min (f a) (g a)) μ :=
-⟨λ a, min (hf.mk f a) (hg.mk g a), hf.measurable_mk.min hg.measurable_mk,
-  eventually_eq.comp₂ hf.ae_eq_mk _ hg.ae_eq_mk⟩
+hf.min hg
 
 end linear_order
 
@@ -1002,7 +1014,7 @@ end
 
 end real
 
-variable [measurable_space α]
+variables {mα : measurable_space α} [measurable_space α]
 
 lemma measurable.real_to_nnreal {f : α → ℝ} (hf : measurable f) :
   measurable (λ x, real.to_nnreal (f x)) :=
@@ -1113,9 +1125,13 @@ lemma measurable.to_real {f : α → ℝ≥0∞} (hf : measurable f) :
   measurable (λ x, ennreal.to_real (f x)) :=
 ennreal.measurable_to_real.comp hf
 
+lemma ae_measurable'.to_real {f : α → ℝ≥0∞} {μ : measure α} (hf : ae_measurable' mα f μ) :
+  ae_measurable' mα (λ x, ennreal.to_real (f x)) μ :=
+ennreal.measurable_to_real.comp_ae_measurable' hf
+
 lemma ae_measurable.to_real {f : α → ℝ≥0∞} {μ : measure α} (hf : ae_measurable f μ) :
   ae_measurable (λ x, ennreal.to_real (f x)) μ :=
-ennreal.measurable_to_real.comp_ae_measurable hf
+hf.to_real
 
 /-- note: `ℝ≥0∞` can probably be generalized in a future version of this lemma. -/
 lemma measurable.ennreal_tsum {ι} [encodable ι] {f : ι → α → ℝ≥0∞} (h : ∀ i, measurable (f i)) :
@@ -1138,38 +1154,43 @@ by { simp_rw [ennreal.tsum_eq_supr_sum], apply ae_measurable_supr,
 
 section normed_group
 
-variables [normed_group α] [opens_measurable_space α] [measurable_space β]
+variables [normed_group α] [opens_measurable_space α] {mβ : measurable_space β} [measurable_space β]
+  {f : β → α} {μ : measure β}
 
-lemma measurable_norm : measurable (norm : α → ℝ) :=
-continuous_norm.measurable
+lemma measurable_norm : measurable (norm : α → ℝ) := continuous_norm.measurable
 
-lemma measurable.norm {f : β → α} (hf : measurable f) : measurable (λ a, norm (f a)) :=
-measurable_norm.comp hf
+lemma measurable.norm (hf : measurable f) : measurable (λ a, norm (f a)) := measurable_norm.comp hf
 
-lemma ae_measurable.norm {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
-  ae_measurable (λ a, norm (f a)) μ :=
-measurable_norm.comp_ae_measurable hf
+lemma ae_measurable'.norm (hf : ae_measurable' mβ f μ) : ae_measurable' mβ (λ a, norm (f a)) μ :=
+measurable_norm.comp_ae_measurable' hf
 
-lemma measurable_nnnorm : measurable (nnnorm : α → ℝ≥0) :=
-continuous_nnnorm.measurable
+lemma ae_measurable.norm (hf : ae_measurable f μ) : ae_measurable (λ a, norm (f a)) μ :=
+hf.norm
 
-lemma measurable.nnnorm {f : β → α} (hf : measurable f) : measurable (λ a, nnnorm (f a)) :=
+lemma measurable_nnnorm : measurable (nnnorm : α → ℝ≥0) := continuous_nnnorm.measurable
+
+lemma measurable.nnnorm (hf : measurable f) : measurable (λ a, nnnorm (f a)) :=
 measurable_nnnorm.comp hf
 
-lemma ae_measurable.nnnorm {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
-  ae_measurable (λ a, nnnorm (f a)) μ :=
-measurable_nnnorm.comp_ae_measurable hf
+lemma ae_measurable'.nnnorm (hf : ae_measurable' mβ f μ) :
+  ae_measurable' mβ (λ a, nnnorm (f a)) μ :=
+measurable_nnnorm.comp_ae_measurable' hf
 
-lemma measurable_ennnorm : measurable (λ x : α, (nnnorm x : ℝ≥0∞)) :=
-measurable_nnnorm.ennreal_coe
+lemma ae_measurable.nnnorm (hf : ae_measurable f μ) : ae_measurable (λ a, nnnorm (f a)) μ :=
+hf.nnnorm
 
-lemma measurable.ennnorm {f : β → α} (hf : measurable f) :
-  measurable (λ a, (nnnorm (f a) : ℝ≥0∞)) :=
+lemma measurable_ennnorm : measurable (λ x : α, (nnnorm x : ℝ≥0∞)) := measurable_nnnorm.ennreal_coe
+
+lemma measurable.ennnorm (hf : measurable f) : measurable (λ a, (nnnorm (f a) : ℝ≥0∞)) :=
 hf.nnnorm.ennreal_coe
 
-lemma ae_measurable.ennnorm {f : β → α} {μ : measure β} (hf : ae_measurable f μ) :
+lemma ae_measurable'.ennnorm (hf : ae_measurable' mβ f μ) :
+  ae_measurable' mβ (λ a, (nnnorm (f a) : ℝ≥0∞)) μ :=
+measurable_ennnorm.comp_ae_measurable' hf
+
+lemma ae_measurable.ennnorm (hf : ae_measurable f μ) :
   ae_measurable (λ a, (nnnorm (f a) : ℝ≥0∞)) μ :=
-measurable_ennnorm.comp_ae_measurable hf
+hf.ennnorm
 
 end normed_group
 
