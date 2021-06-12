@@ -528,6 +528,23 @@ end
 
 end rose
 
+-- When using `cases' t` or `induction' t`, where `t` is a complex term, the
+-- context must be generalised over `t`.
+example {n m : ℕ} (h : n + 1 = m) : n + 1 = m :=
+begin
+  cases' n + 1,
+  { guard_hyp n : ℕ,
+    guard_hyp m : ℕ,
+    guard_hyp h : nat.zero = m,
+    guard_target nat.zero = m,
+    exact h },
+  { guard_hyp n : ℕ,
+    guard_hyp m : ℕ,
+    guard_hyp x : ℕ,
+    guard_hyp h : x.succ = m,
+    guard_target x.succ = m,
+    exact h }
+end
 
 --------------------------------------------------------------------------------
 -- Logical Verification Use Cases
