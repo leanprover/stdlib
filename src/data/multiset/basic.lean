@@ -826,11 +826,9 @@ theorem prod_eq_foldl [comm_monoid α] (s : multiset α) :
   prod s = foldl (*) (λ x y z, by simp [mul_right_comm]) 1 s :=
 (foldr_swap _ _ _ _).trans (by simp [mul_comm])
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 theorem coe_prod [comm_monoid α] (l : list α) : prod ↑l = l.prod :=
 prod_eq_foldl _
-
-attribute [norm_cast] coe_prod coe_sum
 
 @[simp, to_additive] theorem prod_to_list [comm_monoid α] (s : multiset α) :
   s.to_list.prod = s.prod :=

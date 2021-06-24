@@ -235,11 +235,9 @@ namespace localization_map
 @[to_additive "Short for `to_add_monoid_hom`; used to apply a localization map as a function."]
 abbreviation to_map (f : localization_map S N) := f.to_monoid_hom
 
-@[to_additive, ext] lemma ext {f g : localization_map S N} (h : ∀ x, f.to_map x = g.to_map x) :
+@[ext, to_additive] lemma ext {f g : localization_map S N} (h : ∀ x, f.to_map x = g.to_map x) :
   f = g :=
 by cases f; cases g; simp only; exact funext h
-
-attribute [ext] add_submonoid.localization_map.ext
 
 @[to_additive] lemma ext_iff {f g : localization_map S N} :
   f = g ↔ ∀ x, f.to_map x = g.to_map x :=
@@ -897,7 +895,7 @@ lemma mul_equiv_of_localizations_right_inv (k : localization_map S P) :
   f.of_mul_equiv_of_localizations (f.mul_equiv_of_localizations k) = k :=
 to_map_injective $ f.lift_comp k.map_units
 
-@[to_additive add_equiv_of_localizations_right_inv_apply, simp]
+@[simp, to_additive add_equiv_of_localizations_right_inv_apply]
 lemma mul_equiv_of_localizations_right_inv_apply
   {k : localization_map S P} {x} :
   (f.of_mul_equiv_of_localizations (f.mul_equiv_of_localizations k)).to_map x = k.to_map x :=

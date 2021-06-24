@@ -240,18 +240,14 @@ variables {M : Type*} {G : Type*}
 @[to_additive]
 instance [has_mul M] : has_mul (germ l M) := ⟨map₂ (*)⟩
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_mul [has_mul M] (f g : α → M) : ↑(f * g) = (f * g : germ l M) := rfl
-
-attribute [norm_cast] coe_mul coe_add
 
 @[to_additive]
 instance [has_one M] : has_one (germ l M) := ⟨↑(1:M)⟩
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_one [has_one M] : ↑(1 : α → M) = (1 : germ l M) := rfl
-
-attribute [norm_cast] coe_one coe_zero
 
 @[to_additive]
 instance [semigroup M] : semigroup (germ l M) :=
@@ -305,10 +301,8 @@ instance [comm_monoid M] : comm_monoid (germ l M) :=
 @[to_additive]
 instance [has_inv G] : has_inv (germ l G) := ⟨map has_inv.inv⟩
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_inv [has_inv G] (f : α → G) : ↑f⁻¹ = (f⁻¹ : germ l G) := rfl
-
-attribute [norm_cast] coe_inv coe_neg
 
 @[to_additive]
 instance [has_div M] : has_div (germ l M) := ⟨map₂ (/)⟩

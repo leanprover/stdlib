@@ -80,10 +80,10 @@ instance : group (quotient N) :=
 @[to_additive quotient_add_group.mk' "The additive group homomorphism from `G` to `G/N`."]
 def mk' : G →* quotient N := monoid_hom.mk' (quotient_group.mk) (λ _ _, rfl)
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma coe_mk' : (mk' N : G → quotient N) = coe := rfl
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma mk'_apply (x : G) : mk' N x = x := rfl
 
 @[simp, to_additive quotient_add_group.eq_zero_iff]

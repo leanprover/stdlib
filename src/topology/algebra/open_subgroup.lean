@@ -50,13 +50,10 @@ instance has_coe_subgroup : has_coe_t (open_subgroup G) (subgroup G) := ⟨to_su
 @[to_additive]
 instance has_coe_opens : has_coe_t (open_subgroup G) (opens G) := ⟨λ U, ⟨U, U.is_open'⟩⟩
 
-@[simp, to_additive] lemma mem_coe : g ∈ (U : set G) ↔ g ∈ U := iff.rfl
-@[simp, to_additive] lemma mem_coe_opens : g ∈ (U : opens G) ↔ g ∈ U := iff.rfl
-@[simp, to_additive]
+@[simp, norm_cast, to_additive] lemma mem_coe : g ∈ (U : set G) ↔ g ∈ U := iff.rfl
+@[simp, norm_cast, to_additive] lemma mem_coe_opens : g ∈ (U : opens G) ↔ g ∈ U := iff.rfl
+@[simp, norm_cast, to_additive]
 lemma mem_coe_subgroup : g ∈ (U : subgroup G) ↔ g ∈ U := iff.rfl
-
-attribute [norm_cast] mem_coe mem_coe_opens mem_coe_subgroup open_add_subgroup.mem_coe
-  open_add_subgroup.mem_coe_opens open_add_subgroup.mem_coe_add_subgroup
 
 @[to_additive] lemma coe_injective : injective (coe : open_subgroup G → set G) :=
 λ U V h, by cases U; cases V; congr; assumption
@@ -132,14 +129,12 @@ instance : semilattice_inf_top (open_subgroup G) :=
   le_top := λ U, set.subset_univ _,
   ..open_subgroup.partial_order }
 
-@[simp, to_additive] lemma coe_inf : (↑(U ⊓ V) : set G) = (U : set G) ∩ V := rfl
+@[simp, norm_cast, to_additive] lemma coe_inf : (↑(U ⊓ V) : set G) = (U : set G) ∩ V := rfl
 
-@[simp, to_additive] lemma coe_subset : (U : set G) ⊆ V ↔ U ≤ V := iff.rfl
+@[simp, norm_cast, to_additive] lemma coe_subset : (U : set G) ⊆ V ↔ U ≤ V := iff.rfl
 
-@[simp, to_additive] lemma coe_subgroup_le : (U : subgroup G) ≤ (V : subgroup G) ↔ U ≤ V := iff.rfl
-
-attribute [norm_cast] coe_inf coe_subset coe_subgroup_le open_add_subgroup.coe_inf
-  open_add_subgroup.coe_subset open_add_subgroup.coe_add_subgroup_le
+@[simp, norm_cast, to_additive] lemma coe_subgroup_le :
+(U : subgroup G) ≤ (V : subgroup G) ↔ U ≤ V := iff.rfl
 
 variables {N : Type*} [group N] [topological_space N]
 

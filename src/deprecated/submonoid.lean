@@ -243,12 +243,10 @@ local attribute [instance] subtype.monoid subtype.add_monoid
 /-- Submonoids inherit the 1 of the monoid. -/
 @[simp, norm_cast, to_additive "An `add_submonoid` inherits the 0 of the `add_monoid`. "]
 lemma is_submonoid.coe_one [is_submonoid s] : ((1 : s) : M) = 1 := rfl
-attribute [norm_cast] is_add_submonoid.coe_zero
 
 /-- Submonoids inherit the multiplication of the monoid. -/
 @[simp, norm_cast, to_additive "An `add_submonoid` inherits the addition of the `add_monoid`. "]
 lemma is_submonoid.coe_mul [is_submonoid s] (a b : s) : ((a * b : s) : M) = a * b := rfl
-attribute [norm_cast] is_add_submonoid.coe_add
 
 /-- Submonoids inherit the exponentiation by naturals of the monoid. -/
 @[simp, norm_cast] lemma is_submonoid.coe_pow [is_submonoid s] (a : s) (n : ℕ) :

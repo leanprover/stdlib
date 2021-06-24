@@ -169,10 +169,8 @@ instance : has_Inf (submonoid M) :=
   mul_mem' := λ x y hx hy, set.mem_bInter $ λ i h,
     i.mul_mem (by apply set.mem_bInter_iff.1 hx i h) (by apply set.mem_bInter_iff.1 hy i h) }⟩
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_Inf (S : set (submonoid M)) : ((Inf S : submonoid M) : set M) = ⋂ s ∈ S, ↑s := rfl
-
-attribute [norm_cast] coe_Inf add_submonoid.coe_Inf
 
 @[to_additive]
 lemma mem_Inf {S : set (submonoid M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
@@ -181,11 +179,9 @@ lemma mem_Inf {S : set (submonoid M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x �
 lemma mem_infi {ι : Sort*} {S : ι → submonoid M} {x : M} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
 by simp only [infi, mem_Inf, set.forall_range_iff]
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_infi {ι : Sort*} {S : ι → submonoid M} : (↑(⨅ i, S i) : set M) = ⋂ i, S i :=
 by simp only [infi, coe_Inf, set.bInter_range]
-
-attribute [norm_cast] coe_infi add_submonoid.coe_infi
 
 /-- Submonoids of a monoid form a complete lattice. -/
 @[to_additive "The `add_submonoid`s of an `add_monoid` form a complete lattice."]
@@ -395,10 +391,8 @@ Then `add_monoid_hom.of_mdense` defines an additive monoid homomorphism from `M`
 of `f (x + y) = f x + f y` only for `y ∈ s`. -/
 add_decl_doc add_monoid_hom.of_mdense
 
-@[simp, to_additive] lemma coe_of_mdense (f : M → N) (hs : closure s = ⊤) (h1 hmul) :
+@[simp, norm_cast, to_additive] lemma coe_of_mdense (f : M → N) (hs : closure s = ⊤) (h1 hmul) :
   ⇑(of_mdense f hs h1 hmul) = f := rfl
-
-attribute [norm_cast] coe_of_mdense add_monoid_hom.coe_of_mdense
 
 end monoid_hom
 

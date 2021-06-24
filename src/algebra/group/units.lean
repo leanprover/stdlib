@@ -74,10 +74,8 @@ ext rfl
 
 variables (a b : units α) {c : units α}
 @[simp, norm_cast, to_additive] lemma coe_mul : (↑(a * b) : α) = a * b := rfl
-attribute [norm_cast] add_units.coe_add
 
 @[simp, norm_cast, to_additive] lemma coe_one : ((1 : units α) : α) = 1 := rfl
-attribute [norm_cast] add_units.coe_zero
 
 @[simp, norm_cast, to_additive] lemma coe_eq_one {a : units α} : (a : α) = 1 ↔ a = 1 :=
 by rw [←units.coe_one, eq_iff]
@@ -87,7 +85,6 @@ by rw [←units.coe_one, eq_iff]
 @[to_additive] lemma val_coe : (↑a : α) = a.val := rfl
 
 @[norm_cast, to_additive] lemma coe_inv : ((a⁻¹ : units α) : α) = a.inv := rfl
-attribute [norm_cast] add_units.coe_neg
 
 @[simp, to_additive] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
 @[simp, to_additive] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _

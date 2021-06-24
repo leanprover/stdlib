@@ -363,10 +363,8 @@ instance has_mul : has_mul S := ⟨λ a b, ⟨a.1 * b.1, S.mul_mem a.2 b.2⟩⟩
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits a zero."]
 instance has_one : has_one S := ⟨⟨_, S.one_mem⟩⟩
 
-@[simp, to_additive] lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
-@[simp, to_additive] lemma coe_one : ((1 : S) : M) = 1 := rfl
-attribute [norm_cast] coe_mul coe_one
-attribute [norm_cast] add_submonoid.coe_add add_submonoid.coe_zero
+@[simp, norm_cast, to_additive] lemma coe_mul (x y : S) : (↑(x * y) : M) = ↑x * ↑y := rfl
+@[simp, norm_cast, to_additive] lemma coe_one : ((1 : S) : M) = 1 := rfl
 
 /-- A submonoid of a unital magma inherits a unital magma structure. -/
 @[to_additive "An `add_submonoid` of an unital additive magma inherits an unital additive magma

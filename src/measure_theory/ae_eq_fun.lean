@@ -349,7 +349,7 @@ variables [second_countable_topology γ]
 
 @[to_additive] instance : has_div (α →ₘ[μ] γ) := ⟨comp₂ has_div.div measurable_div⟩
 
-@[to_additive, simp] lemma mk_div (f g : α → γ) (hf hg) :
+@[simp, to_additive] lemma mk_div (f g : α → γ) (hf hg) :
   mk (f / g) (ae_measurable.div hf hg) = (mk f hf : α →ₘ[μ] γ) / (mk g hg) :=
 rfl
 

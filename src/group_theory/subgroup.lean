@@ -315,9 +315,6 @@ instance has_div : has_div H := ⟨λ a b, ⟨a / b, H.div_mem a.2 b.2⟩⟩
 @[simp, norm_cast, to_additive] lemma coe_inv (x : H) : ↑(x⁻¹ : H) = (x⁻¹ : G) := rfl
 @[simp, norm_cast, to_additive] lemma coe_mk (x : G) (hx : x ∈ H) : ((⟨x, hx⟩ : H) : G) = x := rfl
 
-attribute [norm_cast] add_subgroup.coe_add add_subgroup.coe_zero
-  add_subgroup.coe_neg add_subgroup.coe_mk
-
 /-- A subgroup of a group inherits a group structure. -/
 @[to_additive "An `add_subgroup` of an `add_group` inherits an `add_group` structure."]
 instance to_group {G : Type*} [group G] (H : subgroup G) : group H :=
@@ -464,10 +461,8 @@ instance : has_Inf (subgroup G) :=
   { inv_mem' := λ x hx, set.mem_bInter $ λ i h, i.inv_mem (by apply set.mem_bInter_iff.1 hx i h),
     .. (⨅ S ∈ s, subgroup.to_submonoid S).copy (⋂ S ∈ s, ↑S) (by simp) }⟩
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_Inf (H : set (subgroup G)) : ((Inf H : subgroup G) : set G) = ⋂ s ∈ H, ↑s := rfl
-
-attribute [norm_cast] coe_Inf add_subgroup.coe_Inf
 
 @[simp, to_additive]
 lemma mem_Inf {S : set (subgroup G)} {x : G} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
@@ -476,11 +471,9 @@ lemma mem_Inf {S : set (subgroup G)} {x : G} : x ∈ Inf S ↔ ∀ p ∈ S, x �
 lemma mem_infi {ι : Sort*} {S : ι → subgroup G} {x : G} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
 by simp only [infi, mem_Inf, set.forall_range_iff]
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_infi {ι : Sort*} {S : ι → subgroup G} : (↑(⨅ i, S i) : set G) = ⋂ i, S i :=
 by simp only [infi, coe_Inf, set.bInter_range]
-
-attribute [norm_cast] coe_infi add_subgroup.coe_infi
 
 /-- Subgroups of a group form a complete lattice. -/
 @[to_additive "The `add_subgroup`s of an `add_group` form a complete lattice."]

@@ -163,8 +163,6 @@ variables [topological_space α] {f : α → G} {s : set α} {x : α}
 lemma continuous.inv (hf : continuous f) : continuous (λx, (f x)⁻¹) :=
 continuous_inv.comp hf
 
-attribute [continuity] continuous.neg -- TODO
-
 @[to_additive]
 lemma continuous_on.inv (hf : continuous_on f s) : continuous_on (λx, (f x)⁻¹) s :=
 continuous_inv.comp_continuous_on hf

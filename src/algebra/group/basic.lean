@@ -89,7 +89,6 @@ variables {G : Type u} [comm_semigroup G]
 @[no_rsimp, to_additive]
 lemma mul_left_comm : ∀ a b c : G, a * (b * c) = b * (a * c) :=
 left_comm has_mul.mul mul_comm mul_assoc
-attribute [no_rsimp] add_left_comm
 
 @[to_additive]
 lemma mul_right_comm : ∀ a b c : G, a * b * c = a * c * b :=

@@ -67,11 +67,9 @@ instance : can_lift (with_one α) α :=
   cond := λ a, a ≠ 1,
   prf := λ a, ne_one_iff_exists.1 }
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_inj {a b : α} : (a : with_one α) = b ↔ a = b :=
 option.some_inj
-
-attribute [norm_cast] coe_inj with_zero.coe_inj
 
 @[elab_as_eliminator, to_additive]
 protected lemma cases_on {P : with_one α → Prop} :
