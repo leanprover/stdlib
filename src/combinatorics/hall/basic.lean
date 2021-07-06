@@ -8,38 +8,18 @@ import data.rel
 import data.set.finite
 
 /-!
-# Hall's Marriage Theorem
+# Hall's Marriage Theorem (finite version)
 
-Given a list of finite subsets $X_1,X_2,\dots,X_n$ of some given set
-$S$, Hall in [Hall1935] gave a necessary and sufficient condition for
-there to be a list of distinct elements $x_1,x_2,\dots,x_n$ with
-$x_i\in X_i$ for each $i$: it is when for each $k$, the union of every
-$k$ of these subsets has at least $k$ elements.
-
-This file proves this for an indexed family `t : ι → finset α` of
-finite sets, with `[fintype ι]`, along with some variants of the
-statement.  The list of distinct representatives is given by an
-injective function `f : ι → α` such that `∀ i, f i ∈ t i`.
-
-A description of this formalization is in [Gusakov2021].
+This module proves the finite case of Hall's theorem, which is
+when the indexed family `t : ι → finset α` is a `[fintype ι]`.
+See `combinatorics.hall.default` for more details, which is where
+the cardinality constraint is lifted.
 
 ## Main statements
-* `finset.all_card_le_bUnion_card_iff_exists_injective` is in terms of `t : ι → finset α`.
-* `fintype.all_card_le_rel_image_card_iff_exists_injective` is in terms of a relation
-  `r : α → β → Prop` such that `rel.image r {a}` is a finite set for all `a : α`.
-* `fintype.all_card_le_filter_rel_iff_exists_injective` is in terms of a relation
-  `r : α → β → Prop` on finite types, with the Hall condition given in terms of
-  `finset.univ.filter`.
+* `finset.all_card_le_bUnion_card_iff_exists_injective'` is Hall's theorem with
+  a finite index set.  This is elsewhere generalized to
+  `finset.all_card_le_bUnion_card_iff_exists_injective`.
 
-## Todo
-
-* The theorem is still true even if `ι` is not a finite type.  The infinite case
-  follows from a compactness argument.
-* The statement of the theorem in terms of bipartite graphs is in preparation.
-
-## Tags
-
-Hall's Marriage Theorem, indexed families
 -/
 
 open finset
@@ -280,14 +260,15 @@ end
 end hall_marriage_theorem
 
 /--
-This the version of Hall's Marriage Theorem in terms of indexed
-families of finite sets `t : ι → finset α`.  It states that there is a
-set of distinct representatives if and only if every union of `k` of the
-sets has at least `k` elements.
+This is the version of Hall's Marriage Theorem in terms of indexed
+families of finite sets `t : ι → finset α` with `ι` a `fintype`.
+It states that there is a set of distinct representatives if and only
+if every union of `k` of the sets has at least `k` elements.
 
-Recall that `s.bUnion t` is the union of all the sets `t i` for `i ∈ s`.
+See `finset.all_card_le_bUnion_card_iff_exists_injective` for the version
+where the `fintype ι` constraint is removed.
 -/
-theorem finset.all_card_le_bUnion_card_iff_exists_injective
+theorem finset.all_card_le_bUnion_card_iff_exists_injective'
   {ι α : Type*} [fintype ι] [decidable_eq α] (t : ι → finset α) :
   (∀ (s : finset ι), s.card ≤ (s.bUnion t).card) ↔
     (∃ (f : ι → α), function.injective f ∧ ∀ x, f x ∈ t x) :=
@@ -301,70 +282,4 @@ begin
     rw [mem_image, mem_bUnion],
     rintros ⟨x, hx, rfl⟩,
     exact ⟨x, hx, hf₂ x⟩, },
-end
-
-/-- Given a relation such that the image of every singleton set is finite, then the image of every
-finite set is finite. -/
-instance {α β : Type*} [decidable_eq β]
-  (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})]
-  (A : finset α) : fintype (rel.image r A) :=
-begin
-  have h : rel.image r A = (A.bUnion (λ a, (rel.image r {a}).to_finset) : set β),
-  { ext, simp [rel.image], },
-  rw [h],
-  apply finset_coe.fintype,
-end
-
-/--
-This is a version of Hall's Marriage Theorem in terms of a relation
-between types `α` and `β` such that `α` is finite and the image of
-each `x : α` is finite (it suffices for `β` to be finite).  There is
-an injective function `α → β` respecting the relation iff every subset of
-`k` terms of `α` is related to at least `k` terms of `β`.
-
-If `[fintype β]`, then `[∀ (a : α), fintype (rel.image r {a})]` is automatically implied.
--/
-theorem fintype.all_card_le_rel_image_card_iff_exists_injective
-  {α β : Type*} [fintype α] [decidable_eq β]
-  (r : α → β → Prop) [∀ (a : α), fintype (rel.image r {a})] :
-  (∀ (A : finset α), A.card ≤ fintype.card (rel.image r A)) ↔
-    (∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x)) :=
-begin
-  let r' := λ a, (rel.image r {a}).to_finset,
-  have h : ∀ (A : finset α), fintype.card (rel.image r A) = (A.bUnion r').card,
-  { intro A,
-    rw ←set.to_finset_card,
-    apply congr_arg,
-    ext b,
-    simp [rel.image], },
-  have h' : ∀ (f : α → β) x, r x (f x) ↔ f x ∈ r' x,
-  { simp [rel.image], },
-  simp only [h, h'],
-  apply finset.all_card_le_bUnion_card_iff_exists_injective,
-end
-
-/--
-This is a version of Hall's Marriage Theorem in terms of a relation between finite types.
-There is an injective function `α → β` respecting the relation iff every subset of
-`k` terms of `α` is related to at least `k` terms of `β`.
-
-It is like `fintype.all_card_le_rel_image_card_iff_exists_injective` but uses `finset.filter`
-rather than `rel.image`.
--/
-theorem fintype.all_card_le_filter_rel_iff_exists_injective
-  {α β : Type*} [fintype α] [fintype β]
-  (r : α → β → Prop) [∀ a, decidable_pred (r a)] :
-  (∀ (A : finset α), A.card ≤ (univ.filter (λ (b : β), ∃ a ∈ A, r a b)).card) ↔
-    (∃ (f : α → β), function.injective f ∧ ∀ x, r x (f x)) :=
-begin
-  haveI := classical.dec_eq β,
-  let r' := λ a, univ.filter (λ b, r a b),
-  have h : ∀ (A : finset α), (univ.filter (λ (b : β), ∃ a ∈ A, r a b)) = (A.bUnion r'),
-  { intro A,
-    ext b,
-    simp, },
-  have h' : ∀ (f : α → β) x, r x (f x) ↔ f x ∈ r' x,
-  { simp, },
-  simp_rw [h, h'],
-  apply finset.all_card_le_bUnion_card_iff_exists_injective,
 end
