@@ -94,6 +94,15 @@ by refine { neg := has_neg.neg, sub := has_sub.sub, sub_eq_add_neg := _,
 theorem of_rat_sub (x y : β) : of_rat (x - y) = of_rat x - of_rat y :=
 congr_arg mk (const_sub _ _)
 
+/-- `cau_seq.completion.of_rat` as a `ring_hom`. -/
+@[simps]
+def of_rat_ring_hom : β →+* Cauchy :=
+{ to_fun := of_rat,
+  map_zero' := of_rat_zero,
+  map_add' := of_rat_add,
+  map_one' := of_rat_one,
+  map_mul' := of_rat_mul }
+
 end
 
 open_locale classical

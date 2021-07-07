@@ -35,10 +35,6 @@ lemma ext_cauchy_iff : ∀ {x y : real}, x = y ↔ x.cauchy = y.cauchy
 lemma ext_cauchy {x y : real} : x.cauchy = y.cauchy → x = y :=
 ext_cauchy_iff.2
 
-/-- The real numbers are isomorphic to the quotient of Cauchy sequences on the rationals. -/
-def equiv_Cauchy : ℝ ≃ cau_seq.completion.Cauchy :=
-⟨real.cauchy, real.of_cauchy, λ ⟨_⟩, rfl, λ _, rfl⟩
-
 -- irreducible doesn't work for instances: https://github.com/leanprover-community/lean/issues/511
 @[irreducible] private def zero : ℝ := ⟨0⟩
 @[irreducible] private def one : ℝ := ⟨1⟩
@@ -51,30 +47,43 @@ instance : has_one ℝ := ⟨one⟩
 instance : has_add ℝ := ⟨add⟩
 instance : has_neg ℝ := ⟨neg⟩
 instance : has_mul ℝ := ⟨mul⟩
+/-- Note: since `add` is irreducible anyway, we don't care about definition equality between
+subtraction of `real.cauchy` and subtraction of `real`. Instead, we choose to make
+`sub_eq_add_neg` true by definition, which is often convenient. -/
+instance : has_sub ℝ := ⟨λ a b, add a (-b)⟩
 
-lemma zero_cauchy : (⟨0⟩ : ℝ) = 0 := show _ = zero, by rw zero
-lemma one_cauchy : (⟨1⟩ : ℝ) = 1 := show _ = one, by rw one
-lemma add_cauchy {a b} : (⟨a⟩ + ⟨b⟩ : ℝ) = ⟨a + b⟩ := show add _ _ = _, by rw add
-lemma neg_cauchy {a} : (-⟨a⟩ : ℝ) = ⟨-a⟩ := show neg _ = _, by rw neg
-lemma mul_cauchy {a b} : (⟨a⟩ * ⟨b⟩ : ℝ) = ⟨a * b⟩ := show mul _ _ = _, by rw mul
+lemma of_cauchy_zero : (⟨0⟩ : ℝ) = 0 := show _ = zero, by rw zero
+lemma of_cauchy_one : (⟨1⟩ : ℝ) = 1 := show _ = one, by rw one
+lemma of_cauchy_add (a b) : (⟨a + b⟩ : ℝ) = ⟨a⟩ + ⟨b⟩ := show _ = add _ _, by rw add
+lemma of_cauchy_neg (a) : (⟨-a⟩ : ℝ) = -⟨a⟩ := show _ = neg _, by rw neg
+lemma of_cauchy_mul (a b) : (⟨a * b⟩ : ℝ) = ⟨a⟩ * ⟨b⟩ := show _ = mul _ _, by rw mul
+lemma of_cauchy_sub (a b) : (⟨a - b⟩ : ℝ) = ⟨a⟩ - ⟨b⟩ :=
+by { rw [sub_eq_add_neg, of_cauchy_add, of_cauchy_neg], refl }
+
+lemma cauchy_zero : (0 : ℝ).cauchy = 0 := show zero.cauchy = 0, by rw zero
+lemma cauchy_one : (1 : ℝ).cauchy = 1 := show one.cauchy = 1, by rw one
+lemma cauchy_add : ∀ a b, (a + b : ℝ).cauchy = a.cauchy + b.cauchy
+| ⟨a⟩ ⟨b⟩ := show (add _ _).cauchy = _, by rw add
+lemma cauchy_neg : ∀ a, (-a : ℝ).cauchy = -a.cauchy
+| ⟨a⟩ := show (neg _).cauchy = _, by rw neg
+lemma cauchy_sub : ∀ a b, (a - b : ℝ).cauchy = a.cauchy - b.cauchy
+| ⟨a⟩ ⟨b⟩ := by { rw [sub_eq_add_neg, ←cauchy_neg, ←cauchy_add], refl }
+lemma cauchy_mul : ∀ a b, (a * b : ℝ).cauchy = a.cauchy * b.cauchy
+| ⟨a⟩ ⟨b⟩ := show (mul _ _).cauchy = _, by rw mul
 
 instance : comm_ring ℝ :=
-begin
-  refine_struct { zero  := 0,
-                  one   := 1,
-                  mul   := (*),
-                  add   := (+),
-                  neg   := @has_neg.neg ℝ _,
-                  sub   := λ a b, a + (-b),
-                  npow  := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-                  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-                  gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
-  repeat { rintro ⟨_⟩, };
-  try { refl };
-  simp [← zero_cauchy, ← one_cauchy, add_cauchy, neg_cauchy, mul_cauchy];
-  apply add_assoc <|> apply add_comm <|> apply mul_assoc <|> apply mul_comm <|>
-    apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip
-end
+function.surjective.comm_ring real.of_cauchy (λ ⟨x⟩, ⟨x, rfl⟩)
+  of_cauchy_zero of_cauchy_one of_cauchy_add of_cauchy_mul of_cauchy_neg of_cauchy_sub
+
+/-- The real numbers are isomorphic to the quotient of Cauchy sequences on the rationals. -/
+@[simps]
+def equiv_Cauchy : ℝ ≃+* cau_seq.completion.Cauchy :=
+{ to_fun := real.cauchy,
+  inv_fun := real.of_cauchy,
+  left_inv := λ ⟨_⟩, rfl,
+  right_inv := λ _, rfl,
+  map_mul' := cauchy_mul,
+  map_add' := cauchy_add }
 
 /- Extra instances to short-circuit type class resolution -/
 instance : ring ℝ               := by apply_instance
@@ -92,7 +101,6 @@ instance : comm_monoid ℝ        := by apply_instance
 instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
-instance : has_sub ℝ            := by apply_instance
 instance : inhabited ℝ          := ⟨0⟩
 
 /-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/
@@ -101,9 +109,7 @@ instance : star_ring ℝ          := star_ring_of_comm
 /-- Coercion `ℚ` → `ℝ` as a `ring_hom`. Note that this
 is `cau_seq.completion.of_rat`, not `rat.cast`. -/
 def of_rat : ℚ →+* ℝ :=
-by refine_struct { to_fun := of_cauchy ∘ of_rat };
-  simp [of_rat_one, of_rat_zero, of_rat_mul, of_rat_add,
-    one_cauchy, zero_cauchy, ← mul_cauchy, ← add_cauchy]
+equiv_Cauchy.symm.to_ring_hom.comp of_rat_ring_hom
 
 lemma of_rat_apply (x : ℚ) : of_rat x = of_cauchy (cau_seq.completion.of_rat x) := rfl
 
@@ -127,11 +133,11 @@ lemma lt_cauchy {f g} : (⟨⟦f⟧⟩ : ℝ) < ⟨⟦g⟧⟩ ↔ f < g := show 
 @[simp] theorem mk_lt {f g : cau_seq ℚ abs} : mk f < mk g ↔ f < g :=
 lt_cauchy
 
-lemma mk_zero : mk 0 = 0 := by rw ← zero_cauchy; refl
-lemma mk_one : mk 1 = 1 := by rw ← one_cauchy; refl
-lemma mk_add {f g : cau_seq ℚ abs} : mk (f + g) = mk f + mk g := by simp [mk, add_cauchy]
-lemma mk_mul {f g : cau_seq ℚ abs} : mk (f * g) = mk f * mk g := by simp [mk, mul_cauchy]
-lemma mk_neg {f : cau_seq ℚ abs} : mk (-f) = -mk f := by simp [mk, neg_cauchy]
+lemma mk_zero : mk 0 = 0 := of_cauchy_zero
+lemma mk_one : mk 1 = 1 := of_cauchy_one
+lemma mk_add {f g : cau_seq ℚ abs} : mk (f + g) = mk f + mk g := by simp [mk, ←of_cauchy_add]
+lemma mk_mul {f g : cau_seq ℚ abs} : mk (f * g) = mk f * mk g := by simp [mk, ←of_cauchy_mul]
+lemma mk_neg {f : cau_seq ℚ abs} : mk (-f) = -mk f := by simp [mk, ←of_cauchy_neg]
 
 @[simp] theorem mk_pos {f : cau_seq ℚ abs} : 0 < mk f ↔ pos f :=
 by rw [← mk_zero, mk_lt]; exact iff_of_eq (congr_arg pos (sub_zero f))
@@ -235,17 +241,17 @@ instance : star_ordered_ring ℝ :=
 
 @[irreducible] private noncomputable def inv' : ℝ → ℝ | ⟨a⟩ := ⟨a⁻¹⟩
 noncomputable instance : has_inv ℝ := ⟨inv'⟩
-lemma inv_cauchy {f} : (⟨f⟩ : ℝ)⁻¹ = ⟨f⁻¹⟩ := show inv' _ = _, by rw inv'
+lemma of_cauchy_inv {f} : (⟨f⁻¹⟩ : ℝ) = ⟨f⟩⁻¹ := show _ = inv' _, by rw inv'
 
 noncomputable instance : linear_ordered_field ℝ :=
 { inv := has_inv.inv,
   mul_inv_cancel := begin
     rintros ⟨a⟩ h,
     rw mul_comm,
-    simp only [inv_cauchy, mul_cauchy, ← one_cauchy, ← zero_cauchy, ne.def] at *,
+    simp only [←of_cauchy_inv, ←of_cauchy_mul, ←of_cauchy_one, ←of_cauchy_zero, ne.def] at *,
     exact cau_seq.completion.inv_mul_cancel h,
   end,
-  inv_zero := by simp [← zero_cauchy, inv_cauchy],
+  inv_zero := by simp [←of_cauchy_zero, ←of_cauchy_inv],
   ..real.linear_ordered_comm_ring,
   ..real.domain }
 
