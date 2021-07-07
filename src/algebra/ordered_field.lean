@@ -367,12 +367,24 @@ lemma div_lt_div' (hac : a ≤ c) (hbd : d < b) (c0 : 0 < c) (d0 : 0 < d) :
   a / b < c / d :=
 (div_lt_div_iff (d0.trans hbd) d0).2 (mul_lt_mul' hac hbd d0.le c0)
 
-lemma div_lt_div_of_lt_left (hb : 0 < b) (h : b < a) (hc : 0 < c) : c / a < c / b :=
+lemma div_lt_div_of_lt_left (hc : 0 < c) (hb : 0 < b) (h : b < a) : c / a < c / b :=
 (div_lt_div_left hc (hb.trans h) hb).mpr h
 
 /-!
 ### Relating one division and involving `1`
 -/
+
+lemma div_le_self_iff (ha : 0 < a) (hb : 0 < b) : a / b ≤ a ↔ 1 ≤ b :=
+by simpa only [div_one] using div_le_div_left ha hb zero_lt_one
+
+lemma div_le_self (ha : 0 ≤ a) (hb : 1 ≤ b) : a / b ≤ a :=
+by simpa only [div_one] using div_le_div_of_le_left ha zero_lt_one hb
+
+lemma div_lt_self_iff (ha : 0 < a) (hb : 0 < b) : a / b < a ↔ 1 < b :=
+by simpa only [div_one] using div_lt_div_left ha hb zero_lt_one
+
+lemma div_lt_self (ha : 0 < a) (hb : 1 < b) : a / b < a :=
+by simpa only [div_one] using div_lt_div_of_lt_left ha zero_lt_one hb
 
 lemma one_le_div (hb : 0 < b) : 1 ≤ a / b ↔ b ≤ a :=
 by rw [le_div_iff hb, one_mul]

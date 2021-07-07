@@ -413,19 +413,41 @@ by rw [inv_mul_lt_iff_lt_mul, mul_comm]
 @[to_additive add_neg_le_add_neg_iff]
 lemma mul_inv_le_mul_inv_iff' : a * b⁻¹ ≤ c * d⁻¹ ↔ a * d ≤ c * b :=
 begin
-  split ; intro h,
-  have := mul_le_mul_right' (mul_le_mul_right' h b) d,
-  rwa [inv_mul_cancel_right, mul_assoc _ _ b, mul_comm _ b, ← mul_assoc, inv_mul_cancel_right]
-    at this,
-  have := mul_le_mul_right' (mul_le_mul_right' h d⁻¹) b⁻¹,
-  rwa [mul_inv_cancel_right, _root_.mul_assoc, _root_.mul_comm d⁻¹ b⁻¹, ← mul_assoc,
-    mul_inv_cancel_right] at this,
+  split; intro h; have := λ x y, mul_le_mul_right' (mul_le_mul_right' h x) y,
+  { simpa [mul_assoc] using this b d },
+  { simpa [mul_assoc] using this d⁻¹ b⁻¹ },
 end
 
-@[simp, to_additive] lemma div_le_self_iff (a : α) {b : α} : a / b ≤ a ↔ 1 ≤ b :=
+@[to_additive add_neg_lt_add_neg_iff]
+lemma div_lt_div_iff' : a * b⁻¹ < c * d⁻¹ ↔ a * d < c * b :=
+begin
+  split; intro h; have := λ x y, mul_lt_mul_right' (mul_lt_mul_right' h x) y,
+  { simpa [mul_assoc] using this b d },
+  { simpa [mul_assoc] using this d⁻¹ b⁻¹ },
+end
+
+@[to_additive add_neg_le_add_neg_left]
+lemma div_le_div_left' : a * b⁻¹ ≤ a * c⁻¹ ↔ c ≤ b :=
+div_le_div_iff'.trans $ mul_le_mul_iff_left a
+
+@[to_additive add_neg_le_add_neg_right]
+lemma div_le_div_right' : a * b⁻¹ ≤ c * b⁻¹ ↔ a ≤ c :=
+div_le_div_iff'.trans $ mul_le_mul_iff_right b
+
+@[to_additive add_neg_lt_add_neg_left]
+lemma div_lt_div_left' : a * b⁻¹ < a * c⁻¹ ↔ c < b :=
+div_lt_div_iff'.trans $ mul_lt_mul_iff_left a
+
+@[to_additive add_neg_lt_add_neg_right]
+lemma div_lt_div_right' : a * b⁻¹ < c * b⁻¹ ↔ a < c :=
+div_lt_div_iff'.trans $ mul_lt_mul_iff_right b
+
+@[simp, to_additive sub_le_self_iff]
+lemma div_le_self_iff' (a : α) {b : α} : a / b ≤ a ↔ 1 ≤ b :=
 by simp [div_eq_mul_inv]
 
-@[simp, to_additive] lemma div_lt_self_iff (a : α) {b : α} : a / b < a ↔ 1 < b :=
+@[simp, to_additive sub_lt_self_iff]
+lemma div_lt_self_iff' (a : α) {b : α} : a / b < a ↔ 1 < b :=
 by simp [div_eq_mul_inv]
 
 /-- Pullback an `ordered_comm_group` under an injective map.
@@ -461,30 +483,33 @@ alias sub_lt_self_iff ↔ _ sub_lt_self
 lemma sub_le_sub_iff : a - b ≤ c - d ↔ a + d ≤ c + b :=
 by simpa only [sub_eq_add_neg] using add_neg_le_add_neg_iff
 
+lemma sub_lt_sub_iff : a - b < c - d ↔ a + d < c + b :=
+by simpa only [sub_eq_add_neg] using add_neg_lt_add_neg_iff
+
 @[simp]
 lemma sub_le_sub_iff_left (a : α) {b c : α} : a - b ≤ a - c ↔ c ≤ b :=
-by rw [sub_eq_add_neg, sub_eq_add_neg, add_le_add_iff_left, neg_le_neg_iff]
+by simpa only [sub_eq_add_neg] using add_neg_le_add_neg_left
 
 lemma sub_le_sub_left (h : a ≤ b) (c : α) : c - b ≤ c - a :=
 (sub_le_sub_iff_left c).2 h
 
 @[simp]
 lemma sub_le_sub_iff_right (c : α) : a - c ≤ b - c ↔ a ≤ b :=
-by simpa only [sub_eq_add_neg] using add_le_add_iff_right _
+by simpa only [sub_eq_add_neg] using add_neg_le_add_neg_right
 
 lemma sub_le_sub_right (h : a ≤ b) (c : α) : a - c ≤ b - c :=
 (sub_le_sub_iff_right c).2 h
 
 @[simp]
 lemma sub_lt_sub_iff_left (a : α) {b c : α} : a - b < a - c ↔ c < b :=
-by rw [sub_eq_add_neg, sub_eq_add_neg, add_lt_add_iff_left, neg_lt_neg_iff]
+by simpa only [sub_eq_add_neg] using add_neg_lt_add_neg_left
 
 lemma sub_lt_sub_left (h : a < b) (c : α) : c - b < c - a :=
 (sub_lt_sub_iff_left c).2 h
 
 @[simp]
 lemma sub_lt_sub_iff_right (c : α) : a - c < b - c ↔ a < b :=
-by simpa only [sub_eq_add_neg] using add_lt_add_iff_right _
+by simpa only [sub_eq_add_neg] using add_neg_lt_add_neg_right
 
 lemma sub_lt_sub_right (h : a < b) (c : α) : a - c < b - c :=
 (sub_lt_sub_iff_right c).2 h
@@ -692,7 +717,7 @@ instance linear_ordered_comm_group.to_no_top_order [nontrivial α] :
 instance linear_ordered_comm_group.to_no_bot_order [nontrivial α] : no_bot_order α :=
 ⟨ begin
     obtain ⟨y, hy⟩ : ∃ (a:α), 1 < a := exists_one_lt',
-    exact λ a, ⟨a / y, (div_lt_self_iff a).mpr hy⟩
+    exact λ a, ⟨a / y, (div_lt_self_iff' a).mpr hy⟩
   end ⟩
 
 end linear_ordered_comm_group
