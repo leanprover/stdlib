@@ -7,6 +7,20 @@ import category_theory.monad.adjunction
 import category_theory.adjunction.limits
 import category_theory.limits.preserves.shapes.terminal
 
+/-!
+# Limits and colimits in the category of algebras
+
+This file shows that the forgetful functor `forget T : algebra T ⥤ C` for a monad `T : C ⥤ C`
+creates limits and creates any colimits which `T` preserves.
+This is used to show that `algebra T` has any limits which `C` has, and any colimits which `C` has
+and `T` preserves.
+This is generalised to the case of a monadic functor `D ⥤ C`.
+
+## TODO
+
+Dualise for the category of coalgebras and comonadic left adjoints.
+-/
+
 namespace category_theory
 open category
 open category_theory.limits
@@ -22,42 +36,32 @@ variables {J : Type v₁} [small_category J]
 
 namespace forget_creates_limits
 
-variables (D : J ⥤ algebra T) (c : cone (D ⋙ forget T)) (t : is_limit c)
+variables (D : J ⥤ algebra T) (c : cone (D ⋙ T.forget)) (t : is_limit c)
 
 /-- (Impl) The natural transformation used to define the new cone -/
-@[simps] def γ : (D ⋙ forget T ⋙ ↑T) ⟶ (D ⋙ forget T) := { app := λ j, (D.obj j).a }
+@[simps] def γ : (D ⋙ T.forget ⋙ ↑T) ⟶ D ⋙ T.forget := { app := λ j, (D.obj j).a }
 
 /-- (Impl) This new cone is used to construct the algebra structure -/
-@[simps] def new_cone : cone (D ⋙ forget T) :=
+@[simps π_app] def new_cone : cone (D ⋙ forget T) :=
 { X := T.obj c.X,
-  π := (functor.const_comp _ _ ↑T).inv ≫ whisker_right c.π T ≫ (γ D) }
+  π := (functor.const_comp _ _ ↑T).inv ≫ whisker_right c.π T ≫ γ D }
 
 /-- The algebra structure which will be the apex of the new limit cone for `D`. -/
 @[simps] def cone_point : algebra T :=
 { A := c.X,
   a := t.lift (new_cone D c),
-  unit' :=
+  unit' := t.hom_ext $ λ j,
   begin
-    apply t.hom_ext,
-    intro j,
-    erw [category.assoc, t.fac (new_cone D c), id_comp],
-    dsimp,
-    erw [id_comp, ← category.assoc, ← T.η.naturality, functor.id_map, category.assoc,
-         (D.obj j).unit, comp_id],
+    rw [category.assoc, t.fac, new_cone_π_app, ←T.η.naturality_assoc, functor.id_map,
+      (D.obj j).unit],
+    dsimp, simp -- See library note [dsimp, simp]
   end,
-  assoc' :=
+  assoc' := t.hom_ext $ λ j,
   begin
-    apply t.hom_ext,
-    intro j,
-    rw [category.assoc, category.assoc, t.fac (new_cone D c)],
-    dsimp,
-    erw id_comp,
-    slice_lhs 1 2 {rw ← T.μ.naturality},
-    slice_lhs 2 3 {rw (D.obj j).assoc},
-    slice_rhs 1 2 {rw ← (T : C ⥤ C).map_comp},
-    rw t.fac (new_cone D c),
-    dsimp,
-    erw [id_comp, functor.map_comp, category.assoc]
+    rw [category.assoc, category.assoc, t.fac (new_cone D c), new_cone_π_app,
+      ←functor.map_comp_assoc, t.fac (new_cone D c), new_cone_π_app, ←T.μ.naturality_assoc,
+      (D.obj j).assoc, functor.map_comp, category.assoc],
+    refl,
   end }
 
 /-- (Impl) Construct the lifted cone in `algebra T` which will be limiting. -/
@@ -71,24 +75,19 @@ variables (D : J ⥤ algebra T) (c : cone (D ⋙ forget T)) (t : is_limit c)
 def lifted_cone_is_limit : is_limit (lifted_cone D c t) :=
 { lift := λ s,
   { f := t.lift ((forget T).map_cone s),
-    h' :=
+    h' := t.hom_ext $ λ j,
     begin
-      apply t.hom_ext, intro j,
-      slice_rhs 2 3 {rw t.fac ((forget T).map_cone s) j},
       dsimp,
-      slice_lhs 2 3 {rw t.fac (new_cone D c) j},
-      dsimp,
-      rw category.id_comp,
-      slice_lhs 1 2 {rw ← (T : C ⥤ C).map_comp},
-      rw t.fac ((forget T).map_cone s) j,
-      exact (s.π.app j).h
+      rw [category.assoc, category.assoc, t.fac, new_cone_π_app, ←functor.map_comp_assoc, t.fac,
+        functor.map_cone_π_app],
+      apply (s.π.app j).h,
     end },
   uniq' := λ s m J,
   begin
     ext1,
     apply t.hom_ext,
     intro j,
-    simpa [t.fac (functor.map_cone (forget T) s) j] using congr_arg algebra.hom.f (J j),
+    simpa [t.fac ((forget T).map_cone s) j] using congr_arg algebra.hom.f (J j),
   end }
 
 end forget_creates_limits
@@ -152,12 +151,12 @@ we will show is the colimiting object. We use the cocone constructed by `c` and 
 -/
 @[reducible]
 def lambda : ((T : C ⥤ C).map_cocone c).X ⟶ c.X :=
-(preserves_colimit.preserves t).desc (new_cocone c)
+(is_colimit_of_preserves _ t).desc (new_cocone c)
 
 /-- (Impl) The key property defining the map `λ : TL ⟶ L`. -/
 lemma commuting (j : J) :
-T.map (c.ι.app j) ≫ lambda c t = (D.obj j).a ≫ c.ι.app j :=
-is_colimit.fac (preserves_colimit.preserves t) (new_cocone c) j
+(T : C ⥤ C).map (c.ι.app j) ≫ lambda c t = (D.obj j).a ≫ c.ι.app j :=
+(is_colimit_of_preserves _ t).fac (new_cocone c) j
 
 variables [preserves_colimit ((D ⋙ forget T) ⋙ ↑T) (T : C ⥤ C)]
 
@@ -175,45 +174,35 @@ algebra T :=
   begin
     apply t.hom_ext,
     intro j,
-    erw [comp_id, ← category.assoc, T.η.naturality, category.assoc, commuting, ← category.assoc],
-    erw algebra.unit, apply id_comp
+    rw [(show c.ι.app j ≫ T.η.app c.X ≫ _ = T.η.app (D.obj j).A ≫ _ ≫ _,
+                  from T.η.naturality_assoc _ _), commuting, algebra.unit_assoc (D.obj j)],
+    dsimp, simp -- See library note [dsimp, simp]
   end,
   assoc' :=
   begin
-    apply is_colimit.hom_ext (preserves_colimit.preserves (preserves_colimit.preserves t)),
-    intro j,
-    erw [← category.assoc, T.μ.naturality, ← functor.map_cocone_ι_app, category.assoc,
-         is_colimit.fac _ (new_cocone c) j],
-    rw ← category.assoc,
-    erw [← functor.map_comp, commuting],
-    dsimp,
-    erw [← category.assoc, algebra.assoc, category.assoc, functor.map_comp, category.assoc,
-      commuting],
-    apply_instance, apply_instance
+    refine (is_colimit_of_preserves _ (is_colimit_of_preserves _ t)).hom_ext (λ j, _),
+    rw [functor.map_cocone_ι_app, functor.map_cocone_ι_app,
+      (show (T : C ⥤ C).map ((T : C ⥤ C).map _) ≫ _ ≫ _ = _, from T.μ.naturality_assoc _ _),
+      ←functor.map_comp_assoc, commuting, functor.map_comp, category.assoc, commuting],
+    apply (D.obj j).assoc_assoc _,
   end }
 
 /-- (Impl) Construct the lifted cocone in `algebra T` which will be colimiting. -/
 @[simps] def lifted_cocone : cocone D :=
 { X := cocone_point c t,
   ι := { app := λ j, { f := c.ι.app j, h' := commuting _ _ _ },
-         naturality' := λ A B f, by { ext1, dsimp, erw [comp_id, c.w] } } }
+         naturality' := λ A B f, by { ext1, dsimp, rw [comp_id], apply c.w } } }
 
 /-- (Impl) Prove that the lifted cocone is colimiting. -/
 @[simps]
 def lifted_cocone_is_colimit : is_colimit (lifted_cocone c t) :=
 { desc := λ s,
   { f := t.desc ((forget T).map_cocone s),
-    h' :=
+    h' := (is_colimit_of_preserves (T : C ⥤ C) t).hom_ext $ λ j,
     begin
       dsimp,
-      apply is_colimit.hom_ext (preserves_colimit.preserves t),
-      intro j,
-      rw ← category.assoc, erw ← functor.map_comp,
-      erw t.fac',
-      rw ← category.assoc, erw forget_creates_colimits.commuting,
-      rw category.assoc, rw t.fac',
+      rw [←functor.map_comp_assoc, ←category.assoc, t.fac, commuting, category.assoc, t.fac],
       apply algebra.hom.h,
-      apply_instance
     end },
   uniq' := λ s m J,
   by { ext1, apply t.hom_ext, intro j, simpa using congr_arg algebra.hom.f (J j) } }

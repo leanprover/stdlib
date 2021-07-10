@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Amelia Livingston, Bryan Gin-ge Chen
+Authors: Amelia Livingston, Bryan Gin-ge Chen, Patrick Massot
 -/
 
 import data.setoid.basic
@@ -11,6 +11,13 @@ import data.set.lattice
 # Equivalence relations: partitions
 
 This file comprises properties of equivalence relations viewed as partitions.
+There are two implementations of partitions here:
+* A collection `c : set (set α)` of sets is a partition of `α` if `∅ ∉ c` and each element `a : α`
+  belongs to a unique set `b ∈ c`. This is expressed as `is_partition c`
+* An indexed partition is a map `s : ι → α` whose image is a partition. This is
+  expressed as `indexed_partition s`.
+
+Of course both implementations are related to `quotient` and `setoid`.
 
 ## Tags
 
@@ -93,6 +100,10 @@ set.ext $ λ x,
 lemma eqv_class_mem {c : set (set α)} (H : ∀ a, ∃! b ∈ c, a ∈ b) {y} :
   {x | (mk_classes c H).rel x y} ∈ c :=
 (H y).elim2 $ λ b hc hy hb, eq_eqv_class_of_mem H hc hy ▸ hc
+
+lemma eqv_class_mem' {c : set (set α)} (H : ∀ a, ∃! b ∈ c, a ∈ b) {x} :
+  {y : α | (mk_classes c H).rel x y} ∈ c :=
+by { convert setoid.eqv_class_mem H, ext, rw setoid.comm' }
 
 /-- Distinct elements of a set of sets partitioning α are disjoint. -/
 lemma eqv_classes_disjoint {c : set (set α)} (H : ∀ a, ∃! b ∈ c, a ∈ b) :
@@ -201,3 +212,131 @@ _ (subtype (@is_partition α)) _ (partial_order.to_preorder _) $ partition.rel_i
 end partition
 
 end setoid
+
+/-- Constructive information associated with a partition of a type `α` indexed by another type `ι`,
+`s : ι → set α`.
+
+`indexed_partition.index` sends an element to its index, while `indexed_partition.some` sends
+an index to an element of the corresponding set.
+
+This type is primarily useful for definitional control of `s` - if this is not needed, then
+`setoid.ker index` by itself may be sufficient. -/
+structure indexed_partition {ι α : Type*} (s : ι → set α) :=
+(eq_of_mem : ∀ {x i j}, x ∈ s i → x ∈ s j → i = j)
+(some : ι → α)
+(some_mem : ∀ i, some i ∈ s i)
+(index : α → ι)
+(mem_index : ∀ x, x ∈ s (index x))
+
+/-- The non-constructive constructor for `indexed_partition`. -/
+noncomputable
+def indexed_partition.mk' {ι α : Type*} (s : ι → set α) (dis : ∀ i j, i ≠ j → disjoint (s i) (s j))
+  (nonempty : ∀ i, (s i).nonempty) (ex : ∀ x, ∃ i, x ∈ s i) : indexed_partition s :=
+{ eq_of_mem := λ x i j hxi hxj, classical.by_contradiction $ λ h, dis _ _ h ⟨hxi, hxj⟩,
+  some := λ i, (nonempty i).some,
+  some_mem := λ i, (nonempty i).some_spec,
+  index := λ x, (ex x).some,
+  mem_index := λ x, (ex x).some_spec }
+
+namespace indexed_partition
+
+open set
+
+variables {ι α : Type*} {s : ι → set α} (hs : indexed_partition s)
+
+/-- On a unique index set there is the obvious trivial partition -/
+instance [unique ι] [inhabited α] :
+  inhabited (indexed_partition (λ i : ι, (set.univ : set α))) :=
+⟨{ eq_of_mem := λ x i j hi hj, subsingleton.elim _ _,
+   some := λ i, default α,
+   some_mem := set.mem_univ,
+   index := λ a, default ι,
+   mem_index := set.mem_univ }⟩
+
+attribute [simp] some_mem mem_index
+
+include hs
+
+lemma exists_mem (x : α) : ∃ i, x ∈ s i := ⟨hs.index x, hs.mem_index x⟩
+
+lemma Union : (⋃ i, s i) = univ :=
+by { ext x, simp [hs.exists_mem x] }
+
+lemma disjoint : ∀ {i j}, i ≠ j → disjoint (s i) (s j) :=
+λ i j h x ⟨hxi, hxj⟩, h (hs.eq_of_mem hxi hxj)
+
+lemma mem_iff_index_eq {x i} : x ∈ s i ↔ hs.index x = i :=
+⟨λ hxi, (hs.eq_of_mem hxi (hs.mem_index x)).symm, λ h, h ▸ hs.mem_index _⟩
+
+lemma eq (i) : s i = {x | hs.index x = i} :=
+set.ext $ λ _, hs.mem_iff_index_eq
+
+/-- The equivalence relation associated to an indexed partition. Two
+elements are equivalent if they belong to the same set of the partition. -/
+protected abbreviation setoid (hs : indexed_partition s) : setoid α :=
+setoid.ker hs.index
+
+@[simp] lemma index_some (i : ι) : hs.index (hs.some i) = i :=
+(mem_iff_index_eq _).1 $ hs.some_mem i
+
+lemma some_index (x : α) : hs.setoid.rel (hs.some (hs.index x)) x :=
+hs.index_some (hs.index x)
+
+/-- The quotient associated to an indexed partition. -/
+protected def quotient := quotient hs.setoid
+
+/-- The projection onto the quotient associated to an indexed partition. -/
+def proj : α → hs.quotient := quotient.mk'
+
+instance [inhabited α] : inhabited (hs.quotient) := ⟨hs.proj (default α)⟩
+
+lemma proj_eq_iff {x y : α} : hs.proj x = hs.proj y ↔ hs.index x = hs.index y :=
+quotient.eq_rel
+
+@[simp] lemma proj_some_index (x : α) : hs.proj (hs.some (hs.index x)) = hs.proj x :=
+quotient.eq'.2 (hs.some_index x)
+
+/-- The obvious equivalence between the quotient associated to an indexed partition and
+the indexing type. -/
+def equiv_quotient : ι ≃ hs.quotient :=
+(setoid.quotient_ker_equiv_of_right_inverse hs.index hs.some $ hs.index_some).symm
+
+@[simp] lemma equiv_quotient_index_apply (x : α) : hs.equiv_quotient (hs.index x) = hs.proj x :=
+hs.proj_eq_iff.mpr (some_index hs x)
+
+@[simp] lemma equiv_quotient_symm_proj_apply (x : α) :
+  hs.equiv_quotient.symm (hs.proj x) = hs.index x :=
+rfl
+
+lemma equiv_quotient_index : hs.equiv_quotient ∘ hs.index = hs.proj :=
+funext hs.equiv_quotient_index_apply
+
+/-- A map choosing a representative for each element of the quotient associated to an indexed
+partition. This is a computable version of `quotient.out'` using `indexed_partition.some`. -/
+def out : hs.quotient ↪ α :=
+hs.equiv_quotient.symm.to_embedding.trans ⟨hs.some, function.left_inverse.injective hs.index_some⟩
+
+/-- This lemma is analogous to `quotient.mk_out'`. -/
+@[simp]
+lemma out_proj (x : α) : hs.out (hs.proj x) = hs.some (hs.index x) :=
+rfl
+
+/-- The indices of `quotient.out'` and `indexed_partition.out` are equal. -/
+lemma index_out' (x : hs.quotient) : hs.index (x.out') = hs.index (hs.out x) :=
+quotient.induction_on' x $ λ x, (setoid.ker_apply_mk_out' x).trans (hs.index_some _).symm
+
+/-- This lemma is analogous to `quotient.out_eq'`. -/
+@[simp] lemma proj_out (x : hs.quotient) : hs.proj (hs.out x) = x :=
+quotient.induction_on' x $ λ x, quotient.sound' $ hs.some_index x
+
+lemma class_of {x : α} : set_of (hs.setoid.rel x) = s (hs.index x) :=
+set.ext $ λ y, eq_comm.trans hs.mem_iff_index_eq.symm
+
+lemma proj_fiber (x : hs.quotient) : hs.proj ⁻¹' {x} = s (hs.equiv_quotient.symm x) :=
+quotient.induction_on' x $ λ x, begin
+  ext y,
+  simp only [set.mem_preimage, set.mem_singleton_iff, hs.mem_iff_index_eq],
+  exact quotient.eq',
+end
+
+end indexed_partition

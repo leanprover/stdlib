@@ -6,6 +6,7 @@ Authors: Julian Kuelshammer
 import algebra.category.Mon.basic
 import algebra.category.Semigroup.basic
 import algebra.group.with_one
+import algebra.free_monoid
 
 /-!
 # Adjunctions regarding the category of monoids
@@ -53,5 +54,20 @@ adjunction.mk_of_hom_equiv
     apply with_one.cases_on x,
     { refl },
     { simp }
-  end
-}
+  end }
+
+
+/-- The free functor `Type u ⥤ Mon` sending a type `X` to the free monoid on `X`. -/
+def free : Type u ⥤ Mon.{u} :=
+{ obj := λ α, Mon.of (free_monoid α),
+  map := λ X Y, free_monoid.map,
+  map_id' := by { intros, ext1, refl },
+  map_comp' := by { intros, ext1, refl } }
+
+/-- The free-forgetful adjunction for monoids. -/
+def adj : free ⊣ forget Mon.{u} :=
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ X G, free_monoid.lift.symm,
+  hom_equiv_naturality_left_symm' := λ X Y G f g, begin ext1, refl end  }
+
+instance : is_right_adjoint (forget Mon.{u}) := ⟨_, adj⟩

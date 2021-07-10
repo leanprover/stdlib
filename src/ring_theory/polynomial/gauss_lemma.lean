@@ -23,6 +23,8 @@ Gauss's Lemma is one of a few results pertaining to irreducibility of primitive 
 
 -/
 
+local notation R`⁰`:9000 := non_zero_divisors R
+
 variables {R : Type*} [integral_domain R]
 
 namespace polynomial
@@ -61,86 +63,86 @@ end
 end
 
 section fraction_map
-variables {K : Type*} [field K] (f : fraction_map R K)
+variables {K : Type*} [field K] [algebra R K] [is_fraction_ring R K]
 
 lemma is_primitive.is_unit_iff_is_unit_map {p : polynomial R} (hp : p.is_primitive) :
-  is_unit p ↔ is_unit (p.map f.to_map) :=
-hp.is_unit_iff_is_unit_map_of_injective f.injective
+  is_unit p ↔ is_unit (p.map (algebra_map R K)) :=
+hp.is_unit_iff_is_unit_map_of_injective (is_fraction_ring.injective _ _)
 
-open localization_map
+open is_localization
 
 lemma is_unit_or_eq_zero_of_is_unit_integer_normalization_prim_part
-  {p : polynomial K} (h0 : p ≠ 0) (h : is_unit (f.integer_normalization p).prim_part) :
+  {p : polynomial K} (h0 : p ≠ 0) (h : is_unit (integer_normalization R⁰ p).prim_part) :
   is_unit p :=
 begin
   rcases is_unit_iff.1 h with ⟨_, ⟨u, rfl⟩, hu⟩,
-  obtain ⟨⟨c, c0⟩, hc⟩ := @integer_normalization_map_to_map _ _ _ _ _ f p,
-  rw [algebra.smul_def, ← C_eq_algebra_map, subtype.coe_mk] at hc,
+  obtain ⟨⟨c, c0⟩, hc⟩ := integer_normalization_map_to_map R⁰ p,
+  rw [subtype.coe_mk, algebra.smul_def, algebra_map_apply] at hc,
   apply is_unit_of_mul_is_unit_right,
-  rw [← hc, (f.integer_normalization p).eq_C_content_mul_prim_part, ← hu,
+  rw [← hc, (integer_normalization R⁰ p).eq_C_content_mul_prim_part, ← hu,
     ← ring_hom.map_mul, is_unit_iff],
-  refine ⟨f.to_map ((f.integer_normalization p).content * ↑u),
+  refine ⟨algebra_map R K ((integer_normalization R⁰ p).content * ↑u),
     is_unit_iff_ne_zero.2 (λ con, _), by simp⟩,
-  replace con := (ring_hom.injective_iff f.to_map).1 f.injective _ con,
-  rw [mul_eq_zero, content_eq_zero_iff, fraction_map.integer_normalization_eq_zero_iff] at con,
+  replace con := (algebra_map R K).injective_iff.1 (is_fraction_ring.injective _ _) _ con,
+  rw [mul_eq_zero, content_eq_zero_iff, is_fraction_ring.integer_normalization_eq_zero_iff] at con,
   rcases con with con | con,
   { apply h0 con },
   { apply units.ne_zero _ con },
 end
 
-/-- Gauss's Lemma states that a primitive polynomial is irreducible iff it is irreducible in the
+/-- **Gauss's Lemma** states that a primitive polynomial is irreducible iff it is irreducible in the
   fraction field. -/
 theorem is_primitive.irreducible_iff_irreducible_map_fraction_map
   {p : polynomial R} (hp : p.is_primitive) :
-  irreducible p ↔ irreducible (p.map f.to_map) :=
+  irreducible p ↔ irreducible (p.map (algebra_map R K)) :=
 begin
-  refine ⟨λ hi, ⟨λ h, hi.not_unit ((hp.is_unit_iff_is_unit_map f).2 h), λ a b hab, _⟩,
-    hp.irreducible_of_irreducible_map_of_injective f.injective⟩,
-  obtain ⟨⟨c, c0⟩, hc⟩ := @integer_normalization_map_to_map _ _ _ _ _ f a,
-  obtain ⟨⟨d, d0⟩, hd⟩ := @integer_normalization_map_to_map _ _ _ _ _ f b,
-  rw [algebra.smul_def, ← C_eq_algebra_map, subtype.coe_mk] at hc hd,
+  refine ⟨λ hi, ⟨λ h, hi.not_unit (hp.is_unit_iff_is_unit_map.2 h), λ a b hab, _⟩,
+    hp.irreducible_of_irreducible_map_of_injective (is_fraction_ring.injective _ _)⟩,
+  obtain ⟨⟨c, c0⟩, hc⟩ := integer_normalization_map_to_map R⁰ a,
+  obtain ⟨⟨d, d0⟩, hd⟩ := integer_normalization_map_to_map R⁰ b,
+  rw [algebra.smul_def, algebra_map_apply, subtype.coe_mk] at hc hd,
   rw mem_non_zero_divisors_iff_ne_zero at c0 d0,
   have hcd0 : c * d ≠ 0 := mul_ne_zero c0 d0,
   rw [ne.def, ← C_eq_zero] at hcd0,
-  have h1 : C c * C d * p = f.integer_normalization a * f.integer_normalization b,
-  { apply (map_injective _ f.injective _),
+  have h1 : C c * C d * p = integer_normalization R⁰ a * integer_normalization R⁰ b,
+  { apply map_injective (algebra_map R K) (is_fraction_ring.injective _ _) _,
     rw [map_mul, map_mul, map_mul, hc, hd, map_C, map_C, hab],
     ring },
-  obtain ⟨u, hu⟩ : associated (c * d) (content (f.integer_normalization a) *
-            content (f.integer_normalization b)),
+  obtain ⟨u, hu⟩ : associated (c * d) (content (integer_normalization R⁰ a) *
+            content (integer_normalization R⁰ b)),
   { rw [← dvd_dvd_iff_associated, ← normalize_eq_normalize_iff, normalize.map_mul,
         normalize.map_mul, normalize_content, normalize_content,
         ← mul_one (normalize c * normalize d), ← hp.content_eq_one, ← content_C, ← content_C,
         ← content_mul, ← content_mul, ← content_mul, h1] },
   rw [← ring_hom.map_mul, eq_comm,
-    (f.integer_normalization a).eq_C_content_mul_prim_part,
-    (f.integer_normalization b).eq_C_content_mul_prim_part, mul_assoc,
+    (integer_normalization R⁰ a).eq_C_content_mul_prim_part,
+    (integer_normalization R⁰ b).eq_C_content_mul_prim_part, mul_assoc,
     mul_comm _ (C _ * _), ← mul_assoc, ← mul_assoc, ← ring_hom.map_mul, ← hu, ring_hom.map_mul,
     mul_assoc, mul_assoc, ← mul_assoc (C ↑u)] at h1,
   have h0 : (a ≠ 0) ∧ (b ≠ 0),
   { classical,
     rw [ne.def, ne.def, ← decidable.not_or_iff_and_not, ← mul_eq_zero, ← hab],
     intro con,
-    apply hp.ne_zero (map_injective _ f.injective _),
+    apply hp.ne_zero (map_injective (algebra_map R K) (is_fraction_ring.injective _ _) _),
     simp [con] },
   rcases hi.is_unit_or_is_unit (mul_left_cancel' hcd0 h1).symm with h | h,
   { right,
-    apply is_unit_or_eq_zero_of_is_unit_integer_normalization_prim_part f h0.2
+    apply is_unit_or_eq_zero_of_is_unit_integer_normalization_prim_part h0.2
       (is_unit_of_mul_is_unit_right h) },
   { left,
-    apply is_unit_or_eq_zero_of_is_unit_integer_normalization_prim_part f h0.1 h },
+    apply is_unit_or_eq_zero_of_is_unit_integer_normalization_prim_part h0.1 h },
 end
 
 lemma is_primitive.dvd_of_fraction_map_dvd_fraction_map {p q : polynomial R}
-  (hp : p.is_primitive) (hq : q.is_primitive) (h_dvd : p.map f.to_map ∣ q.map f.to_map) :
-  (p ∣ q) :=
+  (hp : p.is_primitive) (hq : q.is_primitive)
+  (h_dvd : p.map (algebra_map R K) ∣ q.map (algebra_map R K)) : p ∣ q :=
 begin
   rcases h_dvd with ⟨r, hr⟩,
-  obtain ⟨⟨s, s0⟩, hs⟩ := @integer_normalization_map_to_map _ _ _ _ _ f r,
-  rw [algebra.smul_def, ← C_eq_algebra_map, subtype.coe_mk] at hs,
+  obtain ⟨⟨s, s0⟩, hs⟩ := integer_normalization_map_to_map R⁰ r,
+  rw [subtype.coe_mk, algebra.smul_def, algebra_map_apply] at hs,
   have h : p ∣ q * C s,
-  { use (f.integer_normalization r),
-    apply map_injective _ f.injective,
+  { use (integer_normalization R⁰ r),
+    apply map_injective (algebra_map R K) (is_fraction_ring.injective _ _),
     rw [map_mul, map_mul, hs, hr, mul_assoc, mul_comm r],
     simp },
   rw [← hp.dvd_prim_part_iff_dvd, prim_part_mul, hq.prim_part_eq, dvd_iff_dvd_of_rel_right] at h,
@@ -155,25 +157,27 @@ begin
     simp [s0, mem_non_zero_divisors_iff_ne_zero] }
 end
 
+variables (K)
+
 lemma is_primitive.dvd_iff_fraction_map_dvd_fraction_map {p q : polynomial R}
   (hp : p.is_primitive) (hq : q.is_primitive) :
-  (p ∣ q) ↔ (p.map f.to_map ∣ q.map f.to_map) :=
-⟨λ ⟨a,b⟩, ⟨a.map f.to_map, b.symm ▸ (map_mul f.to_map)⟩,
-  λ h, hp.dvd_of_fraction_map_dvd_fraction_map f hq h⟩
+  (p ∣ q) ↔ (p.map (algebra_map R K) ∣ q.map (algebra_map R K)) :=
+⟨λ ⟨a,b⟩, ⟨a.map (algebra_map R K), b.symm ▸ map_mul (algebra_map R K)⟩,
+  λ h, hp.dvd_of_fraction_map_dvd_fraction_map hq h⟩
 
 end fraction_map
 
-/-- Gauss's Lemma for `ℤ` states that a primitive integer polynomial is irreducible iff it is
+/-- **Gauss's Lemma** for `ℤ` states that a primitive integer polynomial is irreducible iff it is
   irreducible over `ℚ`. -/
 theorem is_primitive.int.irreducible_iff_irreducible_map_cast
   {p : polynomial ℤ} (hp : p.is_primitive) :
   irreducible p ↔ irreducible (p.map (int.cast_ring_hom ℚ)) :=
-hp.irreducible_iff_irreducible_map_fraction_map fraction_map.int.fraction_map
+hp.irreducible_iff_irreducible_map_fraction_map
 
 lemma is_primitive.int.dvd_iff_map_cast_dvd_map_cast (p q : polynomial ℤ)
   (hp : p.is_primitive) (hq : q.is_primitive) :
   (p ∣ q) ↔ (p.map (int.cast_ring_hom ℚ) ∣ q.map (int.cast_ring_hom ℚ)) :=
-hp.dvd_iff_fraction_map_dvd_fraction_map fraction_map.int.fraction_map hq
+hp.dvd_iff_fraction_map_dvd_fraction_map ℚ hq
 
 end gcd_monoid
 end polynomial

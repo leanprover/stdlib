@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Scott Morrison
 -/
 import data.finset.preimage
 import algebra.indicator_function
+import algebra.group_action_hom
 
 /-!
 # Type of functions with finite support
@@ -2171,6 +2172,33 @@ instance [semiring R] [add_comm_monoid M] [module R M] {ι : Type*}
   [no_zero_smul_divisors R M] : no_zero_smul_divisors R (ι →₀ M) :=
 ⟨λ c f h, or_iff_not_imp_left.mpr (λ hc, finsupp.ext
   (λ i, (smul_eq_zero.mp (finsupp.ext_iff.mp h i)).resolve_left hc))⟩
+
+section distrib_mul_action_hom
+
+variables [semiring R]
+variables [add_comm_monoid M] [add_comm_monoid N] [distrib_mul_action R M] [distrib_mul_action R N]
+
+/-- `finsupp.single` as a `distrib_mul_action_hom`.
+
+See also `finsupp.lsingle` for the version as a linear map. -/
+def distrib_mul_action_hom.single (a : α) : M →+[R] (α →₀ M) :=
+{ map_smul' :=
+    λ k m, by simp only [add_monoid_hom.to_fun_eq_coe, single_add_hom_apply, smul_single],
+  .. single_add_hom a }
+
+lemma distrib_mul_action_hom_ext {f g : (α →₀ M) →+[R] N}
+  (h : ∀ (a : α) (m : M), f (single a m) = g (single a m)) :
+  f = g :=
+distrib_mul_action_hom.to_add_monoid_hom_injective $ add_hom_ext h
+
+/-- See note [partially-applied ext lemmas]. -/
+@[ext] lemma distrib_mul_action_hom_ext' {f g : (α →₀ M) →+[R] N}
+  (h : ∀ (a : α), f.comp (distrib_mul_action_hom.single a) =
+                  g.comp (distrib_mul_action_hom.single a)) :
+  f = g :=
+distrib_mul_action_hom_ext $ λ a, distrib_mul_action_hom.congr_fun (h a)
+
+end distrib_mul_action_hom
 
 section
 variables [has_zero R]

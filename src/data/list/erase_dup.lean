@@ -5,23 +5,32 @@ Authors: Mario Carneiro
 -/
 import data.list.nodup
 
+/-!
+# Erasure of duplicates in a list
+
+This file proves basic results about `list.erase_dup` (definition in `data.list.defs`).
+`erase_dup l` returns `l` without its duplicates. It keeps the earliest (that is, rightmost)
+occurrence of each.
+
+## Tags
+
+duplicate, multiplicity, nodup, `nub`
+-/
+
 universes u
-variables {α : Type u}
 
 namespace list
 
-/- erase duplicates function -/
-
-variable [decidable_eq α]
+variables {α : Type u} [decidable_eq α]
 
 @[simp] theorem erase_dup_nil : erase_dup [] = ([] : list α) := rfl
 
 theorem erase_dup_cons_of_mem' {a : α} {l : list α} (h : a ∈ erase_dup l) :
-  erase_dup (a::l) = erase_dup l :=
+  erase_dup (a :: l) = erase_dup l :=
 pw_filter_cons_of_neg $ by simpa only [forall_mem_ne] using h
 
 theorem erase_dup_cons_of_not_mem' {a : α} {l : list α} (h : a ∉ erase_dup l) :
-  erase_dup (a::l) = a :: erase_dup l :=
+  erase_dup (a :: l) = a :: erase_dup l :=
 pw_filter_cons_of_pos $ by simpa only [forall_mem_ne] using h
 
 @[simp] theorem mem_erase_dup {a : α} {l : list α} : a ∈ erase_dup l ↔ a ∈ l :=
@@ -29,11 +38,11 @@ by simpa only [erase_dup, forall_mem_ne, not_not] using not_congr (@forall_mem_p
   (λ x y z xz, not_and_distrib.1 $ mt (and.rec eq.trans) xz) a l)
 
 @[simp] theorem erase_dup_cons_of_mem {a : α} {l : list α} (h : a ∈ l) :
-  erase_dup (a::l) = erase_dup l :=
+  erase_dup (a :: l) = erase_dup l :=
 erase_dup_cons_of_mem' $ mem_erase_dup.2 h
 
 @[simp] theorem erase_dup_cons_of_not_mem {a : α} {l : list α} (h : a ∉ l) :
-  erase_dup (a::l) = a :: erase_dup l :=
+  erase_dup (a :: l) = a :: erase_dup l :=
 erase_dup_cons_of_not_mem' $ mt mem_erase_dup.1 h
 
 theorem erase_dup_sublist : ∀ (l : list α), erase_dup l <+ l := pw_filter_sublist

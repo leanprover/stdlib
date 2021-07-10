@@ -319,16 +319,19 @@ lemma nat_trans_from_is_connected [is_preconnected J] {X Y : C}
   (λ j, α.app j)
   (λ _ _ f, (by { have := α.naturality f, erw [id_comp, comp_id] at this, exact this.symm }))
 
-instance nonempty_hom_of_connected_groupoid {G} [groupoid G] [is_connected G] (x y : G) :
-  nonempty (x ⟶ y) :=
+instance [is_connected J] : full (functor.const J : C ⥤ J ⥤ C) :=
+{ preimage := λ X Y f, f.app (classical.arbitrary J),
+  witness' := λ X Y f,
+  begin
+    ext j,
+    apply nat_trans_from_is_connected f (classical.arbitrary J) j,
+  end }
+
+instance nonempty_hom_of_connected_groupoid {G} [groupoid G] [is_connected G] :
+  ∀ (x y : G), nonempty (x ⟶ y) :=
 begin
-  have h := is_connected_zigzag x y,
-  induction h with z w _ h ih,
-  { exact ⟨𝟙 x⟩ },
-  { refine nonempty.map (λ f, f ≫ classical.choice _) ih,
-    cases h,
-    { assumption },
-    { apply nonempty.map (λ f, inv f) h } }
+  refine equiv_relation _ _ (λ j₁ j₂, nonempty.intro),
+  exact ⟨λ j, ⟨𝟙 _⟩, λ j₁ j₂, nonempty.map (λ f, inv f), λ _ _ _, nonempty.map2 (≫)⟩,
 end
 
 end category_theory

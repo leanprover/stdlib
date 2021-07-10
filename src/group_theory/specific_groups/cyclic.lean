@@ -7,6 +7,7 @@ Authors: Johannes Hölzl
 import algebra.big_operators.order
 import data.nat.totient
 import group_theory.order_of_element
+import tactic.group
 
 /-!
 # Cyclic groups
@@ -364,6 +365,40 @@ end, λ H Hn, begin
 end⟩
 
 end cyclic
+
+section quotient_center
+
+open subgroup
+
+variables {G : Type*} {H : Type*} [group G] [group H]
+
+/-- A group is commutative if the quotient by the center is cyclic.
+  Also see `comm_group_of_cycle_center_quotient` for the `comm_group` instance -/
+lemma commutative_of_cyclic_center_quotient [is_cyclic H] (f : G →* H)
+  (hf : f.ker ≤ center G) (a b : G) : a * b = b * a :=
+let ⟨⟨x, y, (hxy : f y = x)⟩, (hx : ∀ a : f.range, a ∈ gpowers _)⟩ :=
+  is_cyclic.exists_generator f.range in
+let ⟨m, hm⟩ := hx ⟨f a, a, rfl⟩ in
+let ⟨n, hn⟩ := hx ⟨f b, b, rfl⟩ in
+have hm : x ^ m = f a, by simpa [subtype.ext_iff] using hm,
+have hn : x ^ n = f b, by simpa [subtype.ext_iff] using hn,
+have ha : y ^ (-m) * a ∈ center G,
+  from hf (by rw [f.mem_ker, f.map_mul, f.map_gpow, hxy, gpow_neg, hm, inv_mul_self]),
+have hb : y ^ (-n) * b ∈ center G,
+  from hf (by rw [f.mem_ker, f.map_mul, f.map_gpow, hxy, gpow_neg, hn, inv_mul_self]),
+calc a * b = y ^ m * ((y ^ (-m) * a) * y ^ n) * (y ^ (-n) * b) : by simp [mul_assoc]
+... = y ^ m * (y ^ n * (y ^ (-m) * a)) * (y ^ (-n) * b) : by rw [mem_center_iff.1 ha]
+... = y ^ m * y ^ n * y ^ (-m) * (a * (y ^ (-n) * b)) : by simp [mul_assoc]
+... = y ^ m * y ^ n * y ^ (-m) * ((y ^ (-n) * b) * a) : by rw [mem_center_iff.1 hb]
+... = b * a : by group
+
+/-- A group is commutative if the quotient by the center is cyclic. -/
+def comm_group_of_cycle_center_quotient [is_cyclic H] (f : G →* H)
+  (hf : f.ker ≤ center G) : comm_group G :=
+{ mul_comm := commutative_of_cyclic_center_quotient f hf,
+  ..show group G, by apply_instance }
+
+end quotient_center
 
 namespace is_simple_group
 

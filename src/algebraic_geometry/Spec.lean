@@ -34,6 +34,7 @@ noncomputable theory
 namespace algebraic_geometry
 open opposite
 open category_theory
+open structure_sheaf
 
 /--
 The spectrum of a commutative ring, as a topological space.
@@ -83,8 +84,8 @@ The induced map of a ring homomorphism on the ring spectra, as a morphism of she
   Spec.SheafedSpace_obj S ⟶ Spec.SheafedSpace_obj R :=
 { base := Spec.Top_map f,
   c :=
-  { app := λ U, structure_sheaf.comap f (unop U)
-      ((topological_space.opens.map (Spec.Top_map f)).obj (unop U)) (λ p, id),
+  { app := λ U, comap f (unop U) ((topological_space.opens.map (Spec.Top_map f)).obj (unop U))
+      (λ p, id),
     naturality' := λ U V i, ring_hom.ext $ λ s, subtype.eq $ funext $ λ p, rfl } }
 
 @[simp] lemma Spec.SheafedSpace_map_id {R : CommRing} :
@@ -92,7 +93,7 @@ The induced map of a ring homomorphism on the ring spectra, as a morphism of she
 PresheafedSpace.ext _ _ (Spec.Top_map_id R) $ nat_trans.ext _ _ $ funext $ λ U,
 begin
   dsimp,
-  erw [PresheafedSpace.id_c_app, structure_sheaf.comap_id], swap,
+  erw [PresheafedSpace.id_c_app, comap_id], swap,
     { rw [Spec.Top_map_id, topological_space.opens.map_id_obj_unop] },
   rw [eq_to_hom_op, eq_to_hom_map, eq_to_hom_trans],
   refl,
@@ -104,7 +105,7 @@ PresheafedSpace.ext _ _ (Spec.Top_map_comp f g) $ nat_trans.ext _ _ $ funext $ �
 begin
   dsimp,
   erw [Top.presheaf.pushforward.comp_inv_app, ← category.assoc, category.comp_id,
-    (structure_sheaf T).presheaf.map_id, category.comp_id, structure_sheaf.comap_comp],
+    (structure_sheaf T).presheaf.map_id, category.comp_id, comap_comp],
   refl,
 end
 

@@ -397,7 +397,7 @@ variables {C : Type v₃} [semiring C] [algebra R C]
 theorem ext {g h : (A ⊗[R] B) →ₐ[R] C}
   (H : ∀ a b, g (a ⊗ₜ b) = h (a ⊗ₜ b)) : g = h :=
 begin
-  apply @alg_hom.to_linear_map_inj R (A ⊗[R] B) C _ _ _ _ _ _ _ _,
+  apply @alg_hom.to_linear_map_injective R (A ⊗[R] B) C _ _ _ _ _ _ _ _,
   ext,
   simp [H],
 end

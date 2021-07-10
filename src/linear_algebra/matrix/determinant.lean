@@ -143,24 +143,24 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
 ... = ∑ p in (@univ (n → n) _).filter bijective, ∑ σ : perm n,
     ε σ * ∏ i, (M (σ i) (p i) * N (p i) i) :
   eq.symm $ sum_subset (filter_subset _ _)
-    (λ f _ hbij, det_mul_aux $ by simpa using hbij)
+    (λ f _ hbij, det_mul_aux $ by simpa only [true_and, mem_filter, mem_univ] using hbij)
 ... = ∑ τ : perm n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) (τ i) * N (τ i) i) :
   sum_bij (λ p h, equiv.of_bijective p (mem_filter.1 h).2) (λ _ _, mem_univ _)
     (λ _ _, rfl) (λ _ _ _ _ h, by injection h)
     (λ b _, ⟨b, mem_filter.2 ⟨mem_univ _, b.bijective⟩, coe_fn_injective rfl⟩)
 ... = ∑ σ : perm n, ∑ τ : perm n, (∏ i, N (σ i) i) * ε τ * (∏ j, M (τ j) (σ j)) :
-  by simp [mul_sum, det_apply', mul_comm, mul_left_comm, prod_mul_distrib, mul_assoc]
+  by simp only [mul_comm, mul_left_comm, prod_mul_distrib, mul_assoc]
 ... = ∑ σ : perm n, ∑ τ : perm n, (((∏ i, N (σ i) i) * (ε σ * ε τ)) * ∏ i, M (τ i) i) :
   sum_congr rfl (λ σ _, fintype.sum_equiv (equiv.mul_right σ⁻¹) _ _
     (λ τ,
       have ∏ j, M (τ j) (σ j) = ∏ j, M ((τ * σ⁻¹) j) j,
-        by rw ← σ⁻¹.prod_comp; simp [mul_apply],
+        by { rw ← σ⁻¹.prod_comp, simp only [equiv.perm.coe_mul, apply_inv_self] },
       have h : ε σ * ε (τ * σ⁻¹) = ε τ :=
         calc ε σ * ε (τ * σ⁻¹) = ε ((τ * σ⁻¹) * σ) :
-          by rw [mul_comm, sign_mul (τ * σ⁻¹)]; simp
-        ... = ε τ : by simp,
-      by simp_rw [equiv.coe_mul_right, h]; simp [this, mul_comm, mul_assoc, mul_left_comm]))
-... = det M * det N : by simp [det_apply', mul_assoc, mul_sum, mul_comm, mul_left_comm]
+          by { rw [mul_comm, sign_mul (τ * σ⁻¹)], simp only [int.cast_mul, units.coe_mul] }
+        ... = ε τ : by simp only [inv_mul_cancel_right],
+      by { simp_rw [equiv.coe_mul_right, h], simp only [this] }))
+... = det M * det N : by simp only [det_apply', finset.mul_sum, mul_comm, mul_left_comm]
 
 instance : is_monoid_hom (det : matrix n n R → R) :=
 { map_one := det_one,
@@ -211,21 +211,13 @@ lemma det_minor_equiv_self (e : n ≃ m) (A : matrix m m R) :
   det (A.minor e e) = det A :=
 begin
   rw [det_apply', det_apply'],
-  apply finset.sum_bij' (λ σ _, equiv.perm_congr e σ) _ _ (λ σ _, equiv.perm_congr e.symm σ),
-  { intros σ _, ext, simp only [equiv.symm_symm, equiv.perm_congr_apply, equiv.symm_apply_apply] },
-  { intros σ _, ext, simp only [equiv.symm_symm, equiv.perm_congr_apply, equiv.apply_symm_apply] },
-  { intros σ _, apply finset.mem_univ },
-  { intros σ _, apply finset.mem_univ },
-  intros σ _,
-  simp_rw [equiv.perm_congr_apply],
+  apply fintype.sum_equiv (equiv.perm_congr e),
+  intro σ,
   rw equiv.perm.sign_perm_congr e σ,
   congr' 1,
-  apply finset.prod_bij' (λ i _, e i) _ _ (λ i _, e.symm i),
-  { intros, simp_rw equiv.symm_apply_apply },
-  { intros, simp_rw equiv.apply_symm_apply },
-  { intros, apply finset.mem_univ },
-  { intros, apply finset.mem_univ },
-  { intros, simp_rw equiv.symm_apply_apply, rw minor_apply, },
+  apply fintype.prod_equiv e,
+  intro i,
+  rw [equiv.perm_congr_apply, equiv.symm_apply_apply, minor_apply],
 end
 
 /-- Reindexing both indices along the same equivalence preserves the determinant.
@@ -489,10 +481,11 @@ begin
   { intros σ _,
     rw mem_preserving_snd,
     rintros ⟨k, x⟩,
-    simp },
+    simp only [prod_congr_left_apply] },
   { intros σ _,
     rw [finset.prod_mul_distrib, ←finset.univ_product_univ, finset.prod_product, finset.prod_comm],
-    simp [sign_prod_congr_left] },
+    simp only [sign_prod_congr_left, units.coe_prod, int.coe_prod, block_diagonal_apply_eq,
+      prod_congr_left_apply] },
   { intros σ σ' _ _ eq,
     ext x hx k,
     simp only at eq,
@@ -507,18 +500,24 @@ begin
     { intro x, conv_rhs { rw [← perm.apply_inv_self σ x, hσ] } },
     have mk_apply_eq : ∀ k x, ((σ (x, k)).fst, k) = σ (x, k),
     { intros k x,
-      ext; simp [hσ] },
+      ext,
+      { simp only},
+      { simp only [hσ] } },
     have mk_inv_apply_eq : ∀ k x, ((σ⁻¹ (x, k)).fst, k) = σ⁻¹ (x, k),
     { intros k x,
       conv_lhs { rw ← perm.apply_inv_self σ (x, k) },
-      ext; simp [hσ'] },
+      ext,
+      { simp only [apply_inv_self] },
+      { simp only [hσ'] } },
     refine ⟨λ k _, ⟨λ x, (σ (x, k)).fst, λ x, (σ⁻¹ (x, k)).fst, _, _⟩, _, _⟩,
     { intro x,
-      simp [mk_apply_eq, mk_inv_apply_eq] },
+      simp only [mk_apply_eq, inv_apply_self] },
     { intro x,
-      simp [mk_apply_eq, mk_inv_apply_eq] },
+      simp only [mk_inv_apply_eq, apply_inv_self] },
     { apply finset.mem_univ },
-    { ext ⟨k, x⟩; simp [hσ] } },
+    { ext ⟨k, x⟩,
+      { simp only [coe_fn_mk, prod_congr_left_apply] },
+      { simp only [prod_congr_left_apply, hσ] } } },
   { intros σ _ hσ,
     rw mem_preserving_snd at hσ,
     obtain ⟨⟨k, x⟩, hkx⟩ := not_forall.mp hσ,
@@ -545,7 +544,7 @@ begin
     simp only [],
     erw [set.mem_to_finset, monoid_hom.mem_range],
     use σ₁₂,
-    simp },
+    simp only [sum_congr_hom_apply] },
   { simp only [forall_prop_of_true, prod.forall, mem_univ],
     intros σ₁ σ₂,
     rw fintype.prod_sum_type,
@@ -554,8 +553,7 @@ begin
     have hr : ∀ (a b c d : R), (a * b) * (c * d) = a * c * (b * d), { intros, ac_refl },
     rw hr,
     congr,
-    norm_cast,
-    rw sign_sum_congr },
+    rw [sign_sum_congr, units.coe_mul, int.cast_mul] },
   { intros σ₁ σ₂ h₁ h₂,
     dsimp only [],
     intro h,

@@ -48,10 +48,10 @@ section
 variables (R M M₂)
 
 /-- The first projection of a product is a linear map. -/
-def fst : M × M₂ →ₗ[R] M := ⟨prod.fst, λ x y, rfl, λ x y, rfl⟩
+def fst : M × M₂ →ₗ[R] M := { to_fun := prod.fst, map_add' := λ x y, rfl, map_smul' := λ x y, rfl }
 
 /-- The second projection of a product is a linear map. -/
-def snd : M × M₂ →ₗ[R] M₂ := ⟨prod.snd, λ x y, rfl, λ x y, rfl⟩
+def snd : M × M₂ →ₗ[R] M₂ := { to_fun := prod.snd, map_add' := λ x y, rfl, map_smul' := λ x y, rfl }
 end
 
 @[simp] theorem fst_apply (x : M × M₂) : fst R M M₂ x = x.1 := rfl
@@ -142,6 +142,16 @@ theorem snd_eq_coprod : snd R M M₂ = coprod 0 linear_map.id := by ext; simp
   (f' : M →ₗ[R] M₂) (g' : M →ₗ[R] M₃) :
   (f.coprod g).comp (f'.prod g') = f.comp f' + g.comp g' :=
 rfl
+
+@[simp]
+lemma coprod_map_prod (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) (S : submodule R M)
+  (S' : submodule R M₂) :
+  (submodule.prod S S').map (linear_map.coprod f g) = S.map f ⊔ S'.map g :=
+set_like.coe_injective $ begin
+  simp only [linear_map.coprod_apply, submodule.coe_sup, submodule.map_coe],
+  rw [←set.image2_add, set.image2_image_left, set.image2_image_right],
+  exact set.image_prod (λ m m₂, f m + g m₂),
+end
 
 /-- Taking the product of two maps with the same codomain is equivalent to taking the product of
 their domains.

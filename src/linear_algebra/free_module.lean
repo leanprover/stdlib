@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Riccardo Brasca
 -/
 
-import linear_algebra.basis
-import logic.small
 import linear_algebra.direct_sum.finsupp
+import linear_algebra.std_basis
+import logic.small
 
 /-!
 
@@ -25,13 +25,13 @@ universes u v w z
 
 variables (R : Type u) (M : Type v) (N : Type z)
 
-open_locale tensor_product
+open_locale tensor_product direct_sum
 
 section basic
 
 variables [semiring R] [add_comm_monoid M] [module R M]
 
-/-- `finite_free R M` is the statement that the `R`-module `R` is free of finite rank.-/
+/-- `module.free R M` is the statement that the `R`-module `M` is free.-/
 class module.free : Prop :=
 (exists_basis [] : nonempty (Σ (I : Type v), basis I R M))
 
@@ -116,6 +116,18 @@ instance self : module.free R R := of_basis $ basis.singleton unit R
 @[priority 100]
 instance of_subsingleton [subsingleton N] : module.free R N :=
 of_basis (basis.empty N : basis pempty R N)
+
+instance dfinsupp {ι : Type*} (M : ι → Type*) [Π (i : ι), add_comm_monoid (M i)]
+  [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] : module.free R (Π₀ i, M i) :=
+of_basis $ dfinsupp.basis $ λ i, choose_basis R (M i)
+
+instance direct_sum {ι : Type*} (M : ι → Type*) [Π (i : ι), add_comm_monoid (M i)]
+  [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] : module.free R (⨁ i, M i) :=
+module.free.dfinsupp R M
+
+instance pi {ι : Type*} [fintype ι] {M : ι → Type*} [Π (i : ι), add_comm_group (M i)]
+[Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] : module.free R (Π i, M i) :=
+of_basis $ pi.basis $ λ i, choose_basis R (M i)
 
 end semiring
 

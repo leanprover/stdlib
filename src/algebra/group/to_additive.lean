@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Yury Kudryashov
+Authors: Mario Carneiro, Yury Kudryashov, Floris van Doorn
 -/
 import tactic.transform_decl
 import tactic.algebra
@@ -21,26 +21,25 @@ Usage information is contained in the doc string of `to_additive.attr`.
 
 * For structures, automatically generate theorems like `group α ↔
   add_group (additive α)`.
-
-* Rewrite rules for the last part of the name that work in more
-  cases. E.g., we can replace `monoid` with `add_monoid` etc.
 -/
 
 namespace to_additive
-open tactic exceptional
+open tactic
+setup_tactic_parser
 
 section performance_hack -- see Note [user attribute parameters]
 
 local attribute [semireducible] reflected
 
+/-- Temporarily change the `has_reflect` instance for `name`. -/
 local attribute [instance, priority 9000]
-private meta def hacky_name_reflect : has_reflect name :=
+meta def hacky_name_reflect : has_reflect name :=
 λ n, `(id %%(expr.const n []) : name)
 
 /-- An auxiliary attribute used to store the names of the additive versions of declarations
 that have been processed by `to_additive`. -/
 @[user_attribute]
-private meta def aux_attr : user_attribute (name_map name) name :=
+meta def aux_attr : user_attribute (name_map name) name :=
 { name      := `to_additive_aux,
   descr     := "Auxiliary attribute for `to_additive`. DON'T USE IT",
   cache_cfg := ⟨λ ns,
@@ -56,6 +55,53 @@ private meta def aux_attr : user_attribute (name_map name) name :=
   parser    := lean.parser.ident }
 
 end performance_hack
+
+section extra_attributes
+
+/--
+An attribute that tells `@[to_additive]` that certain arguments of this definition are not
+involved when using `@[to_additive]`.
+This helps the heuristic of `@[to_additive]` by also transforming definitions if `ℕ` or another
+fixed type occurs as one of these arguments.
+-/
+@[user_attribute]
+meta def ignore_args_attr : user_attribute (name_map $ list ℕ) (list ℕ) :=
+{ name      := `to_additive_ignore_args,
+  descr     :=
+    "Auxiliary attribute for `to_additive` stating that certain arguments are not additivized.",
+  cache_cfg :=
+    ⟨λ ns, ns.mfoldl
+      (λ dict n, do
+        param ← ignore_args_attr.get_param_untyped n, -- see Note [user attribute parameters]
+        return $ dict.insert n (param.to_list expr.to_nat).iget)
+      mk_name_map, []⟩,
+  parser    := (lean.parser.small_nat)* }
+
+/--
+An attribute that stores all the declarations that needs their arguments reordered when
+applying `@[to_additive]`. Currently, we only support swapping consecutive arguments.
+The list of the natural numbers contains the positions of the first of the two arguments
+to be swapped.
+Example: `@[to_additive_reorder 1 4]` swaps the first two arguments and the arguments in
+positions 4 and 5.
+-/
+@[user_attribute]
+meta def reorder_attr : user_attribute (name_map $ list ℕ) (list ℕ) :=
+{ name      := `to_additive_reorder,
+  descr     :=
+    "Auxiliary attribute for `to_additive` that stores arguments that need to be reordered.",
+  cache_cfg :=
+    ⟨λ ns, ns.mfoldl
+      (λ dict n, do
+        param ← reorder_attr.get_param_untyped n, -- see Note [user attribute parameters]
+        return $ dict.insert n (param.to_list expr.to_nat).iget)
+      mk_name_map, []⟩,
+  parser    := do
+    l ← (lean.parser.small_nat)*,
+    guard (l.all (≠ 0)) <|> exceptional.fail "The reorder positions must be positive",
+    return l }
+
+end extra_attributes
 
 /-- A command that can be used to have future uses of `to_additive` change the `src` namespace
 to the `tgt` namespace.
@@ -75,10 +121,18 @@ do let n := src.mk_string "_to_additive",
    aux_attr.set n tgt tt
 
 /-- `value_type` is the type of the arguments that can be provided to `to_additive`.
-`to_additive.parser` parses the provided arguments into `name` for the target and an
-optional doc string. -/
+`to_additive.parser` parses the provided arguments:
+* `replace_all`: replace all multiplicative declarations, do not use the heuristic.
+* `trace`: output the generated additive declaration.
+* `tgt : name`: the name of the target (the additive declaration).
+* `doc`: an optional doc string.
+-/
 @[derive has_reflect, derive inhabited]
-structure value_type : Type := (tgt : name) (doc : option string)
+structure value_type : Type :=
+(replace_all : bool)
+(trace : bool)
+(tgt : name)
+(doc : option string)
 
 /-- `add_comm_prefix x s` returns `"comm_" ++ s` if `x = tt` and `s` otherwise. -/
 meta def add_comm_prefix : bool → string → string
@@ -126,7 +180,7 @@ meta def target_name (src tgt : name) (dict : name_map name) : tactic name :=
  else match src with
       | (name.mk_string s pre) :=
         do let tgt_auto := guess_name s,
-           guard (tgt.to_string ≠ tgt_auto)
+           guard (tgt.to_string ≠ tgt_auto ∨ tgt = src)
              <|> trace ("`to_additive " ++ src.to_string ++ "`: correctly autogenerated target " ++
                "name, you may remove the explicit " ++ tgt_auto ++ " argument."),
            pure $ name.mk_string
@@ -135,20 +189,23 @@ meta def target_name (src tgt : name) (dict : name_map name) : tactic name :=
       | _ := fail ("to_additive: can't transport " ++ src.to_string)
       end) >>=
 (λ res,
-  if res = src
-  then fail ("to_additive: can't transport " ++ src.to_string ++ " to itself")
+  if res = src ∧ tgt ≠ src
+  then fail ("to_additive: can't transport " ++ src.to_string ++ " to itself.
+Give the desired additive name explicitly using `@[to_additive additive_name]`. ")
   else pure res)
 
-/-- the parser for the arguments to `to_additive` -/
+/-- the parser for the arguments to `to_additive`. -/
 meta def parser : lean.parser value_type :=
 do
-  tgt ← optional lean.parser.ident,
-  e ← optional interactive.types.texpr,
+  bang ← option.is_some <$> (tk "!")?,
+  ques ← option.is_some <$> (tk "?")?,
+  tgt ← ident?,
+  e ← texpr?,
   doc ← match e with
       | some pe := some <$> ((to_expr pe >>= eval_expr string) : tactic string)
       | none := pure none
       end,
-  return ⟨tgt.get_or_else name.anonymous, doc⟩
+  return ⟨bang, ques, tgt.get_or_else name.anonymous, doc⟩
 
 private meta def proceed_fields_aux (src tgt : name) (prio : ℕ) (f : name → tactic (list string)) :
   command :=
@@ -230,7 +287,40 @@ In the `mul_comm'` example above, `to_additive` maps:
 * `x * y` to `x + y` and `y * x` to `y + x`, and
 * `comm_semigroup.mul_comm'` to `add_comm_semigroup.add_comm'`.
 
-Even when `to_additive` is unable to automatically generate the additive
+### Heuristics
+
+`to_additive` uses heuristics to determine whether a particular identifier has to be
+mapped to its additive version. The basic heuristic is
+
+* Only map an identifier to its additive version if its first argument doesn't
+  contain any unapplied identifiers.
+
+Examples:
+* `@has_mul.mul ℕ n m` (i.e. `(n * m : ℕ)`) will not change to `+`, since its
+  first argument is `ℕ`, an identifier not applied to any arguments.
+* `@has_mul.mul (α × β) x y` will change to `+`. It's first argument contains only the identifier
+  `prod`, but this is applied to arguments, `α` and `β`.
+* `@has_mul.mul (α × ℤ) x y` will not change to `+`, since its first argument contains `ℤ`.
+
+The reasoning behind the heuristic is that the first argument is the type which is "additivized",
+and this usually doesn't make sense if this is on a fixed type.
+
+There are two exceptions in this heuristic:
+
+* Identifiers that have the `@[to_additive]` attribute are ignored.
+  For example, multiplication in `↥Semigroup` is replaced by addition in `↥AddSemigroup`.
+* If an identifier has attribute `@[to_additive_ignore_args n1 n2 ...]` then all the arguments in
+  positions `n1`, `n2`, ... will not be checked for unapplied identifiers (start counting from 1).
+  For example, `times_cont_mdiff_map` has attribute `@[to_additive_ignore_args 21]`, which means
+  that its 21st argument `(n : with_top ℕ)` can contain `ℕ`
+  (usually in the form `has_top.top ℕ ...`) and still be additivized.
+  So `@has_mul.mul (C^∞⟮I, N; I', G⟯) _ f g` will be additivized.
+
+
+If you want to disable this heuristic and replace all multiplicative
+identifiers with their additive counterpart, use `@[to_additive!]`.
+
+If `to_additive` is unable to automatically generate the additive
 version of a declaration, it can be useful to apply the attribute manually:
 
 ```
@@ -288,7 +378,7 @@ between the multiplicative and additive versions of the structure.
   `new_namespace.new_name` /with a dot/, then `to_additive` uses this
   new name as is.
 
-As a safety check, in the first two cases `to_additive` double checks
+As a safety check, in the first case `to_additive` double checks
 that the new name differs from the original one.
 
 -/
@@ -302,13 +392,15 @@ protected meta def attr : user_attribute unit value_type :=
     env ← get_env,
     val ← attr.get_param src,
     dict ← aux_attr.get_cache,
+    ignore ← ignore_args_attr.get_cache,
+    reorder ← reorder_attr.get_cache,
     tgt ← target_name src val.tgt dict,
     aux_attr.set src tgt tt,
     let dict := dict.insert src tgt,
     if env.contains tgt
     then proceed_fields env src tgt prio
     else do
-      transform_decl_with_prefix_dict dict src tgt
+      transform_decl_with_prefix_dict dict val.replace_all val.trace ignore reorder src tgt
         [`reducible, `_refl_lemma, `simp, `instance, `refl, `symm, `trans, `elab_as_eliminator,
          `no_rsimp, `measurability],
       mwhen (has_attribute' `simps src)
@@ -328,3 +420,17 @@ end to_additive
 
 /- map operations -/
 attribute [to_additive] has_mul has_one has_inv has_div
+/- the following types are supported by `@[to_additive]` and mapped to themselves. -/
+attribute [to_additive empty] empty
+attribute [to_additive pempty] pempty
+attribute [to_additive punit] punit
+attribute [to_additive unit] unit
+/-
+We ignore the third argument of `has_coe_to_fun.F` when deciding whether the operation
+needs to be additivized. The reason is that this argument is the element to be coerced,
+which usually does not actually show up in the type after reduction.
+Hypothetically, this could be ignoring too much, in that case, we can remove this,
+but in that case we have to add the `to_additive_ignore_args` attribute more systematically
+to a lot of other definitions (like `times_cont_mdiff_map.comp`).
+-/
+attribute [to_additive_ignore_args 3] has_coe_to_fun.F

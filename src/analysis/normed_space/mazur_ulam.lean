@@ -105,7 +105,7 @@ Since `f : PE ≃ᵢ PF` sends midpoints to midpoints, it is an affine map.
 We define a conversion to a `continuous_linear_equiv` first, then a conversion to an `affine_map`.
 -/
 
-/-- Mazur-Ulam Theorem: if `f` is an isometric bijection between two normed vector spaces
+/-- **Mazur-Ulam Theorem**: if `f` is an isometric bijection between two normed vector spaces
 over `ℝ` and `f 0 = 0`, then `f` is a linear equivalence. -/
 def to_real_linear_isometry_equiv_of_map_zero (f : E ≃ᵢ F) (h0 : f 0 = 0) :
   E ≃ₗᵢ[ℝ] F :=
@@ -119,7 +119,7 @@ def to_real_linear_isometry_equiv_of_map_zero (f : E ≃ᵢ F) (h0 : f 0 = 0) :
 @[simp] lemma coe_to_real_linear_equiv_of_map_zero_symm (f : E ≃ᵢ F) (h0 : f 0 = 0) :
   ⇑(f.to_real_linear_isometry_equiv_of_map_zero h0).symm = f.symm := rfl
 
-/-- Mazur-Ulam Theorem: if `f` is an isometric bijection between two normed vector spaces
+/-- **Mazur-Ulam Theorem**: if `f` is an isometric bijection between two normed vector spaces
 over `ℝ`, then `x ↦ f x - f 0` is a linear equivalence. -/
 def to_real_linear_isometry_equiv (f : E ≃ᵢ F) : E ≃ₗᵢ[ℝ] F :=
 (f.trans (isometric.add_right (f 0)).symm).to_real_linear_isometry_equiv_of_map_zero

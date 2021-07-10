@@ -350,6 +350,7 @@ lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :
 lemma tsum_geometric_two' (a : ℝ) : ∑' n:ℕ, (a / 2) / 2^n = a :=
 (has_sum_geometric_two' a).tsum_eq
 
+/-- **Sum of a Geometric Series** -/
 lemma nnreal.has_sum_geometric {r : ℝ≥0} (hr : r < 1) :
   has_sum (λ n : ℕ, r ^ n) (1 - r)⁻¹ :=
 begin
@@ -843,6 +844,19 @@ begin
   filter_upwards [eventually_ge_of_tendsto_gt hr₁ h, key],
   intros n h₀ h₁,
   rwa ← le_div_iff (lt_of_le_of_ne (norm_nonneg _) h₁.symm)
+end
+
+/-- A series whose terms are bounded by the terms of a converging geometric series converges. -/
+lemma summable_one_div_pow_of_le {m : ℝ} {f : ℕ → ℕ} (hm : 1 < m) (fi : ∀ i, i ≤ f i) :
+  summable (λ i, 1 / m ^ f i) :=
+begin
+  refine summable_of_nonneg_of_le
+    (λ a, one_div_nonneg.mpr (pow_nonneg (zero_le_one.trans hm.le) _)) (λ a, _)
+    (summable_geometric_of_lt_1 (one_div_nonneg.mpr (zero_le_one.trans hm.le))
+      ((one_div_lt (zero_lt_one.trans hm) zero_lt_one).mpr (one_div_one.le.trans_lt hm))),
+  rw [div_pow, one_pow],
+  refine (one_div_le_one_div _ _).mpr (pow_le_pow hm.le (fi a));
+  exact pow_pos (zero_lt_one.trans hm) _
 end
 
 /-! ### Positive sequences with small sums on encodable types -/

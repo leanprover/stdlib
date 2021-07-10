@@ -601,6 +601,7 @@ begin
     exact zero_ne_one h_parity }
 end
 
+/-- **Formula for Pythagorean Triples** -/
 theorem classification :
   pythagorean_triple x y z ↔
   ∃ k m n, ((x = k * (m ^ 2 - n ^ 2) ∧ y = k * (2 * m * n)) ∨

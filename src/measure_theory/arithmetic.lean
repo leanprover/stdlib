@@ -279,6 +279,16 @@ begin
   simp_rw [set.mem_set_of_eq, pi.sub_apply, sub_eq_zero],
 end
 
+lemma ae_eq_trim_of_measurable {α E} {m m0 : measurable_space α} {μ : measure α}
+  [measurable_space E] [add_group E] [measurable_singleton_class E] [has_measurable_sub₂ E]
+  (hm : m ≤ m0) {f g : α → E} (hf : @measurable _ _ m _ f) (hg : @measurable _ _ m _ g)
+  (hfg : f =ᵐ[μ] g) :
+  f =ᶠ[@measure.ae α m (μ.trim hm)] g :=
+begin
+  rwa [filter.eventually_eq, ae_iff, trim_measurable_set_eq hm _],
+  exact (@measurable_set.compl α _ m (@measurable_set_eq_fun α m E _ _ _ _ _ _ hf hg)),
+end
+
 end div
 
 /-- We say that a type `has_measurable_neg` if `x ↦ -x` is a measurable function. -/

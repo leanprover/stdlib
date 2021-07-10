@@ -22,6 +22,10 @@ open_locale classical topological_space big_operators
 
 variables {ι α X M N : Type*} [topological_space X]
 
+@[to_additive]
+lemma continuous_one [topological_space M] [has_one M] : continuous (1 : X → M) :=
+@continuous_const _ _ _ _ 1
+
 /-- Basic hypothesis to talk about a topological additive monoid or a topological additive
 semigroup. A topological additive monoid over `M`, for example, is obtained by requiring both the
 instances `add_monoid M` and `has_continuous_add M`. -/

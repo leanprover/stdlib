@@ -605,15 +605,23 @@ variables (S : subalgebra R A)
 lemma subsingleton_of_subsingleton [subsingleton A] : subsingleton (subalgebra R A) :=
 ⟨λ B C, ext (λ x, by { simp only [subsingleton.elim x 0, zero_mem] })⟩
 
+/--
+For performance reasons this is not an instance. If you need this instance, add
+```
+local attribute [instance] alg_hom.subsingleton subalgebra.subsingleton_of_subsingleton
+```
+in the section that needs it.
+-/
 -- TODO[gh-6025]: make this an instance once safe to do so
-lemma alg_hom.subsingleton [subsingleton (subalgebra R A)] : subsingleton (A →ₐ[R] B) :=
+lemma _root_.alg_hom.subsingleton [subsingleton (subalgebra R A)] : subsingleton (A →ₐ[R] B) :=
 ⟨λ f g, alg_hom.ext $ λ a,
   have a ∈ (⊥ : subalgebra R A) := subsingleton.elim (⊤ : subalgebra R A) ⊥ ▸ mem_top,
   let ⟨x, hx⟩ := set.mem_range.mp (mem_bot.mp this) in
   hx ▸ (f.commutes _).trans (g.commutes _).symm⟩
 
 -- TODO[gh-6025]: make this an instance once safe to do so
-lemma alg_equiv.subsingleton_left [subsingleton (subalgebra R A)] : subsingleton (A ≃ₐ[R] B) :=
+lemma _root_.alg_equiv.subsingleton_left [subsingleton (subalgebra R A)] :
+  subsingleton (A ≃ₐ[R] B) :=
 begin
   haveI : subsingleton (A →ₐ[R] B) := alg_hom.subsingleton,
   exact ⟨λ f g, alg_equiv.ext
@@ -621,7 +629,8 @@ begin
 end
 
 -- TODO[gh-6025]: make this an instance once safe to do so
-lemma alg_equiv.subsingleton_right [subsingleton (subalgebra R B)] : subsingleton (A ≃ₐ[R] B) :=
+lemma _root_.alg_equiv.subsingleton_right [subsingleton (subalgebra R B)] :
+  subsingleton (A ≃ₐ[R] B) :=
 begin
   haveI : subsingleton (B ≃ₐ[R] A) := alg_equiv.subsingleton_left,
   exact ⟨λ f g, eq.trans (alg_equiv.symm_symm _).symm

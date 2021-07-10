@@ -98,7 +98,7 @@ begin
   exact pow_card_sub_one_eq_one ha
 end
 
-/-- Wilson's Lemma: the product of `1`, ..., `p-1` is `-1` modulo `p`. -/
+/-- **Wilson's Lemma**: the product of `1`, ..., `p-1` is `-1` modulo `p`. -/
 @[simp] lemma wilsons_lemma : ((p - 1)! : zmod p) = -1 :=
 begin
   refine
@@ -421,6 +421,7 @@ lemma eisenstein_lemma [fact (p % 2 = 1)] {a : ℕ} (ha1 : a % 2 = 1) (ha0 : (a 
 by rw [neg_one_pow_eq_pow_mod_two, gauss_lemma p ha0, neg_one_pow_eq_pow_mod_two,
     show _ = _, from eisenstein_lemma_aux₂ p ha1 ha0]
 
+/-- **Quadratic reciprocity theorem** -/
 theorem quadratic_reciprocity [hp1 : fact (p % 2 = 1)] [hq1 : fact (q % 2 = 1)] (hpq : p ≠ q) :
   legendre_sym p q * legendre_sym q p = (-1) ^ ((p / 2) * (q / 2)) :=
 have hpq0 : (p : zmod q) ≠ 0, from prime_ne_zero q p hpq.symm,

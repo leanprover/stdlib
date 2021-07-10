@@ -351,16 +351,35 @@ instance nhds_within_Iio_is_measurably_generated :
   (𝓝[Iio b] a).is_measurably_generated :=
 measurable_set_Iio.nhds_within_is_measurably_generated _
 
-variables [second_countable_topology α]
-
 @[measurability]
-lemma measurable_set_lt' : measurable_set {p : α × α | p.1 < p.2} :=
+lemma measurable_set_lt' [second_countable_topology α] : measurable_set {p : α × α | p.1 < p.2} :=
 (is_open_lt continuous_fst continuous_snd).measurable_set
 
 @[measurability]
-lemma measurable_set_lt {f g : δ → α} (hf : measurable f) (hg : measurable g) :
-  measurable_set {a | f a < g a} :=
+lemma measurable_set_lt [second_countable_topology α] {f g : δ → α} (hf : measurable f)
+  (hg : measurable g) : measurable_set {a | f a < g a} :=
 hf.prod_mk hg measurable_set_lt'
+
+lemma set.ord_connected.measurable_set (h : ord_connected s) : measurable_set s :=
+begin
+  let u := ⋃ (x ∈ s) (y ∈ s), Ioo x y,
+  have huopen : is_open u := is_open_bUnion (λ x hx, is_open_bUnion (λ y hy, is_open_Ioo)),
+  have humeas : measurable_set u := huopen.measurable_set,
+  have hfinite : (s \ u).finite,
+  { refine set.finite_of_forall_between_eq_endpoints (s \ u) (λ x hx y hy z hz hxy hyz, _),
+    by_contra h,
+    push_neg at h,
+    exact hy.2 (mem_bUnion_iff.mpr ⟨x, hx.1,
+      mem_bUnion_iff.mpr ⟨z, hz.1, lt_of_le_of_ne hxy h.1, lt_of_le_of_ne hyz h.2⟩⟩) },
+  have : u ⊆ s :=
+    bUnion_subset (λ x hx, bUnion_subset (λ y hy, Ioo_subset_Icc_self.trans (h.out hx hy))),
+  rw ← union_diff_cancel this,
+  exact humeas.union hfinite.measurable_set
+end
+
+lemma is_preconnected.measurable_set
+  (h : is_preconnected s) : measurable_set s :=
+h.ord_connected.measurable_set
 
 end linear_order
 

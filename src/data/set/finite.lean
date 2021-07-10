@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.fintype.basic
+import data.finset.sort
 
 /-!
 # Finite sets
@@ -273,11 +273,12 @@ instance fintype_sep (s : set α) (p : α → Prop) [fintype s] [decidable_pred 
   fintype ({a ∈ s | p a} : set α) :=
 fintype.of_finset (s.to_finset.filter p) $ by simp
 
-instance fintype_inter (s t : set α) [fintype s] [decidable_pred t] : fintype (s ∩ t : set α) :=
+instance fintype_inter (s t : set α) [fintype s] [decidable_pred (∈ t)] : fintype (s ∩ t : set α) :=
 set.fintype_sep s t
 
 /-- A `fintype` structure on a set defines a `fintype` structure on its subset. -/
-def fintype_subset (s : set α) {t : set α} [fintype s] [decidable_pred t] (h : t ⊆ s) : fintype t :=
+def fintype_subset (s : set α) {t : set α} [fintype s] [decidable_pred (∈ t)] (h : t ⊆ s) :
+  fintype t :=
 by rw ← inter_eq_self_of_subset_right h; apply_instance
 
 theorem finite.subset {s : set α} : finite s → ∀ {t : set α}, t ⊆ s → finite t
@@ -809,3 +810,28 @@ lemma card_compl_eq_card_compl (h : fintype.card {x // p x} = fintype.card {x //
 by simp only [card_subtype_compl, h]
 
 end fintype
+
+/--
+If a set `s` does not contain any elements between any pair of elements `x, z ∈ s` with `x ≤ z`
+(i.e if given `x, y, z ∈ s` such that `x ≤ y ≤ z`, then `y` is either `x` or `z`), then `s` is
+finite.
+-/
+lemma set.finite_of_forall_between_eq_endpoints {α : Type*} [linear_order α] (s : set α)
+  (h : ∀ (x ∈ s) (y ∈ s) (z ∈ s), x ≤ y → y ≤ z → x = y ∨ y = z) :
+  set.finite s :=
+begin
+  by_contra hinf,
+  change s.infinite at hinf,
+  rcases hinf.exists_subset_card_eq 3 with ⟨t, hts, ht⟩,
+  let f := t.order_iso_of_fin ht,
+  let x := f 0,
+  let y := f 1,
+  let z := f 2,
+  have := h x (hts x.2) y (hts y.2) z (hts z.2)
+    (f.monotone $ by dec_trivial) (f.monotone $ by dec_trivial),
+  have key₁ : (0 : fin 3) ≠ 1 := by dec_trivial,
+  have key₂ : (1 : fin 3) ≠ 2 := by dec_trivial,
+  cases this,
+  { dsimp only [x, y] at this, exact key₁ (f.injective $ subtype.coe_injective this) },
+  { dsimp only [y, z] at this, exact key₂ (f.injective $ subtype.coe_injective this) }
+end

@@ -98,6 +98,10 @@ protected noncomputable def equiv_of_surjective {α β} (f : α ↪ β) (hf : su
   α ≃ β :=
 equiv.of_bijective f ⟨f.injective, hf⟩
 
+/-- There is always an embedding from an empty type. --/
+protected def of_is_empty {α β} [is_empty α] : α ↪ β :=
+⟨is_empty_elim, is_empty_elim⟩
+
 protected def of_not_nonempty {α β} (hα : ¬ nonempty α) : α ↪ β :=
 ⟨λa, (hα ⟨a⟩).elim, assume a, (hα ⟨a⟩).elim⟩
 

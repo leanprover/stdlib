@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis
+Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis, Floris van Doorn
 -/
 import data.string.defs
 import data.option.defs
@@ -339,6 +339,14 @@ protected meta def to_int : expr → option ℤ
 | e                  := coe <$> e.to_nat
 
 /--
+Turns an expression into a list, assuming it is only built up from `list.nil` and `list.cons`.
+-/
+protected meta def to_list {α} (f : expr → option α) : expr → option (list α)
+| `(list.nil)          := some []
+| `(list.cons %%x %%l) := list.cons <$> f x <*> l.to_list
+| _                    := none
+
+/--
 `is_num_eq n1 n2` returns true if `n1` and `n2` are both numerals with the same numeral structure,
 ignoring differences in type and type class arguments.
 -/
@@ -375,14 +383,6 @@ e.replace (λ e n,
 /-- `replace_with e s s'` replaces ocurrences of `s` with `s'` in `e`. -/
 meta def replace_with (e : expr) (s : expr) (s' : expr) : expr :=
 e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none
-
-/-- Apply a function to each constant (inductive type, defined function etc) in an expression. -/
-protected meta def apply_replacement_fun (f : name → name) (e : expr) : expr :=
-e.replace $ λ e d,
-  match e with
-  | expr.const n ls := some $ expr.const (f n) ls
-  | _ := none
-  end
 
 /-- Implementation of `expr.mreplace`. -/
 meta def mreplace_aux {m : Type* → Type*} [monad m] (R : expr → nat → m (option expr)) :
@@ -703,12 +703,18 @@ get_app_fn_args_aux []
 
 /-- `drop_pis es e` instantiates the pis in `e` with the expressions from `es`. -/
 meta def drop_pis : list expr → expr → tactic expr
-| (list.cons v vs) (pi n bi d b) := do
+| (v :: vs) (pi n bi d b) := do
   t ← infer_type v,
   guard (t =ₐ d),
   drop_pis vs (b.instantiate_var v)
 | [] e := return e
 | _  _ := failed
+
+/-- `instantiate_pis es e` instantiates the pis in `e` with the expressions from `es`.
+  Does not check whether the result remains type-correct. -/
+meta def instantiate_pis : list expr → expr → expr
+| (v :: vs) (pi n bi d b) := instantiate_pis vs (b.instantiate_var v)
+| _ e := e
 
 /-- `mk_op_lst op empty [x1, x2, ...]` is defined as `op x1 (op x2 ...)`.
   Returns `empty` if the list is empty. -/
@@ -814,6 +820,67 @@ private meta def all_implicitly_included_variables_aux
     In particular, those elements of `vs` are included automatically. -/
 meta def all_implicitly_included_variables (es vs : list expr) : list expr :=
 all_implicitly_included_variables_aux es vs [] ff
+
+/-- Infer the type of an application of the form `f x1 x2 ... xn`, where `f` is an identifier.
+This also works if `x1, ... xn` contain free variables. -/
+protected meta def simple_infer_type (env : environment) (e : expr) : exceptional expr := do
+(@const tt n ls, es) ← return e.get_app_fn_args |
+  exceptional.fail "expression is not a constant applied to arguments",
+d ← env.get n,
+return $ (d.type.instantiate_pis es).instantiate_univ_params $ d.univ_params.zip ls
+
+/-- Auxilliary function for `head_eta_expand`. -/
+meta def head_eta_expand_aux : ℕ → expr → expr → expr
+| (n+1) e (pi x bi d b) :=
+  lam x bi d $ head_eta_expand_aux n e b
+| _ e _ := e
+
+/-- `head_eta_expand n e t` eta-expands `e` `n` times, with the binders info and domains obtained
+  by its type `t`. -/
+meta def head_eta_expand (n : ℕ) (e t : expr) : expr :=
+((e.lift_vars 0 n).mk_app $ (list.range n).reverse.map var).head_eta_expand_aux n t
+
+/-- `e.eta_expand env dict` eta-expands all expressions that have as head a constant `n` in
+`dict`. They are expanded until they are applied to one more argument than the maximum in
+`dict.find n`. -/
+protected meta def eta_expand (env : environment) (dict : name_map $ list ℕ) : expr → expr
+| e := e.replace $ λ e _, do
+  let (e0, es) := e.get_app_fn_args,
+  let ns := (dict.find e0.const_name).iget,
+  guard (bnot ns.empty),
+  let e' := e0.mk_app $ es.map eta_expand,
+  let needed_n := ns.foldr max 0 + 1,
+  if needed_n ≤ es.length then some e'
+  else do
+    e'_type ← (e'.simple_infer_type env).to_option,
+    some $ head_eta_expand (needed_n - es.length) e' e'_type
+
+/--
+`e.apply_replacement_fun f test` applies `f` to each identifier
+(inductive type, defined function etc) in an expression, unless
+* The identifier occurs in an application with first argument `arg`; and
+* `test arg` is false.
+* Reorder contains the information about what arguments to reorder:
+  e.g. `g x₁ x₂ x₃ ... xₙ` becomes `g x₂ x₁ x₃ ... xₙ` if `reorder.find g = some [1]`.
+  We assume that all functions where we want to reorder arguments are fully applied.
+  This can be done by applying `expr.eta_expand` first.
+-/
+protected meta def apply_replacement_fun (f : name → name) (test : expr → bool)
+  (reorder : name_map $ list ℕ) : expr → expr
+| e := e.replace $ λ e _,
+  match e with
+  | const n ls := some $ const (f n) $
+      -- if the first two arguments are reordered, we also reorder the first two universe parameters
+      if 1 ∈ (reorder.find n).iget then ls.inth 1::ls.head::ls.drop 2 else ls
+  | app g x :=
+    let l := (reorder.find g.get_app_fn.const_name).iget in -- this might be inefficient
+    if g.get_app_num_args ∈ l ∧ test g.get_app_args.head then
+    -- interchange `x` and the last argument of `g`
+    some $ apply_replacement_fun g.app_fn (apply_replacement_fun x) $
+      apply_replacement_fun g.app_arg else
+    if g.is_constant ∧ ¬ test x then some $ g (apply_replacement_fun x) else none
+  | _ := none
+  end
 
 end expr
 
@@ -955,15 +1022,16 @@ namespace declaration
 open tactic
 
 /--
-`declaration.update_with_fun f tgt decl`
-sets the name of the given `decl : declaration` to `tgt`, and applies `f` to the names
-of all `expr.const`s which appear in the value or type of `decl`.
+`declaration.update_with_fun f test tgt decl`
+sets the name of the given `decl : declaration` to `tgt`, and applies both `expr.eta_expand` and
+`expr.apply_replacement_fun` to the value and type of `decl`.
 -/
-protected meta def update_with_fun (f : name → name) (tgt : name) (decl : declaration) :
-  declaration :=
+protected meta def update_with_fun (env : environment) (f : name → name) (test : expr → bool)
+  (reorder : name_map $ list ℕ) (tgt : name) (decl : declaration) : declaration :=
 let decl := decl.update_name $ tgt in
-let decl := decl.update_type $ decl.type.apply_replacement_fun f in
-decl.update_value $ decl.value.apply_replacement_fun f
+let decl := decl.update_type $
+  (decl.type.eta_expand env reorder).apply_replacement_fun f test reorder in
+decl.update_value $ (decl.value.eta_expand env reorder).apply_replacement_fun f test reorder
 
 /-- Checks whether the declaration is declared in the current file.
   This is a simple wrapper around `environment.in_current_file`

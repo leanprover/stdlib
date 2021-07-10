@@ -5,15 +5,25 @@ Authors: Mario Carneiro, Kenny Lau
 -/
 import data.list.basic
 
-universes u v w z
+/-!
+# zip & unzip
 
-variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type z}
+This file provides results about `list.zip_with`, `list.zip` and `list.unzip` (definitions are in
+core Lean).
+`zip_with f l₁ l₂` applies `f : α → β → γ` pointwise to a list `l₁ : list α` and `l₂ : list β`. It
+applies, until one of the lists is exhausted. For example,
+`zip_with f [0, 1, 2] [6.28, 31] = [f 0 6.28, f 1 31]`.
+`zip` is `zip_with` applied to `prod.mk`. For example,
+`zip [a₁, a₂] [b₁, b₂, b₃] = [(a₁, b₁), (a₂, b₂)]`.
+`unzip` undoes `zip`. For example, `unzip [(a₁, b₁), (a₂, b₂)] = ([a₁, a₂], [b₁, b₂])`.
+-/
+
+universe u
 
 open nat
 
 namespace list
-
-/- zip & unzip -/
+variables {α : Type u} {β γ δ : Type*}
 
 @[simp] theorem zip_with_cons_cons (f : α → β → γ) (a : α) (b : β) (l₁ : list α) (l₂ : list β) :
   zip_with f (a :: l₁) (b :: l₂) = f a b :: zip_with f l₁ l₂ := rfl

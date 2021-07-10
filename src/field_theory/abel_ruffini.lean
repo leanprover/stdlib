@@ -372,7 +372,8 @@ begin
   { exact λ α n, induction3 },
 end
 
-/-- An irreducible polynomial with an `is_solvable_by_rad` root has solvable Galois group -/
+/-- **Abel-Ruffini Theorem** (one direction): An irreducible polynomial with an
+`is_solvable_by_rad` root has solvable Galois group -/
 lemma is_solvable' {α : E} {q : polynomial F} (q_irred : irreducible q)
   (q_aeval : aeval α q = 0) (hα : is_solvable_by_rad F α) :
   _root_.is_solvable q.gal :=

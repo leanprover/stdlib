@@ -44,6 +44,15 @@ instance [is_empty α] [is_empty β] : is_empty (psum α β) :=
 ⟨λ x, psum.rec is_empty.false is_empty.false x⟩
 instance {α β} [is_empty α] [is_empty β] : is_empty (α ⊕ β) :=
 ⟨λ x, sum.rec is_empty.false is_empty.false x⟩
+/-- subtypes of an empty type are empty -/
+instance [is_empty α] (p : α → Prop) : is_empty (subtype p) :=
+⟨λ x, is_empty.false x.1⟩
+/-- subtypes by an all-false predicate are false. -/
+lemma subtype.is_empty_of_false {p : α → Prop} (hp : ∀ a, ¬(p a)) : is_empty (subtype p) :=
+⟨λ x, hp _ x.2⟩
+/-- subtypes by false are false. -/
+instance subtype.is_empty_false : is_empty {a : α // false} :=
+subtype.is_empty_of_false (λ a, id)
 
 /- Test that `pi.is_empty` finds this instance. -/
 example [h : nonempty α] [is_empty β] : is_empty (α → β) := by apply_instance

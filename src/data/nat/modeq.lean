@@ -86,16 +86,16 @@ end
 
 theorem modeq_add (h₁ : a ≡ b [MOD n]) (h₂ : c ≡ d [MOD n]) : a + c ≡ b + d [MOD n] :=
 modeq_of_dvd begin
-  convert dvd_add (dvd_of_modeq h₁) (dvd_of_modeq h₂) using 1,
-  simp [sub_eq_add_neg, add_left_comm, add_comm],
+  rw [int.coe_nat_add, int.coe_nat_add, add_sub_comm],
+  exact dvd_add (dvd_of_modeq h₁) (dvd_of_modeq h₂),
 end
 
 theorem modeq_add_cancel_left (h₁ : a ≡ b [MOD n]) (h₂ : a + c ≡ b + d [MOD n]) : c ≡ d [MOD n] :=
 begin
-  simp only [modeq_iff_dvd] at *,
+  simp only [modeq_iff_dvd, int.coe_nat_add] at *,
+  rw add_sub_comm at h₂,
   convert _root_.dvd_sub h₂ h₁ using 1,
-  simp [sub_eq_add_neg],
-  abel
+  rw add_sub_cancel',
 end
 
 theorem modeq_add_cancel_right (h₁ : c ≡ d [MOD n]) (h₂ : a + c ≡ b + d [MOD n]) : a ≡ b [MOD n] :=

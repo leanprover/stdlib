@@ -245,3 +245,10 @@ instance [topological_space β] [has_scalar M α] [has_scalar M β] [has_continu
   has_continuous_smul M (α × β) :=
 ⟨(continuous_fst.smul (continuous_fst.comp continuous_snd)).prod_mk
   (continuous_fst.smul (continuous_snd.comp continuous_snd))⟩
+
+instance {ι : Type*} {γ : ι → Type}
+  [∀ i, topological_space (γ i)] [Π i, has_scalar M (γ i)] [∀ i, has_continuous_smul M (γ i)] :
+  has_continuous_smul M (Π i, γ i) :=
+⟨continuous_pi $ λ i,
+  (continuous_fst.smul continuous_snd).comp $
+    continuous_fst.prod_mk ((continuous_apply i).comp continuous_snd)⟩

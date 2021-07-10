@@ -12,7 +12,7 @@ import data.polynomial.eval
 We define and prove some basic relations about
 `pochhammer S n : polynomial S = X * (X+1) * ... * (X + n - 1)`
 which is also known as the rising factorial. A version of this definition
-that is focused on `nat` can be found in `data.nat.factorial` as `desc_fac`.
+that is focused on `nat` can be found in `data.nat.factorial` as `asc_factorial`.
 
 ## Implementation
 
@@ -23,7 +23,6 @@ we define the polynomial with coefficients in any `[semiring S]`.
 
 There is lots more in this direction:
 * q-factorials, q-binomials, q-Pochhammer.
-* Defining Bernstein polynomials (e.g. as one way to prove Weierstrass' theorem).
 -/
 
 universes u v
@@ -104,12 +103,13 @@ begin
       nat.succ_eq_add_one, ←add_assoc, pochhammer_succ_right, nat.cast_add, add_assoc], }
 end
 
-lemma pochhammer_nat_eq_desc_fac (n : ℕ) : ∀ k, (pochhammer ℕ k).eval (n + 1) = nat.desc_fac n k
+lemma pochhammer_nat_eq_asc_factorial (n : ℕ) :
+  ∀ k, (pochhammer ℕ k).eval (n + 1) = n.asc_factorial k
 | 0 := by erw [eval_one]; refl
 | (t + 1) := begin
-  rw [pochhammer_succ_right, eval_mul, pochhammer_nat_eq_desc_fac t],
-  suffices : n.desc_fac t * (n + 1 + t) = n.desc_fac (t + 1), by simpa,
-  rw [nat.desc_fac_succ, add_right_comm, mul_comm]
+  rw [pochhammer_succ_right, eval_mul, pochhammer_nat_eq_asc_factorial t],
+  suffices : n.asc_factorial t * (n + 1 + t) = n.asc_factorial (t + 1), by simpa,
+  rw [nat.asc_factorial_succ, add_right_comm, mul_comm]
 end
 
 end
@@ -138,11 +138,11 @@ variables (S : Type*) [semiring S] (r n : ℕ)
 @[simp]
 lemma pochhammer_eval_one (S : Type*) [semiring S] (n : ℕ) :
   (pochhammer S n).eval (1 : S) = (n! : S) :=
-by rw_mod_cast [pochhammer_nat_eq_desc_fac, nat.zero_desc_fac]
+by rw_mod_cast [pochhammer_nat_eq_asc_factorial, nat.zero_asc_factorial]
 
 lemma factorial_mul_pochhammer (S : Type*) [semiring S] (r n : ℕ) :
   (r! : S) * (pochhammer S n).eval (r + 1) = (r + n)! :=
-by rw_mod_cast [pochhammer_nat_eq_desc_fac, nat.factorial_mul_desc_fac]
+by rw_mod_cast [pochhammer_nat_eq_asc_factorial, nat.factorial_mul_asc_factorial]
 
 lemma pochhammer_nat_eval_succ (r : ℕ) :
   ∀ n : ℕ, n * (pochhammer ℕ r).eval (n + 1) = (n + r) * (pochhammer ℕ r).eval n
@@ -151,7 +151,7 @@ lemma pochhammer_nat_eval_succ (r : ℕ) :
   { simp only [h, zero_mul, zero_add], },
   { simp only [pochhammer_eval_zero, zero_mul, if_neg h, mul_zero], }
 end
-| (k + 1) := by simp only [pochhammer_nat_eq_desc_fac, nat.succ_desc_fac, add_right_comm]
+| (k + 1) := by simp only [pochhammer_nat_eq_asc_factorial, nat.succ_asc_factorial, add_right_comm]
 
 lemma pochhammer_eval_succ (r n : ℕ) :
   (n : S) * (pochhammer S r).eval (n + 1 : S) = (n + r) * (pochhammer S r).eval n :=

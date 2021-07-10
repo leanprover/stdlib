@@ -232,6 +232,29 @@ variable {C}
 
 end augmented
 
+open_locale simplicial
+
+/-- Aaugment a simplicial object with an object. -/
+@[simps]
+def augment (X : simplicial_object C) (X₀ : C) (f : X _[0] ⟶ X₀)
+  (w : ∀ (i : simplex_category) (g₁ g₂ : [0] ⟶ i),
+    X.map g₁.op ≫ f = X.map g₂.op ≫ f) : simplicial_object.augmented C :=
+{ left := X,
+  right := X₀,
+  hom :=
+  { app := λ i, X.map (simplex_category.const i.unop 0).op ≫ f,
+    naturality' := begin
+      intros i j g,
+      dsimp,
+      rw ← g.op_unop,
+      simpa only [← X.map_comp, ← category.assoc, category.comp_id, ← op_comp] using w _ _ _,
+    end } }
+
+@[simp]
+lemma augment_hom_zero (X : simplicial_object C) (X₀ : C) (f : X _[0] ⟶ X₀) (w) :
+  (X.augment X₀ f w).hom.app (op [0]) = f :=
+by { dsimp, erw [simplex_category.hom_zero_zero ([0].const 0), X.map_id, category.id_comp] }
+
 end simplicial_object
 
 /-- Cosimplicial objects. -/
@@ -434,6 +457,28 @@ def whiskering (D : Type*) [category.{v} D] :
 variable {C}
 
 end augmented
+
+open_locale simplicial
+
+/-- Augment a cosimplicial object with an object. -/
+@[simps]
+def augment (X : cosimplicial_object C) (X₀ : C) (f : X₀ ⟶ X.obj [0])
+  (w : ∀ (i : simplex_category) (g₁ g₂ : [0] ⟶ i),
+    f ≫ X.map g₁ = f ≫ X.map g₂) : cosimplicial_object.augmented C :=
+{ left := X₀,
+  right := X,
+  hom :=
+  { app := λ i, f ≫ X.map (simplex_category.const i 0),
+  naturality' := begin
+    intros i j g,
+    dsimp,
+    simpa [← X.map_comp] using w _ _ _,
+  end } }
+
+@[simp]
+lemma augment_hom_zero (X : cosimplicial_object C) (X₀ : C) (f : X₀ ⟶ X.obj [0]) (w) :
+  (X.augment X₀ f w).hom.app [0] = f :=
+by { dsimp, rw [simplex_category.hom_zero_zero ([0].const 0), X.map_id, category.comp_id] }
 
 end cosimplicial_object
 

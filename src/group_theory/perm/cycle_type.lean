@@ -35,52 +35,6 @@ variables {α : Type*} [fintype α]
 
 section cycle_type
 
-lemma mem_list_cycles_iff {l : list (perm α)} (h1 : ∀ σ : perm α, σ ∈ l → σ.is_cycle)
- (h2 : l.pairwise disjoint) {σ : perm α} (h3 : σ.is_cycle) {a : α} (h4 : σ a ≠ a) :
- σ ∈ l ↔ ∀ k : ℕ, (σ ^ k) a = (l.prod ^ k) a :=
-begin
-  induction l with τ l ih,
-  { exact ⟨false.elim, λ h, h4 (h 1)⟩ },
-  { rw [mem_cons_iff, list.prod_cons,
-        ih (λ σ hσ, h1 σ (list.mem_cons_of_mem τ hσ)) (pairwise_of_pairwise_cons h2)],
-    have key := disjoint_prod_right _ (pairwise_cons.mp h2).1,
-    cases key a,
-    { simp_rw [key.mul_comm, commute.mul_pow key.mul_comm.symm, mul_apply,
-        pow_apply_eq_self_of_apply_eq_self h, or_iff_right_iff_imp],
-      rintro rfl,
-      exact (h4 h).elim },
-    { simp_rw [commute.mul_pow key.mul_comm, mul_apply, pow_apply_eq_self_of_apply_eq_self h],
-      rw [or_iff_left_of_imp (λ h : (∀ k : ℕ, (σ ^ k) a = a), (h4 (h 1)).elim)],
-      split,
-      { exact λ h k, by rw h },
-      { intro h5,
-        have hτa : τ a ≠ a := ne_of_eq_of_ne (h5 1).symm h4,
-        ext b,
-        by_cases hσb : σ b = b,
-        { by_cases hτb : τ b = b,
-          { rw [hσb, hτb] },
-          { obtain ⟨n, rfl⟩ := ((h1 τ (list.mem_cons_self τ l))).exists_pow_eq hτa hτb,
-            rw [←mul_apply τ, ←pow_succ, ←h5, ←h5, pow_succ, mul_apply] } },
-        { obtain ⟨n, rfl⟩ := h3.exists_pow_eq h4 hσb,
-          rw [←mul_apply, ←pow_succ, h5, h5, pow_succ, mul_apply] } } } },
-end
-
-lemma list_cycles_perm_list_cycles {l₁ l₂ : list (perm α)} (h₀ : l₁.prod = l₂.prod)
-  (h₁l₁ : ∀ σ : perm α, σ ∈ l₁ → σ.is_cycle) (h₁l₂ : ∀ σ : perm α, σ ∈ l₂ → σ.is_cycle)
-  (h₂l₁ : l₁.pairwise disjoint) (h₂l₂ : l₂.pairwise disjoint) :
-  l₁ ~ l₂ :=
-begin
-  classical,
-  have h₃l₁ : (1 : perm α) ∉ l₁ := λ h, (h₁l₁ 1 h).ne_one rfl,
-  have h₃l₂ : (1 : perm α) ∉ l₂ := λ h, (h₁l₂ 1 h).ne_one rfl,
-  refine (perm_ext (nodup_of_pairwise_disjoint h₃l₁ h₂l₁)
-    (nodup_of_pairwise_disjoint h₃l₂ h₂l₂)).mpr (λ σ, _),
-  by_cases hσ : σ.is_cycle,
-  { obtain ⟨a, ha⟩ := not_forall.mp (mt ext hσ.ne_one),
-    rw [mem_list_cycles_iff h₁l₁ h₂l₁ hσ ha, mem_list_cycles_iff h₁l₂ h₂l₂ hσ ha, h₀] },
-  { exact iff_of_false (mt (h₁l₁ σ) hσ) (mt (h₁l₂ σ) hσ) },
-end
-
 variables [decidable_eq α]
 
 /-- The cycle type of a permutation -/
@@ -148,9 +102,12 @@ begin
   { exact λ f hf, (mem_append.mp hf).elim (h₂l₁ f) (h₂l₂ f) },
   { refine pairwise_append.mpr ⟨h₃l₁, h₃l₂, λ f hf g hg a, by_contra (λ H, _)⟩,
     rw not_or_distrib at H,
-    exact ((congr_arg2 disjoint h₁l₁ h₁l₂).mpr h a).elim
-      (ne_of_eq_of_ne ((mem_list_cycles_iff h₂l₁ h₃l₁ (h₂l₁ f hf) H.1).1 hf 1).symm H.1)
-      (ne_of_eq_of_ne ((mem_list_cycles_iff h₂l₂ h₃l₂ (h₂l₂ g hg) H.2).1 hg 1).symm H.2) }
+    rw [←ne.def, ←ne.def, ←mem_support, ←mem_support] at H,
+    replace H : a ∈ l₁.prod.support ∧ a ∈ l₂.prod.support,
+    { refine H.imp (λ H, _) (λ H, _);
+      exact support_le_prod_of_mem ‹_› ‹_› H },
+    rw [h₁l₁, h₁l₂] at H,
+    exact h.disjoint_support (finset.mem_inter_of_mem H.left H.right) }
 end
 
 lemma cycle_type_inv (σ : perm α) : σ⁻¹.cycle_type = σ.cycle_type :=
@@ -250,7 +207,7 @@ begin
     { rw [← multiset.mem_coe, ← hπ],
       simp },
     obtain ⟨σ', hσ'l, hσ'⟩ := list.mem_map.1 h,
-    rw [(list.perm_cons_erase hσ'l).prod_eq' (hl2.imp (λ _ _, disjoint.mul_comm)), list.prod_cons],
+    rw [disjoint_prod_perm hl2 (list.perm_cons_erase hσ'l), list.prod_cons],
     refine hστ.is_conj_mul (h1 _) (h2 _) _,
     { simp only [hσ.cycle_type, (hl1 _ hσ'l).cycle_type, ←hσ'] },
     { rw [← coe_map, coe_eq_coe.2 (list.perm_cons_erase hσ'l), singleton_add, ← cons_coe,
@@ -259,7 +216,7 @@ begin
         (list.pairwise_of_sublist (list.erase_sublist _ _) hl2)] },
     { refine disjoint_prod_right _ (λ g hg, list.rel_of_pairwise_cons _ hg),
       refine (list.perm.pairwise_iff _ (list.perm_cons_erase hσ'l).symm).2 hl2,
-      exact (λ _ _, disjoint.symm) } }
+      exact disjoint.symmetric } }
 end
 
 theorem is_conj_iff_cycle_type_eq {σ τ : perm α} :
@@ -293,7 +250,7 @@ begin
     swap, { exact hd.symm },
     refine ⟨c, (l.erase c).prod, _, _, hlc _ cl, rfl⟩,
     { rw [← list.prod_cons,
-        (list.perm_cons_erase cl).symm.prod_eq' (hld.imp (λ a b ab, ab.mul_comm))] },
+        (list.perm_cons_erase cl).symm.prod_eq' (hld.imp (λ _ _, disjoint.commute))] },
     { exact disjoint_prod_right _ (λ g, list.rel_of_pairwise_cons hld) } },
   { rintros ⟨c, t, rfl, hd, hc, rfl⟩,
     simp [hd.cycle_type, hc.cycle_type] }

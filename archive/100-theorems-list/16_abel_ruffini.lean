@@ -161,6 +161,7 @@ theorem not_solvable_by_rad' (x : ℂ) (hx : aeval x (Φ ℚ 4 2) = 0) :
   ¬ is_solvable_by_rad ℚ x :=
 by apply not_solvable_by_rad 4 2 2 x hx; norm_num
 
+/-- **Abel-Ruffini Theorem** -/
 theorem exists_not_solvable_by_rad : ∃ x : ℂ, is_algebraic ℚ x ∧ ¬ is_solvable_by_rad ℚ x :=
 begin
   obtain ⟨x, hx⟩ := exists_root_of_splits (algebra_map ℚ ℂ)

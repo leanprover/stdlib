@@ -427,10 +427,16 @@ namespace ideal
 
 variables [comm_ring α] (I : ideal α) {a b : α}
 
-/-- The quotient `R/I` of a ring `R` by an ideal `I`. -/
+/-- The quotient `R/I` of a ring `R` by an ideal `I`.
+
+The ideal quotient of `I` is defined to equal the quotient of `I` as an `R`-submodule of `R`.
+This definition is marked `reducible` so that typeclass instances can be shared between
+`ideal.quotient I` and `submodule.quotient I`.
+-/
 -- Note that at present `ideal` means a left-ideal,
 -- so this quotient is only useful in a commutative ring.
 -- We should develop quotients by two-sided ideals as well.
+@[reducible]
 def quotient (I : ideal α) := I.quotient
 
 namespace quotient
@@ -576,6 +582,15 @@ def lift (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0
   lift S f H (mk S a) = f a := rfl
 
 end quotient
+
+/-- Quotienting by equal ideals gives equivalent rings.
+
+See also `submodule.quot_equiv_of_eq`.
+-/
+def quot_equiv_of_eq {R : Type*} [comm_ring R] {I J : ideal R} (h : I = J) :
+  I.quotient ≃+* J.quotient :=
+{ map_mul' := by { rintro ⟨x⟩ ⟨y⟩, refl },
+  .. submodule.quot_equiv_of_eq I J h }
 
 section pi
 variables (ι : Type v)

@@ -325,67 +325,34 @@ section gcd_domain
 
 /-- For GCD domains, the minimal polynomial over the ring is the same as the minimal polynomial
 over the fraction field. -/
-lemma gcd_domain_eq_field_fractions {A K R : Type*} [integral_domain A]
-  [gcd_monoid A] [field K] [integral_domain R] (f : fraction_map A K) [algebra f.codomain R]
-  [algebra A R] [is_scalar_tower A f.codomain R] {x : R} (hx : is_integral A x) :
-  minpoly f.codomain x = (minpoly A x).map (localization_map.to_ring_hom f) :=
+lemma gcd_domain_eq_field_fractions {A R : Type*} (K : Type*) [integral_domain A]
+  [gcd_monoid A] [field K] [integral_domain R] [algebra A K] [is_fraction_ring A K]
+  [algebra K R] [algebra A R] [is_scalar_tower A K R] {x : R} (hx : is_integral A x) :
+  minpoly K x = (minpoly A x).map (algebra_map A K) :=
 begin
   symmetry,
   refine unique' _ _ _,
-  { exact (polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map f
-  (polynomial.monic.is_primitive (monic hx))).1 (irreducible hx) },
-  { have htower := is_scalar_tower.aeval_apply A f.codomain R x (minpoly A x),
-    simp only [localization_map.algebra_map_eq, aeval] at htower,
-    exact htower.symm },
-  { exact monic_map _ (monic hx) }
-end
-
-/-- The minimal polynomial over `ℤ` is the same as the minimal polynomial over `ℚ`. -/
---TODO use `gcd_domain_eq_field_fractions` directly when localizations are defined
--- in terms of algebras instead of `ring_hom`s
-lemma over_int_eq_over_rat {A : Type*} [integral_domain A] {x : A} [hℚA : algebra ℚ A]
-  (hx : is_integral ℤ x) :
-  minpoly ℚ x = map (int.cast_ring_hom ℚ) (minpoly ℤ x) :=
-begin
-  symmetry,
-  refine unique' _ _ _,
-  { exact (is_primitive.int.irreducible_iff_irreducible_map_cast
-  (polynomial.monic.is_primitive (monic hx))).1 (irreducible hx) },
-  { have htower := is_scalar_tower.aeval_apply ℤ ℚ A x (minpoly ℤ x),
-    simp only [localization_map.algebra_map_eq, aeval] at htower,
-    exact htower.symm },
+  { exact (polynomial.is_primitive.irreducible_iff_irreducible_map_fraction_map
+      (polynomial.monic.is_primitive (monic hx))).1 (irreducible hx) },
+  { have htower := is_scalar_tower.aeval_apply A K R x (minpoly A x),
+    rwa [aeval, eq_comm] at htower },
   { exact monic_map _ (monic hx) }
 end
 
 /-- For GCD domains, the minimal polynomial divides any primitive polynomial that has the integral
 element as root. -/
-lemma gcd_domain_dvd {A K R : Type*}
-  [integral_domain A] [gcd_monoid A] [field K] [integral_domain R]
-  (f : fraction_map A K) [algebra f.codomain R] [algebra A R] [is_scalar_tower A f.codomain R]
+lemma gcd_domain_dvd {A R : Type*} (K : Type*)
+  [integral_domain A] [gcd_monoid A] [field K] [integral_domain R] [algebra A K]
+  [is_fraction_ring A K] [algebra K R] [algebra A R] [is_scalar_tower A K R]
   {x : R} (hx : is_integral A x)
   {P : polynomial A} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) :
   minpoly A x ∣ P :=
 begin
-  apply (is_primitive.dvd_iff_fraction_map_dvd_fraction_map f
-    (monic.is_primitive (monic hx)) hprim ).2,
-  rw [← gcd_domain_eq_field_fractions f hx],
+  apply (is_primitive.dvd_iff_fraction_map_dvd_fraction_map K
+    (monic.is_primitive (monic hx)) hprim).2,
+  rw ← gcd_domain_eq_field_fractions K hx,
   refine dvd _ _ _,
-  rwa [← localization_map.algebra_map_eq, ← is_scalar_tower.aeval_apply]
-end
-
-/-- The minimal polynomial over `ℤ` divides any primitive polynomial that has the integral element
-as root. -/
--- TODO use `gcd_domain_dvd` directly when localizations are defined in terms of algebras
--- instead of `ring_hom`s
-lemma integer_dvd {A : Type*} [integral_domain A] [algebra ℚ A] {x : A} (hx : is_integral ℤ x)
-  {P : polynomial ℤ} (hprim : is_primitive P) (hroot : polynomial.aeval x P = 0) :
-  minpoly ℤ x ∣ P :=
-begin
-  apply (is_primitive.int.dvd_iff_map_cast_dvd_map_cast _ _
-    (monic.is_primitive (monic hx)) hprim ).2,
-  rw [← over_int_eq_over_rat hx],
-  refine dvd _ _ _,
-  rwa [(int.cast_ring_hom ℚ).ext_int (algebra_map ℤ ℚ), ← is_scalar_tower.aeval_apply]
+  rwa ← is_scalar_tower.aeval_apply
 end
 
 end gcd_domain

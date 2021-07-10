@@ -55,7 +55,7 @@ nat.dvd_antisymm
 instance char_p.of_char_zero [add_monoid R] [has_one R] [char_zero R] : char_p R 0 :=
 ⟨λ x, by rw [zero_dvd_iff, ← nat.cast_zero, nat.cast_inj]⟩
 
-theorem char_p.exists [semiring R] : ∃ p, char_p R p :=
+theorem char_p.exists [non_assoc_semiring R] : ∃ p, char_p R p :=
 by letI := classical.dec_eq R; exact
 classical.by_cases
   (assume H : ∀ p:ℕ, (p:R) = 0 → p = 0, ⟨0,
@@ -72,19 +72,20 @@ classical.by_cases
     λ H1, by rw [← nat.mul_div_cancel' H1, nat.cast_mul,
       of_not_not (not_not_of_not_imp $ nat.find_spec (not_forall.1 H)), zero_mul]⟩⟩⟩)
 
-theorem char_p.exists_unique [semiring R] : ∃! p, char_p R p :=
+theorem char_p.exists_unique [non_assoc_semiring R] : ∃! p, char_p R p :=
 let ⟨c, H⟩ := char_p.exists R in ⟨c, H, λ y H2, char_p.eq R H2 H⟩
 
-theorem char_p.congr {R : Type u} [semiring R] {p : ℕ} (q : ℕ) [hq : char_p R q] (h : q = p) :
+theorem char_p.congr {R : Type u} [add_monoid R] [has_one R] {p : ℕ} (q : ℕ) [hq : char_p R q]
+  (h : q = p) :
   char_p R p :=
 h ▸ hq
 
 /-- Noncomputable function that outputs the unique characteristic of a semiring. -/
-noncomputable def ring_char [semiring R] : ℕ :=
+noncomputable def ring_char [non_assoc_semiring R] : ℕ :=
 classical.some (char_p.exists_unique R)
 
 namespace ring_char
-variables [semiring R]
+variables [non_assoc_semiring R]
 
 theorem spec : ∀ x:ℕ, (x:R) = 0 ↔ ring_char R ∣ x :=
 by letI := (classical.some_spec (char_p.exists_unique R)).1;
@@ -305,7 +306,7 @@ end
 section semiring
 open nat
 
-variables [semiring R]
+variables [non_assoc_semiring R]
 
 theorem char_ne_one [nontrivial R] (p : ℕ) [hc : char_p R p] : p ≠ 1 :=
 assume hp : p = 1,
@@ -366,7 +367,7 @@ end ring
 
 section char_one
 
-variables {R} [semiring R]
+variables {R} [non_assoc_semiring R]
 
 @[priority 100]  -- see Note [lower instance priority]
 instance [char_p R 1] : subsingleton R :=

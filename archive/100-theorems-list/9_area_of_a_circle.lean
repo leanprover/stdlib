@@ -71,7 +71,7 @@ end
 theorem measurable_set_disc : measurable_set (disc r) :=
 by apply measurable_set_lt; apply continuous.measurable; continuity
 
-/-- The area of a disc with radius `r` is `π * r ^ 2`. -/
+/-- **Area of a Circle**: The area of a disc with radius `r` is `π * r ^ 2`. -/
 theorem area_disc : volume (disc r) = nnreal.pi * r ^ 2 :=
 begin
   let f := λ x, sqrt (r ^ 2 - x ^ 2),

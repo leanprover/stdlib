@@ -820,8 +820,10 @@ lemma conj_pow (u : units M) (x : M) (n : ℕ) : (↑u * x * ↑(u⁻¹))^n = u 
 lemma conj_pow' (u : units M) (x : M) (n : ℕ) : (↑(u⁻¹) * x * u)^n = ↑(u⁻¹) * x^n * u:=
 (u⁻¹).conj_pow x n
 
-open opposite
+end units
 
+namespace opposite
+variables [monoid M]
 /-- Moving to the opposite monoid commutes with taking powers. -/
 @[simp] lemma op_pow (x : M) (n : ℕ) : op (x ^ n) = (op x) ^ n :=
 begin
@@ -837,4 +839,4 @@ begin
   { rw [pow_succ', unop_mul, h, pow_succ] }
 end
 
-end units
+end opposite

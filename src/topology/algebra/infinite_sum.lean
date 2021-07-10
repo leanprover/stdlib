@@ -71,7 +71,12 @@ lemma has_sum.summable (h : has_sum f a) : summable f := ⟨a, h⟩
 lemma has_sum_zero : has_sum (λb, 0 : β → α) 0 :=
 by simp [has_sum, tendsto_const_nhds]
 
+lemma has_sum_empty [is_empty β] : has_sum f 0 :=
+by convert has_sum_zero
+
 lemma summable_zero : summable (λb, 0 : β → α) := has_sum_zero.summable
+
+lemma summable_empty [is_empty β] : summable f := has_sum_empty.summable
 
 lemma tsum_eq_zero_of_not_summable (h : ¬ summable f) : ∑'b, f b = 0 :=
 by simp [tsum, h]
@@ -336,6 +341,8 @@ lemma summable.has_sum_iff (h : summable f) : has_sum f a ↔ ∑'b, f b = a :=
 iff.intro has_sum.tsum_eq (assume eq, eq ▸ h.has_sum)
 
 @[simp] lemma tsum_zero : ∑'b:β, (0:α) = 0 := has_sum_zero.tsum_eq
+
+@[simp] lemma tsum_empty [is_empty β] : ∑'b, f b = 0 := has_sum_empty.tsum_eq
 
 lemma tsum_eq_sum {f : β → α} {s : finset β} (hf : ∀b∉s, f b = 0)  :
   ∑' b, f b = ∑ b in s, f b :=

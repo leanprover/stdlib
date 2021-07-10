@@ -23,8 +23,8 @@ namespace complex
 /- The following proof uses the method given at
 <https://ncatlab.org/nlab/show/fundamental+theorem+of+algebra#classical_fta_via_advanced_calculus>
 -/
-/-- The fundamental theorem of algebra. Every non constant complex polynomial
-  has a root. -/
+/-- **Fundamental theorem of algebra**: every non constant complex polynomial
+  has a root -/
 lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_root f z :=
 let ⟨z₀, hz₀⟩ := f.exists_forall_norm_le in
 exists.intro z₀ $ classical.by_contradiction $ λ hf0,

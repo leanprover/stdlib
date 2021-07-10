@@ -91,7 +91,9 @@ variables (s : set α)
 
 /-- Interpret `finsupp.subtype_domain s` as a linear map. -/
 def lsubtype_domain : (α →₀ M) →ₗ[R] (s →₀ M) :=
-⟨subtype_domain (λx, x ∈ s), assume a b, subtype_domain_add, assume c a, ext $ assume a, rfl⟩
+{ to_fun := subtype_domain (λx, x ∈ s),
+  map_add' := λ a b, subtype_domain_add,
+  map_smul' := λ c a, ext $ λ a, rfl }
 
 lemma lsubtype_domain_apply (f : α →₀ M) :
   (lsubtype_domain s : (α →₀ M) →ₗ[R] (s →₀ M)) f = subtype_domain (λx, x ∈ s) f := rfl
@@ -349,7 +351,7 @@ variables {α' : Type*} {α'' : Type*} (M R)
 
 /-- Interpret `finsupp.map_domain` as a linear map. -/
 def lmap_domain (f : α → α') : (α →₀ M) →ₗ[R] (α' →₀ M) :=
-⟨map_domain f, assume a b, map_domain_add, map_domain_smul⟩
+{ to_fun := map_domain f, map_add' := λ a b, map_domain_add, map_smul' := map_domain_smul }
 
 @[simp] theorem lmap_domain_apply (f : α → α') (l : α →₀ M) :
   (lmap_domain M R f : (α →₀ M) →ₗ[R] (α' →₀ M)) l = map_domain f l := rfl

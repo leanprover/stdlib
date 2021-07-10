@@ -8,6 +8,8 @@ import topology.algebra.uniform_group
 import topology.algebra.ring
 import ring_theory.subring
 import group_theory.archimedean
+import algebra.periodic
+
 /-!
 # Topological properties of ℝ
 -/
@@ -280,6 +282,41 @@ eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc
   (is_compact_Icc.image_of_continuous_on h)
 
 end
+
+section periodic
+
+namespace function
+
+lemma periodic.compact_of_continuous' [topological_space α] {f : ℝ → α} {c : ℝ}
+  (hp : periodic f c) (hc : 0 < c) (hf : continuous f) :
+  is_compact (range f) :=
+begin
+  convert is_compact_Icc.image hf,
+  ext x,
+  refine ⟨_, mem_range_of_mem_image f (Icc 0 c)⟩,
+  rintros ⟨y, h1⟩,
+  obtain ⟨z, hz, h2⟩ := hp.exists_mem_Ico hc y,
+  exact ⟨z, mem_Icc_of_Ico hz, h2.symm.trans h1⟩,
+end
+
+/-- A continuous, periodic function has compact range. -/
+lemma periodic.compact_of_continuous [topological_space α] {f : ℝ → α} {c : ℝ}
+  (hp : periodic f c) (hc : c ≠ 0) (hf : continuous f) :
+  is_compact (range f) :=
+begin
+  cases lt_or_gt_of_ne hc with hneg hpos,
+  exacts [hp.neg.compact_of_continuous' (neg_pos.mpr hneg) hf, hp.compact_of_continuous' hpos hf],
+end
+
+/-- A continuous, periodic function is bounded. -/
+lemma periodic.bounded_of_continuous [pseudo_metric_space α] {f : ℝ → α} {c : ℝ}
+  (hp : periodic f c) (hc : c ≠ 0) (hf : continuous f) :
+  bounded (range f) :=
+(hp.compact_of_continuous hc hf).bounded
+
+end function
+
+end periodic
 
 section subgroups
 

@@ -132,8 +132,8 @@ begin
   unfold polynomial.eval, unfold eval₂,
   transitivity polynomial.sum (mat_poly_equiv M) (λ (e : ℕ) (a : matrix n n R),
     (a * (scalar n) r ^ e) i j),
-  { unfold polynomial.sum, rw sum_apply, rw sum_apply, dsimp, refl, },
-  { simp_rw ← (scalar n).map_pow, simp_rw ← (matrix.scalar.commute _ _).eq,
+  { unfold polynomial.sum, rw matrix.sum_apply, dsimp, refl },
+  { simp_rw [←ring_hom.map_pow, ←(matrix.scalar.commute _ _).eq],
     simp only [coe_scalar, matrix.one_mul, ring_hom.id_apply,
       pi.smul_apply, smul_eq_mul, mul_eq_mul, algebra.smul_mul_assoc],
     have h : ∀ x : ℕ, (λ (e : ℕ) (a : R), r ^ e * a) x 0 = 0 := by simp,
@@ -182,9 +182,8 @@ end
 @[simp] lemma finite_field.char_poly_pow_card {K : Type*} [field K] [fintype K] (M : matrix n n K) :
   char_poly (M ^ (fintype.card K)) = char_poly M :=
 begin
-  by_cases hn : nonempty n,
-  { haveI := hn,
-    cases char_p.exists K with p hp, letI := hp,
+  casesI (is_empty_or_nonempty n).symm,
+  { cases char_p.exists K with p hp, letI := hp,
     rcases finite_field.card K p with ⟨⟨k, kpos⟩, ⟨hp, hk⟩⟩,
     haveI : fact p.prime := ⟨hp⟩,
     dsimp at hk, rw hk at *,
@@ -193,12 +192,13 @@ begin
     rw ← finite_field.expand_card,
     unfold char_poly, rw [alg_hom.map_det, ← is_monoid_hom.map_pow],
     apply congr_arg det,
-    apply mat_poly_equiv.injective, swap, { apply_instance },
-    rw [← mat_poly_equiv.coe_alg_hom, alg_hom.map_pow, mat_poly_equiv.coe_alg_hom,
-          mat_poly_equiv_char_matrix, hk, sub_pow_char_pow_of_commute, ← C_pow],
+    refine mat_poly_equiv.injective _,
+    rw [alg_equiv.map_pow, mat_poly_equiv_char_matrix, hk, sub_pow_char_pow_of_commute, ← C_pow],
     { exact (id (mat_poly_equiv_eq_X_pow_sub_C (p ^ k) M) : _) },
     { exact (C M).commute_X } },
-  { apply congr_arg, apply @subsingleton.elim _ (subsingleton_of_empty_left hn) _ _, },
+  { -- TODO[gh-6025]: remove this `haveI` once `subsingleton_of_empty_right` is a global instance
+    haveI : subsingleton (matrix n n K) := matrix.subsingleton_of_empty_right,
+    exact congr_arg _ (subsingleton.elim _ _), },
 end
 
 @[simp] lemma zmod.char_poly_pow_card (M : matrix n n (zmod p)) :

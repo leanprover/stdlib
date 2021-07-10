@@ -104,7 +104,7 @@ variables {V : Type u} (G : simple_graph V)
 def neighbor_set (v : V) : set V := set_of (G.adj v)
 
 instance neighbor_set.mem_decidable (v : V) [decidable_rel G.adj] :
-  decidable_pred (G.neighbor_set v) := by { unfold neighbor_set, apply_instance }
+  decidable_pred (∈ (G.neighbor_set v)) := by { unfold neighbor_set, apply_instance }
 
 lemma ne_of_adj {a b : V} (hab : G.adj a b) : a ≠ b :=
 by { rintro rfl, exact G.loopless a hab }
@@ -151,14 +151,14 @@ begin
   exact G.ne_of_adj he,
 end
 
-instance edge_set_decidable_pred [decidable_rel G.adj] :
-  decidable_pred G.edge_set := sym2.from_rel.decidable_pred _
+instance decidable_mem_edge_set [decidable_rel G.adj] :
+  decidable_pred (∈ G.edge_set) := sym2.from_rel.decidable_pred _
 
 instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
   fintype G.edge_set := subtype.fintype _
 
-instance incidence_set_decidable_pred [decidable_eq V] [decidable_rel G.adj] (v : V) :
-  decidable_pred (G.incidence_set v) := λ e, and.decidable
+instance decidable_mem_incidence_set [decidable_eq V] [decidable_rel G.adj] (v : V) :
+  decidable_pred (∈ G.incidence_set v) := λ e, and.decidable
 
 /--
 The `edge_set` of the graph as a `finset`.
@@ -224,7 +224,8 @@ lemma not_mem_common_neighbors_right (v w : V) : w ∉ G.common_neighbors v w :=
 lemma common_neighbors_subset_neighbor_set (v w : V) : G.common_neighbors v w ⊆ G.neighbor_set v :=
 by simp [common_neighbors]
 
-instance [decidable_rel G.adj] (v w : V) : decidable_pred (G.common_neighbors v w) :=
+instance decidable_mem_common_neighbors [decidable_rel G.adj] (v w : V) :
+  decidable_pred (∈ G.common_neighbors v w) :=
 λ a, and.decidable
 
 section incidence

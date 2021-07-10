@@ -43,58 +43,22 @@ namespace poly_equiv_tensor
 
 /--
 (Implementation detail).
-The bare function underlying `A ⊗[R] polynomial R →ₐ[R] polynomial A`, on pure tensors.
--/
-def to_fun (a : A) (p : polynomial R) : polynomial A :=
-p.sum (λ n r, monomial n (a * algebra_map R A r))
-
-/--
-(Implementation detail).
-The function underlying `A ⊗[R] polynomial R →ₐ[R] polynomial A`,
-as a linear map in the second factor.
--/
-def to_fun_linear_right (a : A) : polynomial R →ₗ[R] polynomial A :=
-{ to_fun := to_fun R A a,
-  map_smul' := λ r p,
-  begin
-    dsimp [to_fun],
-    rw sum_smul_index,
-    { dsimp [sum_def],
-      rw finset.smul_sum,
-      apply finset.sum_congr rfl,
-      intros k hk,
-      rw [monomial_eq_smul_X, monomial_eq_smul_X, algebra.smul_def, ← C_mul', ← C_mul',
-          ← mul_assoc],
-      congr' 1,
-      rw [← algebra.commutes, ← algebra.commutes],
-      simp only [ring_hom.map_mul, polynomial.algebra_map_apply, mul_assoc], },
-    { intro i, simp only [ring_hom.map_zero, mul_zero, monomial_zero_right] },
-  end,
-  map_add' := λ p q,
-  begin
-    simp only [to_fun],
-    rw sum_add_index,
-    { simp only [monomial_zero_right, forall_const, ring_hom.map_zero, mul_zero], },
-    { intros i r s, simp only [ring_hom.map_add, mul_add, monomial_add], },
-  end, }
-
-/--
-(Implementation detail).
 The function underlying `A ⊗[R] polynomial R →ₐ[R] polynomial A`,
 as a bilinear function of two arguments.
 -/
-def to_fun_bilinear : A →ₗ[R] polynomial R →ₗ[R] polynomial A :=
-{ to_fun := to_fun_linear_right R A,
-  map_smul' := by {
-    intros, unfold to_fun_linear_right,
-    congr, simp only [linear_map.coe_mk],
-    simp_rw [to_fun, sum_def, finset.smul_sum, smul_monomial,  ← algebra.smul_mul_assoc],
-    refl },
-  map_add' := by {
-    intros, unfold to_fun_linear_right,
-    congr, simp only [linear_map.coe_mk],
-    simp_rw [to_fun, sum_def, ← finset.sum_add_distrib, ← monomial_add, ← add_mul],
-    refl } }
+@[simps]
+def to_fun_bilinear : A →ₗ[A] polynomial R →ₗ[R] polynomial A :=
+linear_map.to_span_singleton A _ (aeval (polynomial.X : polynomial A)).to_linear_map
+
+lemma to_fun_bilinear_apply_eq_sum (a : A) (p : polynomial R) :
+  to_fun_bilinear R A a p = p.sum (λ n r, monomial n (a * algebra_map R A r)) :=
+begin
+  dsimp [to_fun_bilinear_apply_apply, aeval_def, eval₂_eq_sum, polynomial.sum],
+  rw finset.smul_sum,
+  congr' with i : 1,
+  rw [←algebra.smul_def, ←C_mul', mul_smul_comm, C_mul_X_pow_eq_monomial, ←algebra.commutes,
+    ←algebra.smul_def, smul_monomial],
+end
 
 /--
 (Implementation detail).
@@ -103,6 +67,10 @@ as a linear map.
 -/
 def to_fun_linear : A ⊗[R] polynomial R →ₗ[R] polynomial A :=
 tensor_product.lift (to_fun_bilinear R A)
+
+@[simp]
+lemma to_fun_linear_tmul_apply (a : A) (p : polynomial R) :
+  to_fun_linear R A (a ⊗ₜ[R] p) = to_fun_bilinear R A a p := lift.tmul _ _
 
 -- We apparently need to provide the decidable instance here
 -- in order to successfully rewrite by this lemma.
@@ -125,9 +93,7 @@ lemma to_fun_linear_mul_tmul_mul (a₁ a₂ : A) (p₁ p₂ : polynomial R) :
   (to_fun_linear R A) ((a₁ * a₂) ⊗ₜ[R] (p₁ * p₂)) =
     (to_fun_linear R A) (a₁ ⊗ₜ[R] p₁) * (to_fun_linear R A) (a₂ ⊗ₜ[R] p₂) :=
 begin
-  dsimp [to_fun_linear],
-  simp only [lift.tmul],
-  dsimp [to_fun_bilinear, to_fun_linear_right, to_fun],
+  simp only [to_fun_linear_tmul_apply, to_fun_bilinear_apply_eq_sum],
   ext k,
   simp_rw [coeff_sum, coeff_monomial, sum_def, finset.sum_ite_eq', mem_support_iff, ne.def],
   conv_rhs { rw [coeff_mul] },
@@ -141,13 +107,8 @@ end
 
 lemma to_fun_linear_algebra_map_tmul_one (r : R) :
   (to_fun_linear R A) ((algebra_map R A) r ⊗ₜ[R] 1) = (algebra_map R (polynomial A)) r :=
-begin
-  dsimp [to_fun_linear],
-  simp only [lift.tmul],
-  dsimp [to_fun_bilinear, to_fun_linear_right, to_fun],
-  rw [← C_1, ←monomial_zero_left, sum_monomial_index];
-  simp [algebra_map_apply],
-end
+by rw [to_fun_linear_tmul_apply, to_fun_bilinear_apply_apply, polynomial.aeval_one,
+  algebra_map_smul, algebra.algebra_map_eq_smul_one]
 
 /--
 (Implementation detail).
@@ -161,7 +122,10 @@ alg_hom_of_linear_map_tensor_product
 
 @[simp] lemma to_fun_alg_hom_apply_tmul (a : A) (p : polynomial R) :
   to_fun_alg_hom R A (a ⊗ₜ[R] p) = p.sum (λ n r, monomial n (a * (algebra_map R A) r)) :=
-by simp [to_fun_alg_hom, to_fun_linear, to_fun_bilinear, to_fun_linear_right, to_fun]
+begin
+  dsimp [to_fun_alg_hom],
+  rw [to_fun_linear_tmul_apply, to_fun_bilinear_apply_eq_sum],
+end
 
 /--
 (Implementation detail.)
@@ -242,10 +206,7 @@ rfl
 @[simp]
 lemma poly_equiv_tensor_symm_apply_tmul (a : A) (p : polynomial R) :
   (poly_equiv_tensor R A).symm (a ⊗ₜ p) = p.sum (λ n r, monomial n (a * algebra_map R A r)) :=
-begin
-  simp [poly_equiv_tensor, to_fun_alg_hom, alg_hom_of_linear_map_tensor_product, to_fun_linear],
-  refl,
-end
+to_fun_alg_hom_apply_tmul _ _ _ _
 
 open dmatrix matrix
 open_locale big_operators

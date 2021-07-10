@@ -98,7 +98,7 @@ instance : canonically_linear_ordered_add_monoid ℕ :=
 { .. (infer_instance : canonically_ordered_add_monoid ℕ),
   .. nat.linear_order }
 
-instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred s] [h : nonempty s] :
+instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred (∈ s)] [h : nonempty s] :
   semilattice_sup_bot s :=
 { bot := ⟨nat.find (nonempty_subtype.1 h), nat.find_spec (nonempty_subtype.1 h)⟩,
   bot_le := λ x, nat.find_min' _ x.2,
@@ -222,6 +222,46 @@ theorem le_zero_iff {i : ℕ} : i ≤ 0 ↔ i = 0 :=
 lemma zero_max {m : ℕ} : max 0 m = m :=
 max_eq_right (zero_le _)
 
+@[simp] lemma min_eq_zero_iff {m n : ℕ} : min m n = 0 ↔ m = 0 ∨ n = 0 :=
+begin
+  split,
+  { intro h,
+    cases le_total n m with H H,
+    { simpa [H] using or.inr h },
+    { simpa [H] using or.inl h } },
+  { rintro (rfl|rfl);
+    simp }
+end
+
+@[simp] lemma max_eq_zero_iff {m n : ℕ} : max m n = 0 ↔ m = 0 ∧ n = 0 :=
+begin
+  split,
+  { intro h,
+    cases le_total n m with H H,
+    { simp only [H, max_eq_left] at h,
+      exact ⟨h, le_antisymm (H.trans h.le) (zero_le _)⟩ },
+    { simp only [H, max_eq_right] at h,
+      exact ⟨le_antisymm (H.trans h.le) (zero_le _), h⟩ } },
+  { rintro ⟨rfl, rfl⟩,
+    simp }
+end
+
+lemma add_eq_max_iff {n m : ℕ} :
+  n + m = max n m ↔ n = 0 ∨ m = 0 :=
+begin
+  rw ←min_eq_zero_iff,
+  cases le_total n m with H H;
+  simp [H]
+end
+
+lemma add_eq_min_iff {n m : ℕ} :
+  n + m = min n m ↔ n = 0 ∧ m = 0 :=
+begin
+  rw ←max_eq_zero_iff,
+  cases le_total n m with H H;
+  simp [H]
+end
+
 lemma one_le_of_lt {n m : ℕ} (h : n < m) : 1 ≤ m :=
 lt_of_le_of_lt (nat.zero_le _) h
 
@@ -274,7 +314,7 @@ lemma not_succ_lt_self {n : ℕ} : ¬succ n < n :=
 not_lt_of_ge (nat.le_succ _)
 
 theorem lt_succ_iff {m n : ℕ} : m < succ n ↔ m ≤ n :=
-succ_le_succ_iff
+⟨le_of_lt_succ, lt_succ_of_le⟩
 
 lemma succ_le_iff {m n : ℕ} : succ m ≤ n ↔ m < n :=
 ⟨lt_of_succ_le, succ_le_of_lt⟩
@@ -303,6 +343,9 @@ H.lt_or_eq_dec.imp le_of_lt_succ id
 
 lemma succ_lt_succ_iff {m n : ℕ} : succ m < succ n ↔ m < n :=
 ⟨lt_of_succ_lt_succ, succ_lt_succ⟩
+
+@[simp] lemma lt_one_iff {n : ℕ} : n < 1 ↔ n = 0 :=
+lt_succ_iff.trans le_zero_iff
 
 lemma div_le_iff_le_mul_add_pred {m n k : ℕ} (n0 : 0 < n) : m / n ≤ k ↔ m ≤ n * k + (n - 1) :=
 begin

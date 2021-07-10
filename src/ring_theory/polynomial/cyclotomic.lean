@@ -424,17 +424,18 @@ open_locale arithmetic_function
 
 /-- `cyclotomic n R` can be expressed as a product in a fraction field of `polynomial R`
   using Möbius inversion. -/
-lemma cyclotomic_eq_prod_X_pow_sub_one_pow_moebius {n : ℕ} (hpos : 0 < n) (R : Type*) [comm_ring R]
-  [nontrivial R] {K : Type*} [field K] (f : fraction_map (polynomial R) K) :
-  f.to_map (cyclotomic n R) =
-    ∏ i in n.divisors_antidiagonal, (f.to_map (X ^ i.snd - 1)) ^ μ i.fst :=
+lemma cyclotomic_eq_prod_X_pow_sub_one_pow_moebius {n : ℕ} (hpos : 0 < n)
+  (R : Type*) [comm_ring R] [nontrivial R]
+  {K : Type*} [field K] [algebra (polynomial R) K] [is_fraction_ring (polynomial R) K] :
+  algebra_map _ K (cyclotomic n R) =
+    ∏ i in n.divisors_antidiagonal, (algebra_map (polynomial R) K (X ^ i.snd - 1)) ^ μ i.fst :=
 begin
   have h : ∀ (n : ℕ), 0 < n →
-    ∏ i in nat.divisors n, f.to_map (cyclotomic i R) = f.to_map (X ^ n - 1),
+    ∏ i in nat.divisors n, algebra_map _ K (cyclotomic i R) = algebra_map _ _ (X ^ n - 1),
   { intros n hn,
     rw [← prod_cyclotomic_eq_X_pow_sub_one hn R, ring_hom.map_prod] },
   rw (prod_eq_iff_prod_pow_moebius_eq_of_nonzero (λ n hn, _) (λ n hn, _)).1 h n hpos;
-  rw [ne.def, fraction_map.to_map_eq_zero_iff],
+  rw [ne.def, is_fraction_ring.to_map_eq_zero_iff],
   { apply cyclotomic_ne_zero },
   { apply monic.ne_zero,
     apply monic_X_pow_sub_C _ (ne_of_gt hn) }
@@ -668,7 +669,7 @@ lemma minpoly_primitive_root_dvd_cyclotomic {n : ℕ} {K : Type*} [field K] {μ 
   (h : is_primitive_root μ n) (hpos : 0 < n) [char_zero K] :
   minpoly ℤ μ ∣ cyclotomic n ℤ :=
 begin
-  apply minpoly.integer_dvd (is_integral h hpos) (cyclotomic.monic n ℤ).is_primitive,
+  apply minpoly.gcd_domain_dvd ℚ (is_integral h hpos) (cyclotomic.monic n ℤ).is_primitive,
   simpa [aeval_def, eval₂_eq_eval_map, is_root.def] using is_root_cyclotomic hpos h
 end
 

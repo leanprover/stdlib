@@ -67,8 +67,8 @@ namespace measurable_space
 section functors
 variables {m m₁ m₂ : measurable_space α} {m' : measurable_space β} {f : α → β} {g : β → α}
 
-/-- The forward image of a measure space under a function. `map f m` contains the sets `s : set β`
-  whose preimage under `f` is measurable. -/
+/-- The forward image of a measurable space under a function. `map f m` contains the sets
+  `s : set β` whose preimage under `f` is measurable. -/
 protected def map (f : α → β) (m : measurable_space α) : measurable_space β :=
 { measurable_set'      := λ s, m.measurable_set' $ f ⁻¹' s,
   measurable_set_empty := m.measurable_set_empty,
@@ -81,8 +81,8 @@ measurable_space.ext $ assume s, iff.rfl
 @[simp] lemma map_comp {f : α → β} {g : β → γ} : (m.map f).map g = m.map (g ∘ f) :=
 measurable_space.ext $ assume s, iff.rfl
 
-/-- The reverse image of a measure space under a function. `comap f m` contains the sets `s : set α`
-  such that `s` is the `f`-preimage of a measurable set in `β`. -/
+/-- The reverse image of a measurable space under a function. `comap f m` contains the sets
+  `s : set α` such that `s` is the `f`-preimage of a measurable set in `β`. -/
 protected def comap (f : α → β) (m : measurable_space β) : measurable_space α :=
 { measurable_set'      := λ s, ∃s', m.measurable_set' s' ∧ f ⁻¹' s' = s,
   measurable_set_empty := ⟨∅, m.measurable_set_empty, rfl⟩,
@@ -186,7 +186,7 @@ lemma subsingleton.measurable [subsingleton α] {f : α → β} : measurable f :
 λ s hs, @subsingleton.measurable_set α _ _ _
 
 @[measurability]
-lemma measurable.piecewise {s : set α} {_ : decidable_pred s} {f g : α → β}
+lemma measurable.piecewise {s : set α} {_ : decidable_pred (∈ s)} {f g : α → β}
   (hs : measurable_set s) (hf : measurable f) (hg : measurable g) :
   measurable (piecewise s f g) :=
 begin

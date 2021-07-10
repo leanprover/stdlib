@@ -76,7 +76,7 @@ begin
   rw [pow_succ', mul_assoc, ← hm],
 end
 
-/-- Euler's theorem that even perfect numbers can be factored as a
+/-- **Perfect Number Theorem**: Euler's theorem that even perfect numbers can be factored as a
   power of two times a Mersenne prime. -/
 theorem eq_two_pow_mul_prime_mersenne_of_even_perfect {n : ℕ} (ev : even n) (perf : perfect n) :
   ∃ (k : ℕ), prime (mersenne (k + 1)) ∧ n = 2 ^ k * mersenne (k + 1) :=

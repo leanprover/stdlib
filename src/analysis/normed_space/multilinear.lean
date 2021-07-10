@@ -54,7 +54,7 @@ approach, it turns out that direct proofs are easier and more efficient.
 -/
 
 noncomputable theory
-open_locale classical big_operators
+open_locale classical big_operators nnreal
 open finset metric
 
 local attribute [instance, priority 1001]
@@ -377,6 +377,29 @@ normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 instance to_normed_space : normed_space 𝕜' (continuous_multilinear_map 𝕜 E G) :=
 ⟨λ c f, f.op_norm_smul_le c⟩
 
+theorem le_op_norm_mul_prod_of_le {b : ι → ℝ} (hm : ∀ i, ∥m i∥ ≤ b i) : ∥f m∥ ≤ ∥f∥ * ∏ i, b i :=
+(f.le_op_norm m).trans $ mul_le_mul_of_nonneg_left
+  (prod_le_prod (λ _ _, norm_nonneg _) (λ i _, hm i)) (norm_nonneg f)
+
+theorem le_op_norm_mul_pow_card_of_le {b : ℝ} (hm : ∀ i, ∥m i∥ ≤ b) :
+  ∥f m∥ ≤ ∥f∥ * b ^ fintype.card ι :=
+by simpa only [prod_const] using f.le_op_norm_mul_prod_of_le m hm
+
+theorem le_op_norm_mul_pow_of_le {Ei : fin n → Type*} [Π i, normed_group (Ei i)]
+  [Π i, normed_space 𝕜 (Ei i)] (f : continuous_multilinear_map 𝕜 Ei G) (m : Π i, Ei i)
+  {b : ℝ} (hm : ∥m∥ ≤ b) :
+  ∥f m∥ ≤ ∥f∥ * b ^ n :=
+by simpa only [fintype.card_fin]
+  using f.le_op_norm_mul_pow_card_of_le m (λ i, (norm_le_pi_norm m i).trans hm)
+
+/-- The fundamental property of the operator norm of a continuous multilinear map:
+`∥f m∥` is bounded by `∥f∥` times the product of the `∥m i∥`, `nnnorm` version. -/
+theorem le_op_nnnorm : nnnorm (f m) ≤ nnnorm f * ∏ i, nnnorm (m i) :=
+nnreal.coe_le_coe.1 $ by { push_cast, exact f.le_op_norm m }
+
+theorem le_of_op_nnnorm_le {C : ℝ≥0} (h : nnnorm f ≤ C) : nnnorm (f m) ≤ C * ∏ i, nnnorm (m i) :=
+(f.le_op_nnnorm m).trans $ mul_le_mul' h le_rfl
+
 lemma op_norm_prod (f : continuous_multilinear_map 𝕜 E G) (g : continuous_multilinear_map 𝕜 E G') :
   ∥f.prod g∥ = max (∥f∥) (∥g∥) :=
 le_antisymm
@@ -427,13 +450,12 @@ def piₗᵢ {ι' : Type v'} [fintype ι'] {E' : ι' → Type wE'} [Π i', norme
   @linear_isometry_equiv 𝕜 (Π i', continuous_multilinear_map 𝕜 E (E' i'))
     (continuous_multilinear_map 𝕜 E (Π i, E' i)) _ _ _
       (@pi.module ι' _ 𝕜 _ _ (λ i', infer_instance)) _ :=
-{ to_fun := pi,
-  map_add' := λ f g, rfl,
-  map_smul' := λ c f, rfl,
-  inv_fun := λ f i,
-    (@continuous_linear_map.proj 𝕜 _ _ E' _ _ _ i).comp_continuous_multilinear_map f,
-  left_inv := λ f, by { ext, refl },
-  right_inv := λ f, by { ext, refl },
+{ to_linear_equiv :=
+  -- note: `pi_linear_equiv` does not unify correctly here, presumably due to issues with dependent
+  -- typeclass arguments.
+  { map_add' := λ f g, rfl,
+    map_smul' := λ c f, rfl,
+    .. pi_equiv, },
   norm_map' := norm_pi }
 
 end
@@ -523,6 +545,10 @@ begin
   ext s,
   simp
 end
+
+lemma tsum_eval {α : Type*} {p : α → continuous_multilinear_map 𝕜 E G} (hp : summable p)
+  (m : Π i, E i) : (∑' a, p a) m = ∑' a, p a m :=
+(has_sum_eval hp.has_sum m).tsum_eq.symm
 
 open_locale topological_space
 open filter
@@ -1098,8 +1124,8 @@ def continuous_multilinear_map.uncurry_right
   continuous_multilinear_map 𝕜 Ei G :=
 let f' : multilinear_map 𝕜 (λ(i : fin n), Ei i.cast_succ) (Ei (last n) →ₗ[𝕜] G) :=
 { to_fun    := λ m, (f m).to_linear_map,
-  map_add'  := λ m i x y, by { simp, refl },
-  map_smul' := λ m i c x, by { simp, refl } } in
+  map_add'  := λ m i x y, by simp,
+  map_smul' := λ m i c x, by simp } in
 (@multilinear_map.uncurry_right 𝕜 n Ei G _ _ _ _ _ f').mk_continuous
   (∥f∥) (λm, f.norm_map_init_le m)
 
@@ -1406,13 +1432,13 @@ end
 
 section
 
-variables (𝕜 G G') {k l : ℕ} {s : finset (fin n)} [decidable_pred (s : set (fin n))]
+variables (𝕜 G G') {k l : ℕ} {s : finset (fin n)}
 
 /-- If `s : finset (fin n)` is a finite set of cardinality `k` and its complement has cardinality
 `l`, then the space of continuous multilinear maps `G [×n]→L[𝕜] G'` of `n` variables is isomorphic
 to the space of continuous multilinear maps `G [×k]→L[𝕜] G [×l]→L[𝕜] G'` of `k` variables taking
 values in the space of continuous multilinear maps of `l` variables. -/
-def curry_fin_finset {k l n : ℕ} {s : finset (fin n)} [decidable_pred (s : set (fin n))]
+def curry_fin_finset {k l n : ℕ} {s : finset (fin n)}
   (hk : s.card = k) (hl : sᶜ.card = l) :
   (G [×n]→L[𝕜] G') ≃ₗᵢ[𝕜] (G [×k]→L[𝕜] G [×l]→L[𝕜] G') :=
 (dom_dom_congr 𝕜 G G' (fin_sum_equiv_of_finset hk hl).symm).trans

@@ -36,38 +36,34 @@ namespace units
 
 /-- In a complete normed ring, a perturbation of `1` by an element `t` of distance less than `1`
 from `1` is a unit.  Here we construct its `units` structure.  -/
+@[simps coe]
 def one_sub (t : R) (h : ∥t∥ < 1) : units R :=
 { val := 1 - t,
   inv := ∑' n : ℕ, t ^ n,
   val_inv := mul_neg_geom_series t h,
   inv_val := geom_series_mul_neg t h }
 
-@[simp] lemma one_sub_coe (t : R) (h : ∥t∥ < 1) : ↑(one_sub t h) = 1 - t := rfl
-
 /-- In a complete normed ring, a perturbation of a unit `x` by an element `t` of distance less than
 `∥x⁻¹∥⁻¹` from `x` is a unit.  Here we construct its `units` structure. -/
+@[simps coe]
 def add (x : units R) (t : R) (h : ∥t∥ < ∥(↑x⁻¹ : R)∥⁻¹) : units R :=
-x * (units.one_sub (-(↑x⁻¹ * t))
-begin
-  nontriviality R using [zero_lt_one],
-  have hpos : 0 < ∥(↑x⁻¹ : R)∥ := units.norm_pos x⁻¹,
-  calc ∥-(↑x⁻¹ * t)∥
-      = ∥↑x⁻¹ * t∥                    : by { rw norm_neg }
-  ... ≤ ∥(↑x⁻¹ : R)∥ * ∥t∥            : norm_mul_le ↑x⁻¹ _
-  ... < ∥(↑x⁻¹ : R)∥ * ∥(↑x⁻¹ : R)∥⁻¹ : by nlinarith only [h, hpos]
-  ... = 1                             : mul_inv_cancel (ne_of_gt hpos)
-end)
-
-@[simp] lemma add_coe (x : units R) (t : R) (h : ∥t∥ < ∥(↑x⁻¹ : R)∥⁻¹) :
-  ((x.add t h) : R) = x + t := by { unfold units.add, simp [mul_add] }
+units.copy  -- to make `coe_add` true definitionally, for convenience
+  (x * (units.one_sub (-(↑x⁻¹ * t)) begin
+      nontriviality R using [zero_lt_one],
+      have hpos : 0 < ∥(↑x⁻¹ : R)∥ := units.norm_pos x⁻¹,
+      calc ∥-(↑x⁻¹ * t)∥
+          = ∥↑x⁻¹ * t∥                    : by { rw norm_neg }
+      ... ≤ ∥(↑x⁻¹ : R)∥ * ∥t∥            : norm_mul_le ↑x⁻¹ _
+      ... < ∥(↑x⁻¹ : R)∥ * ∥(↑x⁻¹ : R)∥⁻¹ : by nlinarith only [h, hpos]
+      ... = 1                             : mul_inv_cancel (ne_of_gt hpos)
+    end))
+  (x + t) (by simp [mul_add]) _ rfl
 
 /-- In a complete normed ring, an element `y` of distance less than `∥x⁻¹∥⁻¹` from `x` is a unit.
 Here we construct its `units` structure. -/
+@[simps coe]
 def unit_of_nearby (x : units R) (y : R) (h : ∥y - x∥ < ∥(↑x⁻¹ : R)∥⁻¹) : units R :=
-x.add ((y : R) - x) h
-
-@[simp] lemma unit_of_nearby_coe (x : units R) (y : R) (h : ∥y - x∥ < ∥(↑x⁻¹ : R)∥⁻¹) :
-  ↑(x.unit_of_nearby y h) = y := by { unfold units.unit_of_nearby, simp }
+units.copy (x.add (y - x : R) h) y (by simp) _ rfl
 
 /-- The group of units of a complete normed ring is an open subset of the ring. -/
 protected lemma is_open : is_open {x : R | is_unit x} :=
@@ -78,7 +74,7 @@ begin
   refine ⟨∥(↑x⁻¹ : R)∥⁻¹, inv_pos.mpr (units.norm_pos x⁻¹), _⟩,
   intros y hy,
   rw [metric.mem_ball, dist_eq_norm] at hy,
-  exact ⟨x.unit_of_nearby y hy, unit_of_nearby_coe _ _ _⟩
+  exact (x.unit_of_nearby y hy).is_unit
 end
 
 protected lemma nhds (x : units R) : {x : R | is_unit x} ∈ 𝓝 (x : R) :=
@@ -91,7 +87,7 @@ open_locale classical big_operators
 open asymptotics filter metric finset ring
 
 lemma inverse_one_sub (t : R) (h : ∥t∥ < 1) : inverse (1 - t) = ↑(units.one_sub t h)⁻¹ :=
-by rw [← inverse_unit (units.one_sub t h), units.one_sub_coe]
+by rw [← inverse_unit (units.one_sub t h), units.coe_one_sub]
 
 /-- The formula `inverse (x + t) = inverse (1 + x⁻¹ * t) * x⁻¹` holds for `t` sufficiently small. -/
 lemma inverse_add (x : units R) :
@@ -111,7 +107,7 @@ begin
   have hright := inverse_one_sub (-↑x⁻¹ * t) ht',
   have hleft := inverse_unit (x.add t ht),
   simp only [← neg_mul_eq_neg_mul, sub_neg_eq_add] at hright,
-  simp only [units.add_coe] at hleft,
+  simp only [units.coe_add] at hleft,
   simp [hleft, hright, units.add]
 end
 
@@ -124,14 +120,14 @@ begin
   simp only [mem_ball, dist_zero_right] at ht,
   simp only [inverse_one_sub t ht, set.mem_set_of_eq],
   have h : 1 = ((range n).sum (λ i, t ^ i)) * (units.one_sub t ht) + t ^ n,
-  { simp only [units.one_sub_coe],
+  { simp only [units.coe_one_sub],
     rw [← geom_sum, geom_sum_mul_neg],
     simp },
   rw [← one_mul ↑(units.one_sub t ht)⁻¹, h, add_mul],
   congr,
   { rw [mul_assoc, (units.one_sub t ht).mul_inv],
     simp },
-  { simp only [units.one_sub_coe],
+  { simp only [units.coe_one_sub],
     rw [← add_mul, ← geom_sum, geom_sum_mul_neg],
     simp }
 end
@@ -246,9 +242,8 @@ begin
   convert inverse_add_norm_diff_nth_order x 2,
   ext t,
   simp only [range_succ, range_one, sum_insert, mem_singleton, sum_singleton, not_false_iff,
-    one_ne_zero, pow_zero, add_mul],
-  abel,
-  simp
+    one_ne_zero, pow_zero, add_mul, pow_one, one_mul, neg_mul_eq_neg_mul_symm,
+    sub_add_eq_sub_sub_swap, sub_neg_eq_add],
 end
 
 /-- The function `inverse` is continuous at each unit of `R`. -/

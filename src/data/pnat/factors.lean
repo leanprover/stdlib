@@ -8,6 +8,18 @@ import data.multiset.sort
 import data.int.gcd
 import algebra.group
 
+/-!
+# Prime factors of nonzero naturals
+
+This file defines the factorization of a nonzero natural number `n` as a multiset of primes,
+the multiplicity of `p` in this factors multiset being the p-adic valuation of `n`.
+
+## Main declarations
+
+* `prime_multiset`: Type of multisets of prime numbers.
+* `factor_multiset n`: Multiset of prime factors of `n`.
+-/
+
 /-- The type of multisets of prime numbers.  Unique factorization
  gives an equivalence between this set and ℕ+, as we will formalize
  below. -/
@@ -36,8 +48,7 @@ by { dsimp [prime_multiset], apply_instance }
 theorem add_sub_of_le {u v : prime_multiset} : u ≤ v → u + (v - u) = v :=
 multiset.add_sub_of_le
 
-/-- The multiset consisting of a single prime
--/
+/-- The multiset consisting of a single prime -/
 def of_prime (p : nat.primes) : prime_multiset := (p ::ₘ 0)
 
 theorem card_of_prime (p : nat.primes) : multiset.card (of_prime p) = 1 := rfl
@@ -50,7 +61,6 @@ theorem card_of_prime (p : nat.primes) : multiset.card (of_prime p) = 1 := rfl
  as a multiset of primes.  The next block of results records
  obvious properties of these coercions.
 -/
-
 def to_nat_multiset : prime_multiset → multiset ℕ :=
 λ v, v.map (λ p, (p : ℕ))
 
@@ -152,8 +162,7 @@ theorem prod_of_pnat_multiset (v : multiset ℕ+) (h) :
 by { dsimp [prod], rw [to_of_pnat_multiset] }
 
 /-- Lists can be coerced to multisets; here we have some results
- about how this interacts with our constructions on multisets.
--/
+about how this interacts with our constructions on multisets. -/
 def of_nat_list (l : list ℕ) (h : ∀ (p : ℕ), p ∈ l → p.prime) : prime_multiset :=
 of_nat_multiset (l : multiset ℕ) h
 
@@ -162,7 +171,7 @@ by { have := prod_of_nat_multiset (l : multiset ℕ) h,
      rw [multiset.coe_prod] at this, exact this }
 
 /-- If a `list ℕ+` consists only of primes, it can be recast as a `prime_multiset` with
-  the coercion from lists to multisets. -/
+the coercion from lists to multisets. -/
 def of_pnat_list (l : list ℕ+) (h : ∀ (p : ℕ+), p ∈ l → p.prime) : prime_multiset :=
 of_pnat_multiset (l : multiset ℕ+) h
 
@@ -171,9 +180,7 @@ by { have := prod_of_pnat_multiset (l : multiset ℕ+) h,
      rw [multiset.coe_prod] at this, exact this }
 
 /-- The product map gives a homomorphism from the additive monoid
- of multisets to the multiplicative monoid ℕ+.
--/
-
+of multisets to the multiplicative monoid ℕ+. -/
 theorem prod_zero : (0 : prime_multiset).prod = 1 :=
 by { dsimp [prod], exact multiset.prod_zero }
 
@@ -311,8 +318,7 @@ end prime_multiset
 namespace pnat
 
 /-- The gcd and lcm operations on positive integers correspond
- to the inf and sup operations on multisets.
--/
+ to the inf and sup operations on multisets. -/
 theorem factor_multiset_gcd (m n : ℕ+) :
  factor_multiset (gcd m n) = (factor_multiset m) ⊓ (factor_multiset n) :=
 begin

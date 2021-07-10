@@ -171,7 +171,7 @@ Sup_le $ λ x hx, (hA hx) ▸ (hf $ le_Sup hx)
 lemma f_le_Inf_of_fixed_points (A : set α) (hA : A ⊆ fixed_points f) : f (Inf A) ≤ Inf A :=
 le_Inf $ λ x hx, (hA hx) ▸ (hf $ Inf_le hx)
 
-/-- Knaster-Tarski Theorem: The fixed points of `f` form a complete lattice.
+/-- **Knaster-Tarski Theorem**: The fixed points of `f` form a complete lattice.
 This cannot be an instance, since it depends on the monotonicity of `f`. -/
 protected def complete_lattice : complete_lattice (fixed_points f) :=
 { le           := (≤),

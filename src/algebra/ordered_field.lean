@@ -6,6 +6,8 @@ Authors: Robert Lewis, Leonardo de Moura, Mario Carneiro, Floris van Doorn
 import algebra.ordered_ring
 import algebra.field
 import tactic.monotonicity.basic
+import algebra.group_power.order
+import order.order_dual
 
 /-!
 # Linear ordered fields
@@ -29,6 +31,20 @@ variable {α : Type*}
 
 section linear_ordered_field
 variables [linear_ordered_field α] {a b c d e : α}
+
+section
+
+/-- `equiv.mul_left'` as an order_iso. -/
+@[simps {simp_rhs := tt}]
+def order_iso.mul_left' (a : α) (ha : 0 < a) : α ≃o α :=
+{ map_rel_iff' := λ _ _, mul_le_mul_left ha, ..equiv.mul_left' a ha.ne' }
+
+/-- `equiv.mul_right'` as an order_iso. -/
+@[simps {simp_rhs := tt}]
+def order_iso.mul_right' (a : α) (ha : 0 < a) : α ≃o α :=
+{ map_rel_iff' := λ _ _, mul_le_mul_right ha, ..equiv.mul_right' a ha.ne' }
+
+end
 
 /-!
 ### Lemmas about pos, nonneg, nonpos, neg
@@ -556,6 +572,19 @@ begin
     ← lt_sub_iff_add_lt, sub_self_div_two, sub_self_div_two, div_lt_div_right (@zero_lt_two α _ _)]
 end
 
+/--  An inequality involving `2`. -/
+lemma sub_one_div_inv_le_two (a2 : 2 ≤ a) :
+  (1 - 1 / a)⁻¹ ≤ 2 :=
+begin
+  -- Take inverses on both sides to obtain `2⁻¹ ≤ 1 - 1 / a`
+  refine trans (inv_le_inv_of_le (inv_pos.mpr zero_lt_two) _) (inv_inv' (2 : α)).le,
+  -- move `1 / a` to the left and `1 - 1 / 2 = 1 / 2` to the right to obtain `1 / a ≤ ⅟ 2`
+  refine trans ((le_sub_iff_add_le.mpr ((_ : _ + 2⁻¹ = _ ).le))) ((sub_le_sub_iff_left 1).mpr _),
+  { -- show 2⁻¹ + 2⁻¹ = 1
+    exact trans (two_mul _).symm (mul_inv_cancel two_ne_zero) },
+  { -- take inverses on both sides and use the assumption `2 ≤ a`.
+    exact (one_div a).le.trans (inv_le_inv_of_le zero_lt_two a2) }
+end
 
 /-!
 ### Miscellaneous lemmas
@@ -654,5 +683,25 @@ by rw [abs_div, abs_one]
 
 lemma abs_inv (a : α) : abs a⁻¹ = (abs a)⁻¹ :=
 (abs_hom : monoid_with_zero_hom α α).map_inv' a
+
+-- TODO: add lemmas with `a⁻¹`.
+lemma one_div_strict_mono_decr_on : strict_mono_decr_on (λ x : α, 1 / x) (set.Ioi 0) :=
+λ x x1 y y1 xy, (one_div_lt_one_div (set.mem_Ioi.mp y1) (set.mem_Ioi.mp x1)).mpr xy
+
+lemma one_div_pow_le_one_div_pow_of_le (a1 : 1 ≤ a) {m n : ℕ} (mn : m ≤ n) :
+  1 / a ^ n ≤ 1 / a ^ m :=
+by refine (one_div_le_one_div _ _).mpr (pow_le_pow a1 mn);
+  exact pow_pos (zero_lt_one.trans_le a1) _
+
+lemma one_div_pow_lt_one_div_pow_of_lt (a1 : 1 < a) {m n : ℕ} (mn : m < n) :
+  1 / a ^ n < 1 / a ^ m :=
+by refine (one_div_lt_one_div _ _).mpr (pow_lt_pow a1 mn);
+  exact pow_pos (trans zero_lt_one a1) _
+
+lemma one_div_pow_mono (a1 : 1 ≤ a) : monotone (λ n : ℕ, order_dual.to_dual 1 / a ^ n) :=
+λ m n, one_div_pow_le_one_div_pow_of_le a1
+
+lemma one_div_pow_strict_mono (a1 : 1 < a) : strict_mono (λ n : ℕ, order_dual.to_dual 1 / a ^ n) :=
+λ m n, one_div_pow_lt_one_div_pow_of_lt a1
 
 end linear_ordered_field

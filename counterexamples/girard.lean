@@ -24,7 +24,7 @@ Based on Watkins' LF implementation of Hurkens' simplification of Girard's parad
 * `girard`: there are no Girard universes.
 -/
 
-/-- Girard's paradox: there are no universes `u` such that `Type u : Type u`.
+/-- **Girard's paradox**: there are no universes `u` such that `Type u : Type u`.
 Since we can't actually change the type of Lean's `Π` operator, we assume the existence of
 `pi`, `lam`, `app` and the `beta` rule equivalent to the `Π` and `app` constructors of type theory.
 -/

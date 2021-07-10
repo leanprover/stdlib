@@ -106,7 +106,6 @@ structure basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜
   times_cont_diff_on 𝕜 ∞ (λp : E × F, coord_change i j (I.symm p.1) p.2)
   ((I '' (i.1.symm.trans j.1).source).prod (univ : set F)))
 
-
 /-- The trivial basic smooth bundle core, in which all the changes of coordinates are the
 identity. -/
 def trivial_basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
@@ -169,12 +168,12 @@ def to_topological_fiber_bundle_core : topological_fiber_bundle_core (atlas H M)
   end }
 
 @[simp, mfld_simps] lemma base_set (i : atlas H M) :
-  Z.to_topological_fiber_bundle_core.base_set i = i.1.source := rfl
+  (Z.to_topological_fiber_bundle_core.local_triv i).base_set = i.1.source := rfl
 
 /-- Local chart for the total space of a basic smooth bundle -/
 def chart {e : local_homeomorph M H} (he : e ∈ atlas H M) :
   local_homeomorph (Z.to_topological_fiber_bundle_core.total_space) (model_prod H F) :=
-(Z.to_topological_fiber_bundle_core.local_triv ⟨e, he⟩).trans
+(Z.to_topological_fiber_bundle_core.local_triv ⟨e, he⟩).to_local_homeomorph.trans
   (local_homeomorph.prod e (local_homeomorph.refl F))
 
 @[simp, mfld_simps] lemma chart_source (e : local_homeomorph M H) (he : e ∈ atlas H M) :
@@ -481,7 +480,7 @@ tangent bundle gives a second component in the tangent space. -/
 def tangent_bundle := Σ (x : M), tangent_space I x
 
 /-- The projection from the tangent bundle of a smooth manifold to the manifold. As the tangent
-bundle is represented internally as a product type, the notation `p.1` also works for the projection
+bundle is represented internally as a sigma type, the notation `p.1` also works for the projection
 of the point `p`. -/
 def tangent_bundle.proj : tangent_bundle I M → M :=
 λ p, p.1
@@ -500,7 +499,7 @@ them, noting in particular that the tangent bundle is a smooth manifold. -/
 variable (M)
 
 instance : topological_space (tangent_bundle I M) :=
-(tangent_bundle_core I M).to_topological_fiber_bundle_core.to_topological_space
+(tangent_bundle_core I M).to_topological_fiber_bundle_core.to_topological_space (atlas H M)
 
 instance : charted_space (model_prod H E) (tangent_bundle I M) :=
 (tangent_bundle_core I M).to_charted_space
@@ -554,7 +553,7 @@ begin
   { rintros ⟨x_fst, x_snd⟩,
     simp only [chart_at, basic_smooth_bundle_core.chart, tangent_bundle_core,
       continuous_linear_map.coe_id', basic_smooth_bundle_core.to_topological_fiber_bundle_core, A]
-      with mfld_simps},
+      with mfld_simps },
   show ((chart_at (model_prod H E) p).to_local_equiv).source = univ,
     by simp only [chart_at] with mfld_simps,
 end

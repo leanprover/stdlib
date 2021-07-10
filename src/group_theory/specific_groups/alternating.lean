@@ -100,7 +100,9 @@ begin
   obtain ⟨π, hπ⟩ := is_conj_iff.1 hc,
   rw [subtype.coe_mk, subtype.coe_mk] at hπ,
   cases int.units_eq_one_or (sign π) with h h,
-  { exact is_conj_iff.2 ⟨⟨π, mem_alternating_group.2 h⟩, subtype.val_injective (by simp [← hπ])⟩ },
+  { rw is_conj_iff,
+    refine ⟨⟨π, mem_alternating_group.mp h⟩, subtype.val_injective _⟩,
+    simpa only [subtype.val_eq_coe, subgroup.coe_mul, coe_inv, coe_mk] using hπ },
   { have h2 : 2 ≤ σ.supportᶜ.card,
     { rw [finset.card_compl, nat.le_sub_left_iff_add_le σ.support.card_le_univ],
       exact hσ },
@@ -112,7 +114,7 @@ begin
       { rw [disjoint_iff_disjoint_support, support_swap ab, finset.disjoint_insert_left,
           finset.singleton_disjoint],
         exact ⟨finset.mem_compl.1 ha, finset.mem_compl.1 hb⟩ },
-      rw [mul_assoc π _ σ, disjoint.mul_comm hd],
+      rw [mul_assoc π _ σ, hd.commute.eq, coe_inv, coe_mk],
       simp [mul_assoc] } }
 end
 
@@ -176,7 +178,7 @@ lemma is_three_cycle_sq_of_three_mem_cycle_type_five {g : perm (fin 5)} (h : 3 �
 begin
   obtain ⟨c, g', rfl, hd, hc, h3⟩ := mem_cycle_type_iff.1 h,
   simp only [mul_assoc],
-  rw [hd.mul_comm, ← mul_assoc g'],
+  rw [hd.commute.eq, ← mul_assoc g'],
   suffices hg' : order_of g' ∣ 2,
   { rw [← pow_two, order_of_dvd_iff_pow_eq_one.1 hg', one_mul],
     exact (card_support_eq_three_iff.1 h3).is_three_cycle_sq },

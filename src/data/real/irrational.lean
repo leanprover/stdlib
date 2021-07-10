@@ -94,6 +94,7 @@ theorem nat.prime.irrational_sqrt {p : ℕ} (hp : nat.prime p) : irrational (sqr
 by simp [multiplicity_self (mt is_unit_iff_dvd_one.1 (mt int.coe_nat_dvd.1 hp.not_dvd_one) : _)];
   refl
 
+/-- **Irrationality of the Square Root of 2** -/
 theorem irrational_sqrt_two : irrational (sqrt 2) :=
 by simpa using nat.prime_two.irrational_sqrt
 

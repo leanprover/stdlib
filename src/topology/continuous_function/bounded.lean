@@ -3,7 +3,7 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Mario Carneiro, Yury Kudryashov, Heather Macbeth
 -/
-import analysis.normed_space.basic
+import analysis.normed_space.operator_norm
 import topology.continuous_function.algebra
 
 /-!
@@ -605,9 +605,12 @@ In this section, if `β` is a normed space, then we show that the space of bound
 continuous functions from `α` to `β` inherits a normed space structure, by using
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
-variables {𝕜 : Type*} [normed_field 𝕜]
-variables [topological_space α] [normed_group β] [normed_space 𝕜 β]
+variables {𝕜 : Type*}
+variables [topological_space α] [normed_group β]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
+
+section normed_field
+variables [normed_field 𝕜] [normed_space 𝕜 β]
 
 instance : has_scalar 𝕜 (α →ᵇ β) :=
 ⟨λ c f, of_normed_group (c • f) (f.continuous.const_smul c) (∥c∥ * ∥f∥) $ λ x,
@@ -646,6 +649,35 @@ def forget_boundedness_linear_map : (α →ᵇ β) →ₗ[𝕜] C(α, β) :=
 { to_fun := forget_boundedness α β,
   map_smul' := by { intros, ext, simp, },
   map_add' := by { intros, ext, simp, }, }
+
+end normed_field
+
+variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 β]
+variables [normed_group γ] [normed_space 𝕜 γ]
+
+variables (α)
+/--
+Postcomposition of bounded continuous functions into a normed module by a continuous linear map is
+a continuous linear map.
+Upgraded version of `continuous_linear_map.comp_left_continuous`, similar to
+`linear_map.comp_left`. -/
+protected def _root_.continuous_linear_map.comp_left_continuous_bounded (g : β →L[𝕜] γ) :
+  (α →ᵇ β) →L[𝕜] (α →ᵇ γ) :=
+linear_map.mk_continuous
+  { to_fun := λ f, of_normed_group
+      (g ∘ f)
+      (g.continuous.comp f.continuous)
+      (∥g∥ * ∥f∥)
+      (λ x, (g.le_op_norm_of_le (f.norm_coe_le_norm x))),
+    map_add' := λ f g, by ext; simp,
+    map_smul' := λ c f, by ext; simp }
+  ∥g∥
+  (λ f, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg g) (norm_nonneg f)) _)
+
+@[simp] lemma _root_.continuous_linear_map.comp_left_continuous_bounded_apply (g : β →L[𝕜] γ)
+  (f : α →ᵇ β) (x : α) :
+  (g.comp_left_continuous_bounded α f) x = g (f x) :=
+rfl
 
 end normed_space
 

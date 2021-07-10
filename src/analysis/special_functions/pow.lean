@@ -1164,6 +1164,17 @@ lemma continuous_rpow_const {y : ℝ} (h : 0 ≤ y) :
   continuous (λ x : ℝ≥0, x^y) :=
 continuous_iff_continuous_at.2 $ λ x, continuous_at_rpow_const (or.inr h)
 
+theorem tendsto_rpow_at_top {y : ℝ} (hy : 0 < y) :
+  tendsto (λ (x : ℝ≥0), x ^ y) at_top at_top :=
+begin
+  rw filter.tendsto_at_top_at_top,
+  intros b,
+  obtain ⟨c, hc⟩ := tendsto_at_top_at_top.mp (tendsto_rpow_at_top hy) b,
+  use c.to_nnreal,
+  intros a ha,
+  exact_mod_cast hc a (real.to_nnreal_le_iff_le_coe.mp ha),
+end
+
 end nnreal
 
 namespace ennreal
@@ -1673,5 +1684,51 @@ lemma rpow_left_monotone_of_nonneg {x : ℝ} (hx : 0 ≤ x) : monotone (λ y : �
 
 lemma rpow_left_strict_mono_of_pos {x : ℝ} (hx : 0 < x) : strict_mono (λ y : ℝ≥0∞, y^x) :=
 λ y z hyz, rpow_lt_rpow hyz hx
+
+theorem tendsto_rpow_at_top {y : ℝ} (hy : 0 < y) :
+  tendsto (λ (x : ℝ≥0∞), x ^ y) (𝓝 ⊤) (𝓝 ⊤) :=
+begin
+  rw tendsto_nhds_top_iff_nnreal,
+  intros x,
+  obtain ⟨c, _, hc⟩ :=
+    (at_top_basis_Ioi.tendsto_iff at_top_basis_Ioi).mp (nnreal.tendsto_rpow_at_top hy) x trivial,
+  have hc' : set.Ioi (↑c) ∈ 𝓝 (⊤ : ℝ≥0∞) := Ioi_mem_nhds coe_lt_top,
+  refine eventually_of_mem hc' _,
+  intros a ha,
+  by_cases ha' : a = ⊤,
+  { simp [ha', hy] },
+  lift a to ℝ≥0 using ha',
+  change ↑c < ↑a at ha,
+  rw coe_rpow_of_nonneg _ hy.le,
+  exact_mod_cast hc a (by exact_mod_cast ha),
+end
+
+private lemma continuous_at_rpow_const_of_pos {x : ℝ≥0∞} {y : ℝ} (h : 0 < y) :
+  continuous_at (λ a : ennreal, a ^ y) x :=
+begin
+  by_cases hx : x = ⊤,
+  { rw [hx, continuous_at],
+    convert tendsto_rpow_at_top h,
+    simp [h] },
+  lift x to ℝ≥0 using hx,
+  rw continuous_at_coe_iff,
+  convert continuous_coe.continuous_at.comp
+    (nnreal.continuous_at_rpow_const (or.inr h.le)) using 1,
+  ext1 x,
+  simp [coe_rpow_of_nonneg _ h.le]
+end
+
+@[continuity]
+lemma continuous_rpow_const {y : ℝ} : continuous (λ a : ennreal, a ^ y) :=
+begin
+  apply continuous_iff_continuous_at.2 (λ x, _),
+  rcases lt_trichotomy 0 y with hy|rfl|hy,
+  { exact continuous_at_rpow_const_of_pos hy },
+  { simp, exact continuous_at_const },
+  { obtain ⟨z, hz⟩ : ∃ z, y = -z := ⟨-y, (neg_neg _).symm⟩,
+    have z_pos : 0 < z, by simpa [hz] using hy,
+    simp_rw [hz, rpow_neg],
+    exact ennreal.continuous_inv.continuous_at.comp (continuous_at_rpow_const_of_pos z_pos) }
+end
 
 end ennreal

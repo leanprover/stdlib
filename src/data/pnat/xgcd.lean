@@ -1,29 +1,39 @@
 /-
-Copyright (c) 2019 Neil Strickland.  All rights reserved.
+Copyright (c) 2019 Neil Strickland. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Neil Strickland
-
-This file sets up a version of the Euclidean algorithm that works
-only with natural numbers.  Given a, b > 0, it computes the unique
-system (w, x, y, z, d) such that the following identities hold:
-
- w * z = x * y + 1
- a = (w + x) d
- b = (y + z) d
-
-These equations force w, z, d > 0.  They also imply that
-the integers a' = w + x = a / d and b' = y + z = b / d are coprime,
-and that d is the gcd of a and b.
-
-This story is closely related to the structure of SL₂(ℕ) (as a
-free monoid on two generators) and the theory of continued fractions.
 -/
 import tactic.ring
-import tactic.abel
 import data.pnat.prime
 
+/-!
+# Euclidean algorithm for ℕ
+
+This file sets up a version of the Euclidean algorithm that only works with natural numbers.
+Given `0 < a, b`, it computes the unique `(w, x, y, z, d)` such that the following identities hold:
+* `a = (w + x) d`
+* `b = (y + z) d`
+* `w * z = x * y + 1`
+`d` is then the gcd of `a` and `b`, and `a' := a / d = w + x` and `b' := b / d = y + z` are coprime.
+
+This story is closely related to the structure of SL₂(ℕ) (as a free monoid on two generators) and
+the theory of continued fractions.
+
+## Main declarations
+
+* `xgcd_type`: Helper type in defining the gcd. Encapsulates `(wp, x, y, zp, ap, bp)`. where `wp`
+  `zp`, `ap`, `bp` are the variables getting changed through the algorithm.
+* `is_special`: States `wp * zp = x * y + 1`
+* `is_reduced`: States `ap = a ∧ bp = b`
+
+## Notes
+
+See `nat.xgcd` for a very similar algorithm allowing values in `ℤ`.
+-/
+
+open nat
+
 namespace pnat
-open nat pnat
 
 /-- A term of xgcd_type is a system of six naturals.  They should
  be thought of as representing the matrix
@@ -258,7 +268,7 @@ section gcd
 
 variables (a b : ℕ+)
 
-def xgcd: xgcd_type := (xgcd_type.start a b).reduce
+def xgcd : xgcd_type := (xgcd_type.start a b).reduce
 
 def gcd_d : ℕ+ := (xgcd a b).a
 def gcd_w : ℕ+ := (xgcd a b).w

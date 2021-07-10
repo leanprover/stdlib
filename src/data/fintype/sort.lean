@@ -18,8 +18,7 @@ def mono_equiv_of_fin (α) [fintype α] [linear_order α] {k : ℕ}
   (h : fintype.card α = k) : fin k ≃o α :=
 (univ.order_iso_of_fin h).trans $ (order_iso.set_congr _ _ coe_univ).trans order_iso.set.univ
 
-variables [decidable_eq α] [fintype α] [linear_order α] {m n : ℕ}
-  {s : finset α} [decidable_pred (s : set α)]
+variables [decidable_eq α] [fintype α] [linear_order α] {m n : ℕ} {s : finset α}
 
 /-- If `α` is a linearly ordered type, `s : finset α` has cardinality `m` and its complement has
 cardinality `n`, then `fin m ⊕ fin n ≃ α`. The equivalence sends elements of `fin m` to

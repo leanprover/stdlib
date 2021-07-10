@@ -39,6 +39,19 @@ variables [monoid α]
 
 @[to_additive] instance : has_coe (units α) α := ⟨val⟩
 
+@[to_additive] instance : has_inv (units α) := ⟨λ u, ⟨u.2, u.1, u.4, u.3⟩⟩
+
+/-- See Note [custom simps projection] -/
+@[to_additive /-" See Note [custom simps projection] "-/]
+def simps.coe (u : units α) : α := u
+
+/-- See Note [custom simps projection] -/
+@[to_additive /-" See Note [custom simps projection] "-/]
+def simps.coe_inv (u : units α) : α := ↑(u⁻¹)
+
+initialize_simps_projections units (val → coe as_prefix, inv → coe_inv as_prefix)
+initialize_simps_projections add_units (val → coe as_prefix, neg → coe_neg as_prefix)
+
 @[simp, to_additive] lemma coe_mk (a : α) (b h₁ h₂) : ↑(units.mk a b h₁ h₂) = a := rfl
 
 @[ext, to_additive] theorem ext :
@@ -60,6 +73,17 @@ variables [monoid α]
   mk (u : α) y h₁ h₂ = u :=
 ext rfl
 
+/-- Copy a unit, adjusting definition equalities. -/
+@[to_additive /-"Copy an `add_unit`, adjusting definitional equalities."-/, simps]
+def copy (u : units α) (val : α) (hv : val = u) (inv : α) (hi : inv = ↑(u⁻¹)) : units α :=
+{ val := val, inv := inv,
+  inv_val := hv.symm ▸ hi.symm ▸ u.inv_val, val_inv := hv.symm ▸ hi.symm ▸ u.val_inv }
+
+@[to_additive]
+lemma copy_eq (u : units α) (val hv inv hi) :
+  u.copy val hv inv hi = u :=
+ext hv
+
 /-- Units of a monoid form a group. -/
 @[to_additive] instance : group (units α) :=
 { mul := λ u₁ u₂, ⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
@@ -69,7 +93,7 @@ ext rfl
   mul_one := λ u, ext $ mul_one u,
   one_mul := λ u, ext $ one_mul u,
   mul_assoc := λ u₁ u₂ u₃, ext $ mul_assoc u₁ u₂ u₃,
-  inv := λ u, ⟨u.2, u.1, u.4, u.3⟩,
+  inv := has_inv.inv,
   mul_left_inv := λ u, ext u.inv_val }
 
 variables (a b : units α) {c : units α}

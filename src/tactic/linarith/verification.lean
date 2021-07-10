@@ -57,10 +57,10 @@ meta def ineq_const_nm : ineq → ineq → (name × ineq)
 | eq lt := (``lt_of_eq_of_lt, lt)
 | le eq := (``le_of_le_of_eq, le)
 | le le := (`add_nonpos, le)
-| le lt := (`add_neg_of_nonpos_of_neg, lt)
+| le lt := (`add_lt_of_le_of_neg, lt)
 | lt eq := (``lt_of_lt_of_eq, lt)
-| lt le := (`add_neg_of_neg_of_nonpos, lt)
-| lt lt := (`add_neg, lt)
+| lt le := (`add_lt_of_neg_of_le, lt)
+| lt lt := (`left.add_neg, lt)
 
 /--
 `mk_lt_zero_pf_aux c pf npf coeff` assumes that `pf` is a proof of `t1 R1 0` and `npf` is a proof

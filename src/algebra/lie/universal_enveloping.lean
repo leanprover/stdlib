@@ -84,12 +84,12 @@ def lift : (L →ₗ⁅R⁆ A) ≃ (universal_enveloping_algebra R L →ₐ[R] A
       intros a b h, induction h with x y,
       simp [lie_ring.of_associative_ring_bracket],
     end⟩,
-  inv_fun := λ F, (lie_algebra.of_associative_algebra_hom F).comp (ι R),
+  inv_fun := λ F, (F : universal_enveloping_algebra R L →ₗ⁅R⁆ A).comp (ι R),
   left_inv := λ f, by { ext, simp [ι, mk_alg_hom], },
   right_inv := λ F, by { ext, simp [ι, mk_alg_hom], } }
 
 @[simp] lemma lift_symm_apply (F : universal_enveloping_algebra R L →ₐ[R] A) :
-  (lift R).symm F = (lie_algebra.of_associative_algebra_hom F).comp (ι R) :=
+  (lift R).symm F = (F : universal_enveloping_algebra R L →ₗ⁅R⁆ A).comp (ι R) :=
 rfl
 
 @[simp] lemma ι_comp_lift : (lift R f) ∘ (ι R) = f :=
@@ -107,14 +107,10 @@ end
 
 /-- See note [partially-applied ext lemmas]. -/
 @[ext] lemma hom_ext {g₁ g₂ : universal_enveloping_algebra R L →ₐ[R] A}
-  (h : g₁ ∘ (ι R) = g₂ ∘ (ι R)) : g₁ = g₂ :=
-begin
-  apply (lift R).symm.injective,
-  rw [lift_symm_apply, lift_symm_apply],
-  ext x,
-  have := congr h (rfl : x = x),
-  rw function.comp_apply at this,
-  simp [this],
-end
+  (h : (g₁ : universal_enveloping_algebra R L →ₗ⁅R⁆ A).comp (ι R) =
+       (g₂ : universal_enveloping_algebra R L →ₗ⁅R⁆ A).comp (ι R)) :
+  g₁ = g₂ :=
+have h' : (lift R).symm g₁ = (lift R).symm g₂, { ext, simp [h], },
+(lift R).symm.injective h'
 
 end universal_enveloping_algebra

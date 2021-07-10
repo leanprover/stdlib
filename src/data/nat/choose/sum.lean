@@ -31,7 +31,7 @@ variables [semiring R] {x y : R} (h : commute x y) (n : ℕ)
 
 include h
 
-/-- A version of the binomial theorem for noncommutative semirings. -/
+/-- A version of the **binomial theorem** for noncommutative semirings. -/
 theorem add_pow :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 begin
@@ -76,7 +76,7 @@ by simp_rw [finset.nat.sum_antidiagonal_eq_sum_range_succ (λ m p, choose n m �
 
 end commute
 
-/-- The binomial theorem -/
+/-- The **binomial theorem** -/
 theorem add_pow [comm_semiring R] (x y : R) (n : ℕ) :
   (x + y) ^ n = ∑ m in range (n + 1), x ^ m * y ^ (n - m) * choose n m :=
 (commute.all x y).add_pow n

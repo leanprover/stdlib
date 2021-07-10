@@ -48,7 +48,7 @@ variables {T : monad C}
 /-- A morphism of Eilenberg–Moore algebras for the monad `T`. -/
 @[ext] structure hom (A B : algebra T) :=
 (f : A.A ⟶ B.A)
-(h' : T.map f ≫ B.a = A.a ≫ f . obviously)
+(h' : (T : C ⥤ C).map f ≫ B.a = A.a ≫ f . obviously)
 
 restate_axiom hom.h'
 attribute [simp, reassoc] hom.h
@@ -90,7 +90,8 @@ To construct an isomorphism of algebras, it suffices to give an isomorphism of t
 commutes with the structure morphisms.
 -/
 @[simps]
-def iso_mk {A B : algebra T} (h : A.A ≅ B.A) (w : T.map h.hom ≫ B.a = A.a ≫ h.hom) : A ≅ B :=
+def iso_mk {A B : algebra T} (h : A.A ≅ B.A) (w : (T : C ⥤ C).map h.hom ≫ B.a = A.a ≫ h.hom) :
+  A ≅ B :=
 { hom := { f := h.hom },
   inv :=
   { f := h.inv,
@@ -143,7 +144,7 @@ Given an algebra morphism whose carrier part is an isomorphism, we get an algebr
 -/
 lemma algebra_iso_of_iso {A B : algebra T} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
 ⟨⟨{ f := inv f.f,
-    h' := by { rw [is_iso.eq_comp_inv f.f, category.assoc, ← f.h], dsimp, simp } }, by tidy⟩⟩
+    h' := by { rw [is_iso.eq_comp_inv f.f, category.assoc, ← f.h], simp } }, by tidy⟩⟩
 
 instance forget_reflects_iso : reflects_isomorphisms (forget T) :=
 { reflects := λ A B, algebra_iso_of_iso T }
@@ -229,7 +230,7 @@ namespace comonad
 @[nolint has_inhabited_instance]
 structure coalgebra (G : comonad C) : Type (max u₁ v₁) :=
 (A : C)
-(a : A ⟶ G.obj A)
+(a : A ⟶ (G : C ⥤ C).obj A)
 (counit' : a ≫ G.ε.app A = 𝟙 A . obviously)
 (coassoc' : a ≫ G.δ.app A = a ≫ G.map a . obviously)
 
@@ -243,7 +244,7 @@ variables {G : comonad C}
 /-- A morphism of Eilenberg-Moore coalgebras for the comonad `G`. -/
 @[ext, nolint has_inhabited_instance] structure hom (A B : coalgebra G) :=
 (f : A.A ⟶ B.A)
-(h' : A.a ≫ G.map f = f ≫ B.a . obviously)
+(h' : A.a ≫ (G : C ⥤ C).map f = f ≫ B.a . obviously)
 
 restate_axiom hom.h'
 attribute [simp, reassoc] hom.h
@@ -283,7 +284,8 @@ To construct an isomorphism of coalgebras, it suffices to give an isomorphism of
 commutes with the structure morphisms.
 -/
 @[simps]
-def iso_mk {A B : coalgebra G} (h : A.A ≅ B.A) (w : A.a ≫ G.map h.hom = h.hom ≫ B.a) : A ≅ B :=
+def iso_mk {A B : coalgebra G} (h : A.A ≅ B.A) (w : A.a ≫ (G : C ⥤ C).map h.hom = h.hom ≫ B.a) :
+  A ≅ B :=
 { hom := { f := h.hom },
   inv :=
   { f := h.inv,
@@ -304,7 +306,7 @@ Given a coalgebra morphism whose carrier part is an isomorphism, we get a coalge
 -/
 lemma coalgebra_iso_of_iso {A B : coalgebra G} (f : A ⟶ B) [is_iso f.f] : is_iso f :=
 ⟨⟨{ f := inv f.f,
-    h' := by { rw [is_iso.eq_inv_comp f.f, ←f.h_assoc], dsimp, simp } }, by tidy⟩⟩
+    h' := by { rw [is_iso.eq_inv_comp f.f, ←f.h_assoc], simp } }, by tidy⟩⟩
 
 instance forget_reflects_iso : reflects_isomorphisms (forget G) :=
 { reflects := λ A B, coalgebra_iso_of_iso G }

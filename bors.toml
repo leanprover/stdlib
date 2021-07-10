@@ -1,4 +1,7 @@
 status = ["Build mathlib", "Lint mathlib", "Run tests", "Lint style"]
+# if you want to use bors in an external fork of mathlib,
+# comment out the first line and uncomment the line below
+# status = ["Build mathlib (fork)", "Lint mathlib (fork)", "Run tests (fork)", "Lint style (fork)"]
 use_squash_merge = true
 timeout_sec = 28800
 block_labels = ["not-ready-to-merge", "WIP", "blocked-by-other-PR"]

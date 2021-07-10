@@ -998,6 +998,19 @@ calc a < -a ↔ -(-a) < -a : by rw neg_neg
 
 @[simp] lemma abs_eq_neg_self : abs a = -a ↔ a ≤ 0 := by simp [abs]
 
+/-- For an element `a` of a linear ordered ring, either `abs a = a` and `0 ≤ a`,
+    or `abs a = -a` and `a < 0`.
+    Use cases on this lemma to automate linarith in inequalities -/
+lemma abs_cases (a : α) : (abs a = a ∧ 0 ≤ a) ∨ (abs a = -a ∧ a < 0) :=
+begin
+  by_cases 0 ≤ a,
+  { left,
+    exact ⟨abs_eq_self.mpr h, h⟩ },
+  { right,
+    push_neg at h,
+    exact ⟨abs_eq_neg_self.mpr (le_of_lt h), h⟩ }
+end
+
 lemma gt_of_mul_lt_mul_neg_left (h : c * a < c * b) (hc : c ≤ 0) : b < a :=
 have nhc : 0 ≤ -c, from neg_nonneg_of_nonpos hc,
 have h2 : -(c * b) < -(c * a), from neg_lt_neg h,

@@ -674,7 +674,7 @@ variables (f f' : ℝ → ℝ) {a b : ℝ} (hab : a < b) (hfc : continuous_on f 
 
 include hab hfc hff' hgc hgg'
 
-/-- Cauchy's Mean Value Theorem, `has_deriv_at` version. -/
+/-- Cauchy's **Mean Value Theorem**, `has_deriv_at` version. -/
 lemma exists_ratio_has_deriv_at_eq_ratio_slope :
   ∃ c ∈ Ioo a b, (g b - g a) * f' c = (f b - f a) * g' c :=
 begin
@@ -692,7 +692,7 @@ end
 
 omit hfc hgc
 
-/-- Cauchy's Mean Value Theorem, extended `has_deriv_at` version. -/
+/-- Cauchy's **Mean Value Theorem**, extended `has_deriv_at` version. -/
 lemma exists_ratio_has_deriv_at_eq_ratio_slope' {lfa lga lfb lgb : ℝ}
   (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hgg' : ∀ x ∈ Ioo a b, has_deriv_at g (g' x) x)
   (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 lfa)) (hga : tendsto g (𝓝[Ioi a] a) (𝓝 lga))
@@ -756,7 +756,7 @@ exists_ratio_has_deriv_at_eq_ratio_slope' _ _ hab _ _
   (λ x hx, ((hdg x hx).differentiable_at $ Ioo_mem_nhds hx.1 hx.2).has_deriv_at)
   hfa hga hfb hgb
 
-/-- Lagrange's Mean Value Theorem, `deriv` version. -/
+/-- Lagrange's **Mean Value Theorem**, `deriv` version. -/
 lemma exists_deriv_eq_slope : ∃ c ∈ Ioo a b, deriv f c = (f b - f a) / (b - a) :=
 exists_has_deriv_at_eq_slope f (deriv f) hab hfc
   (λ x hx, ((hfd x hx).differentiable_at $ is_open.mem_nhds is_open_Ioo hx).has_deriv_at)

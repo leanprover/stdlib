@@ -82,14 +82,27 @@ by { ext, rw [mem_to_subalgebra, algebra.mem_bot, mem_bot] }
 @[simp] lemma top_to_subalgebra : (⊤ : intermediate_field F E).to_subalgebra = ⊤ :=
 by { ext, rw [mem_to_subalgebra, iff_true_right algebra.mem_top], exact mem_top }
 
-/--  Construct an algebra isomorphism from an equality of subalgebras -/
-def subalgebra.equiv_of_eq {X Y : subalgebra F E} (h : X = Y) : X ≃ₐ[F] Y :=
+/--  Construct an algebra isomorphism from an equality of intermediate fields -/
+@[simps apply]
+def equiv_of_eq {S T : intermediate_field F E} (h : S = T) : S ≃ₐ[F] T :=
 by refine { to_fun := λ x, ⟨x, _⟩, inv_fun := λ x, ⟨x, _⟩, .. }; tidy
+
+@[simp] lemma equiv_of_eq_symm {S T : intermediate_field F E} (h : S = T) :
+  (equiv_of_eq h).symm = equiv_of_eq h.symm :=
+rfl
+
+@[simp] lemma equiv_of_eq_rfl (S : intermediate_field F E) :
+  equiv_of_eq (rfl : S = S) = alg_equiv.refl :=
+by { ext, refl }
+
+@[simp] lemma equiv_of_eq_trans {S T U : intermediate_field F E} (hST : S = T) (hTU : T = U) :
+  (equiv_of_eq hST).trans (equiv_of_eq hTU) = equiv_of_eq (trans hST hTU) :=
+rfl
 
 variables (F E)
 /-- The bottom intermediate_field is isomorphic to the field. -/
 noncomputable def bot_equiv : (⊥ : intermediate_field F E) ≃ₐ[F] F :=
-(subalgebra.equiv_of_eq bot_to_subalgebra).trans (algebra.bot_equiv F E)
+(subalgebra.equiv_of_eq _ _ bot_to_subalgebra).trans (algebra.bot_equiv F E)
 variables {F E}
 
 @[simp] lemma bot_equiv_def (x : F) :
@@ -112,7 +125,7 @@ end
 
 /-- The top intermediate_field is isomorphic to the field. -/
 noncomputable def top_equiv : (⊤ : intermediate_field F E) ≃ₐ[F] E :=
-(subalgebra.equiv_of_eq top_to_subalgebra).trans algebra.top_equiv
+(subalgebra.equiv_of_eq _ _ top_to_subalgebra).trans algebra.top_equiv
 
 @[simp] lemma top_equiv_def (x : (⊤ : intermediate_field F E)) : top_equiv x = ↑x :=
 begin
@@ -120,7 +133,7 @@ begin
   { rwa subtype.ext_iff at this },
   exact alg_equiv.apply_symm_apply (alg_equiv.of_bijective algebra.to_top
     ⟨λ _ _, subtype.mk.inj, λ x, ⟨x.val, by { ext, refl }⟩⟩ : E ≃ₐ[F] (⊤ : subalgebra F E))
-    (subalgebra.equiv_of_eq top_to_subalgebra x),
+    (subalgebra.equiv_of_eq _ _ top_to_subalgebra x),
 end
 
 @[simp] lemma coe_bot_eq_self (K : intermediate_field F E) : ↑(⊥ : intermediate_field K E) = K :=

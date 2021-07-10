@@ -556,6 +556,7 @@ begin
   rw [nat.dvd_iff_mod_eq_zero, nat.dvd_iff_mod_eq_zero, of_digits_mod, h],
 end
 
+/-- **Divisibility by 3 Rule** -/
 lemma three_dvd_iff (n : ℕ) : 3 ∣ n ↔ 3 ∣ (digits 10 n).sum :=
 dvd_iff_dvd_digits_sum 3 10 (by norm_num) n
 

@@ -81,7 +81,7 @@ end
 /-- The identity as a continuous map. -/
 def id : C(α, α) := ⟨id⟩
 
-@[simp] lemma id_coe : (id : α → α) = id := rfl
+@[simp] lemma id_coe : (id : α → α) = _root_.id := rfl
 lemma id_apply (a : α) : id a = a := rfl
 
 /-- The composition of continuous maps, as a continuous map. -/

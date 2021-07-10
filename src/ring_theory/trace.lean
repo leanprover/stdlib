@@ -54,15 +54,18 @@ variables (R S)
 
 /-- The trace of an element `s` of an `R`-algebra is the trace of `(*) s`,
 as an `R`-linear map. -/
-@[simps]
 noncomputable def trace : S →ₗ[R] R :=
 (linear_map.trace R S).comp (lmul R S).to_linear_map
 
 variables {S}
 
+-- Not a `simp` lemma since there are more interesting ways to rewrite `trace R S x`,
+-- for example `trace_trace`
+lemma trace_apply (x) : trace R S x = linear_map.trace R S (lmul R S x) := rfl
+
 lemma trace_eq_zero_of_not_exists_basis
   (h : ¬ ∃ (s : finset S), nonempty (basis s R S)) : trace R S = 0 :=
-by { ext s, simp [linear_map.trace, h] }
+by { ext s, simp [trace_apply, linear_map.trace, h] }
 
 include b
 
@@ -96,6 +99,40 @@ begin
   { rw [trace_algebra_map_of_basis H.some_spec.some, finrank_eq_card_basis H.some_spec.some] },
   { simp [trace_eq_zero_of_not_exists_basis K H, finrank_eq_zero_of_not_exists_basis_finset H] }
 end
+
+lemma trace_trace_of_basis [algebra S T] [is_scalar_tower R S T]
+  {ι κ : Type*} [fintype ι] [fintype κ]
+  (b : basis ι R S) (c : basis κ S T) (x : T) :
+  trace R S (trace S T x) = trace R T x :=
+begin
+  haveI := classical.dec_eq ι,
+  haveI := classical.dec_eq κ,
+  rw [trace_eq_matrix_trace (b.smul c), trace_eq_matrix_trace b, trace_eq_matrix_trace c,
+      matrix.trace_apply, matrix.trace_apply, matrix.trace_apply,
+      ← finset.univ_product_univ, finset.sum_product],
+  refine finset.sum_congr rfl (λ i _, _),
+  simp only [alg_hom.map_sum, smul_left_mul_matrix, finset.sum_apply,
+      -- The unifier is not smart enough to apply this one by itself:
+      finset.sum_apply i _ (λ y, left_mul_matrix b (left_mul_matrix c x y y))]
+end
+
+lemma trace_comp_trace_of_basis [algebra S T] [is_scalar_tower R S T]
+  {ι κ : Type*} [fintype ι] [fintype κ]
+  (b : basis ι R S) (c : basis κ S T) :
+  (trace R S).comp ((trace S T).restrict_scalars R) = trace R T :=
+by { ext, rw [linear_map.comp_apply, linear_map.restrict_scalars_apply, trace_trace_of_basis b c] }
+
+@[simp]
+lemma trace_trace [algebra K T] [algebra L T] [is_scalar_tower K L T]
+  [finite_dimensional K L] [finite_dimensional L T] (x : T) :
+  trace K L (trace L T x) = trace K T x :=
+trace_trace_of_basis (basis.of_vector_space K L) (basis.of_vector_space L T) x
+
+@[simp]
+lemma trace_comp_trace [algebra K T] [algebra L T] [is_scalar_tower K L T]
+  [finite_dimensional K L] [finite_dimensional L T] :
+  (trace K L).comp ((trace L T).restrict_scalars K) = trace K T :=
+by { ext, rw [linear_map.comp_apply, linear_map.restrict_scalars_apply, trace_trace] }
 
 section trace_form
 

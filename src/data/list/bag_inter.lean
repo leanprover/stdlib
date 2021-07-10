@@ -5,14 +5,19 @@ Authors: Mario Carneiro, Scott Morrison
 -/
 import data.list.basic
 
-namespace list
+/-!
+# List intersection
+
+This file provides basic results about `list.bag_inter` (definition in `data.list.defs`).
+`bag_inter l₁ l₂` is the list of elements that are in both `l₁` and `l₂`, counted with multiplicity
+and in the order they appear in `l₁`. For example,
+`bag_inter [0, 1, 2, 3, 2, 1, 0] [1, 0, 1, 4, 3] = [0, 1, 3, 1]`
+-/
 
 open nat
 
-/- bag_inter -/
-universe u
-
-variables {α : Type u} [decidable_eq α]
+namespace list
+variables {α : Type*} [decidable_eq α]
 
 @[simp] theorem nil_bag_inter (l : list α) : [].bag_inter l = [] :=
 by cases l; refl
@@ -32,8 +37,8 @@ begin
 end
 
 @[simp] theorem mem_bag_inter {a : α} : ∀ {l₁ l₂ : list α}, a ∈ l₁.bag_inter l₂ ↔ a ∈ l₁ ∧ a ∈ l₂
-| []      l₂ := by simp only [nil_bag_inter, not_mem_nil, false_and]
-| (b::l₁) l₂ := begin
+| []        l₂ := by simp only [nil_bag_inter, not_mem_nil, false_and]
+| (b :: l₁) l₂ := begin
     by_cases b ∈ l₂,
     { rw [cons_bag_inter_of_pos _ h, mem_cons_iff, mem_cons_iff, mem_bag_inter],
       by_cases ba : a = b,
@@ -46,8 +51,8 @@ end
 
 @[simp] theorem count_bag_inter {a : α} :
   ∀ {l₁ l₂ : list α}, count a (l₁.bag_inter l₂) = min (count a l₁) (count a l₂)
-| []         l₂ := by simp
-| l₁         [] := by simp
+| []         l₂         := by simp
+| l₁         []         := by simp
 | (h₁ :: l₁) (h₂ :: l₂) :=
 begin
   simp only [list.bag_inter, list.mem_cons_iff],
@@ -69,16 +74,16 @@ begin
 end
 
 theorem bag_inter_sublist_left : ∀ l₁ l₂ : list α, l₁.bag_inter l₂ <+ l₁
-| []      l₂ := by simp [nil_sublist]
-| (b::l₁) l₂ := begin
+| []        l₂ := by simp [nil_sublist]
+| (b :: l₁) l₂ := begin
   by_cases b ∈ l₂; simp [h],
   { apply cons_sublist_cons, apply bag_inter_sublist_left },
   { apply sublist_cons_of_sublist, apply bag_inter_sublist_left }
 end
 
 theorem bag_inter_nil_iff_inter_nil : ∀ l₁ l₂ : list α, l₁.bag_inter l₂ = [] ↔ l₁ ∩ l₂ = []
-| []      l₂ := by simp
-| (b::l₁) l₂ :=
+| []        l₂ := by simp
+| (b :: l₁) l₂ :=
 begin
   by_cases h : b ∈ l₂; simp [h],
   exact bag_inter_nil_iff_inter_nil l₁ l₂

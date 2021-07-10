@@ -270,6 +270,10 @@ lemma is_open_induced_iff [t : topological_space β] {s : set α} {f : α → β
   @is_open α (t.induced f) s ↔ (∃t, is_open t ∧ f ⁻¹' t = s) :=
 iff.rfl
 
+lemma is_open_induced_iff' [t : topological_space β] {s : set α} {f : α → β} :
+  (t.induced f).is_open s ↔ (∃t, is_open t ∧ f ⁻¹' t = s) :=
+iff.rfl
+
 lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
   @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ f ⁻¹' t = s) :=
 begin
@@ -419,6 +423,15 @@ le_antisymm
   (le_generate_from $ ball_image_iff.2 $ assume s hs, ⟨s, generate_open.basic _ hs, rfl⟩)
   (coinduced_le_iff_le_induced.1 $ le_generate_from $ assume s hs,
     generate_open.basic _ $ mem_image_of_mem _ hs)
+
+lemma le_induced_generate_from {α β} [t : topological_space α] {b : set (set β)}
+  {f : α → β} (h : ∀ (a : set β), a ∈ b → is_open (f ⁻¹' a)) : t ≤ induced f (generate_from b) :=
+begin
+  rw induced_generate_from_eq,
+  apply le_generate_from,
+  simp only [mem_image, and_imp, forall_apply_eq_imp_iff₂, exists_imp_distrib],
+  exact h,
+end
 
 /-- This construction is left adjoint to the operation sending a topology on `α`
   to its neighborhood filter at a fixed point `a : α`. -/

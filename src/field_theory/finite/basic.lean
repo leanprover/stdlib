@@ -274,12 +274,12 @@ end char_p
 open_locale nat
 open zmod
 
-/-- The Fermat-Euler totient theorem. `nat.modeq.pow_totient` is an alternative statement
+/-- The **Fermat-Euler totient theorem**. `nat.modeq.pow_totient` is an alternative statement
   of the same theorem. -/
 @[simp] lemma zmod.pow_totient {n : ℕ} [fact (0 < n)] (x : units (zmod n)) : x ^ φ n = 1 :=
 by rw [← card_units_eq_totient, pow_card_eq_one]
 
-/-- The Fermat-Euler totient theorem. `zmod.pow_totient` is an alternative statement
+/-- The **Fermat-Euler totient theorem**. `zmod.pow_totient` is an alternative statement
   of the same theorem. -/
 lemma nat.modeq.pow_totient {x n : ℕ} (h : nat.coprime x n) : x ^ φ n ≡ 1 [MOD n] :=
 begin
@@ -306,12 +306,12 @@ by { ext a, rw [frobenius_def, zmod.pow_card, ring_hom.id_apply] }
 @[simp] lemma card_units (p : ℕ) [fact p.prime] : fintype.card (units (zmod p)) = p - 1 :=
 by rw [card_units, card]
 
-/-- Fermat's Little Theorem: for every unit `a` of `zmod p`, we have `a ^ (p - 1) = 1`. -/
+/-- **Fermat's Little Theorem**: for every unit `a` of `zmod p`, we have `a ^ (p - 1) = 1`. -/
 theorem units_pow_card_sub_one_eq_one (p : ℕ) [fact p.prime] (a : units (zmod p)) :
   a ^ (p - 1) = 1 :=
 by rw [← card_units p, pow_card_eq_one]
 
-/-- Fermat's Little Theorem: for all nonzero `a : zmod p`, we have `a ^ (p - 1) = 1`. -/
+/-- **Fermat's Little Theorem**: for all nonzero `a : zmod p`, we have `a ^ (p - 1) = 1`. -/
 theorem pow_card_sub_one_eq_one {p : ℕ} [fact p.prime] {a : zmod p} (ha : a ≠ 0) :
   a ^ (p - 1) = 1 :=
 by { have h := pow_card_sub_one_eq_one a ha, rwa zmod.card p at h }

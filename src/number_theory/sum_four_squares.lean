@@ -197,6 +197,7 @@ m.mod_two_eq_zero_or_one.elim
           ... = _ : by { rw [hn, habcd, int.nat_abs_of_nonneg hn_nonneg], dsimp [m], ring },
       false.elim $ nat.find_min hm hnm ⟨lt_trans hnm hmp, hn0, s, t, u, v, hstuv⟩)
 
+/-- **Four squares theorem** -/
 lemma sum_four_squares : ∀ n : ℕ, ∃ a b c d : ℕ, a^2 + b^2 + c^2 + d^2 = n
 | 0 := ⟨0, 0, 0, 0, rfl⟩
 | 1 := ⟨1, 0, 0, 0, rfl⟩

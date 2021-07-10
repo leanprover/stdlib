@@ -5,14 +5,18 @@ Authors: Mario Carneiro
 -/
 import data.list.forall2
 
-universes u v
+/-!
+# List sections
+
+This file proves some stuff about `list.sections` (definition in `data.list.defs`). A section of a
+list of lists `[l₁, ..., lₙ]` is a list whose `i`-th element comes from the `i`-th list.
+-/
+
 
 open nat function
-variables {α : Type u} {β : Type v}
 
 namespace list
-
-/- sections -/
+variables {α β : Type*}
 
 theorem mem_sections {L : list (list α)} {f} : f ∈ sections L ↔ forall₂ (∈) f L :=
 begin

@@ -212,6 +212,11 @@ by simp [insert_val_of_not_mem ha, noncomm_prod]
     (λ x hx y hy, comm _ (mem_insert_of_mem hx) _ (mem_insert_of_mem hy)) * f a :=
 by simp [noncomm_prod, insert_val_of_not_mem ha, multiset.noncomm_prod_cons']
 
+@[simp, to_additive] lemma noncomm_prod_singleton (a : α) (f : α → β) :
+  noncomm_prod ({a} : finset α) f
+    (λ x hx y hy, by by rw [mem_singleton.mp hx, mem_singleton.mp hy]) = f a :=
+by simp [noncomm_prod]
+
 @[to_additive] lemma noncomm_prod_eq_prod {β : Type*} [comm_monoid β] (s : finset α) (f : α → β) :
   noncomm_prod s f (λ _ _ _ _, commute.all _ _) = s.prod f :=
 begin
@@ -219,6 +224,24 @@ begin
   induction s using finset.induction_on with a s ha IH,
   { simp },
   { simp [ha, IH] }
+end
+
+/- The non-commutative version of `finset.prod_union` -/
+@[to_additive /-" The non-commutative version of `finset.sum_union` "-/]
+lemma noncomm_prod_union_of_disjoint [decidable_eq α] {s t : finset α}
+  (h : disjoint s t) (f : α → β)
+  (comm : ∀ (x ∈ s ∪ t) (y ∈ s ∪ t), commute (f x) (f y))
+  (scomm : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y) :=
+    λ _ hx _ hy, comm _ (mem_union_left _ hx) _ (mem_union_left _ hy))
+  (tcomm : ∀ (x ∈ t) (y ∈ t), commute (f x) (f y) :=
+    λ _ hx _ hy, comm _ (mem_union_right _ hx) _ (mem_union_right _ hy)) :
+  noncomm_prod (s ∪ t) f comm = noncomm_prod s f scomm * noncomm_prod t f tcomm :=
+begin
+  obtain ⟨sl, sl', rfl⟩ := exists_list_nodup_eq s,
+  obtain ⟨tl, tl', rfl⟩ := exists_list_nodup_eq t,
+  rw list.disjoint_to_finset_iff_disjoint at h,
+  simp [sl', tl', noncomm_prod_to_finset, ←list.prod_append, ←list.to_finset_append,
+        list.nodup_append_of_nodup sl' tl' h]
 end
 
 end finset

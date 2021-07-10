@@ -266,6 +266,19 @@ lemma convex.open_segment_subset (h : convex s) {x y : E} (hx : x ∈ s) (hy : y
   open_segment x y ⊆ s :=
 convex_iff_open_segment_subset.1 h hx hy
 
+lemma convex.add_smul_sub_mem (h : convex s) {x y : E} (hx : x ∈ s) (hy : y ∈ s)
+  {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) : x + t • (y - x) ∈ s :=
+begin
+  apply h.segment_subset hx hy,
+  rw segment_eq_image',
+  apply mem_image_of_mem,
+  exact ht
+end
+
+lemma convex.add_smul_mem (h : convex s) {x y : E} (hx : x ∈ s) (hy : x + y ∈ s)
+  {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) : x + t • y ∈ s :=
+by { convert h.add_smul_sub_mem hx hy ht, abel }
+
 /-- Alternative definition of set convexity, in terms of pointwise set operations. -/
 lemma convex_iff_pointwise_add_subset:
   convex s ↔ ∀ ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b → a + b = 1 → a • s + b • s ⊆ s :=

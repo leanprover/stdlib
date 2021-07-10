@@ -5,6 +5,14 @@ Authors: Johan Commelin, Simon Hudon
 -/
 import data.list.basic
 
+/-!
+# The Following Are Equivalent
+
+This file allows to state that all propositions in a list are equivalent. It is used by
+`tactic.tfae`.
+`tfae l` means `∀ x ∈ l, ∀ y ∈ l, x ↔ y`. This is equivalent to `pairwise (↔) l`.
+-/
+
 namespace list
 
 /--

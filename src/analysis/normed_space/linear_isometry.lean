@@ -205,6 +205,9 @@ def to_isometric : E ≃ᵢ F := ⟨e.to_linear_equiv.to_equiv, e.isometry⟩
 
 @[simp] lemma coe_to_isometric : ⇑e.to_isometric = e := rfl
 
+lemma range_eq_univ (e : E ≃ₗᵢ[R] F) : set.range e = set.univ :=
+by { rw ← coe_to_isometric, exact isometric.range_eq_univ _, }
+
 /-- Reinterpret a `linear_isometry_equiv` as an `homeomorph`. -/
 def to_homeomorph : E ≃ₜ F := e.to_isometric.to_homeomorph
 
@@ -216,6 +219,13 @@ protected lemma continuous_on {s} : continuous_on e s := e.continuous.continuous
 
 protected lemma continuous_within_at {s x} : continuous_within_at e s x :=
 e.continuous.continuous_within_at
+
+/-- Interpret a `linear_isometry_equiv` as a continuous linear equiv. -/
+def to_continuous_linear_equiv : E ≃L[R] F :=
+{ .. e.to_linear_isometry.to_continuous_linear_map,
+  .. e.to_homeomorph }
+
+@[simp] lemma coe_to_continuous_linear_equiv : ⇑e.to_continuous_linear_equiv = e := rfl
 
 variables (R E)
 

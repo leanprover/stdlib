@@ -5,6 +5,25 @@ Authors: Johannes Hölzl, Patrick Massot, Sébastien Gouëzel, Zhouhang Zhou, Re
 -/
 import topology.dense_embedding
 
+/-!
+# Homeomorphisms
+
+This file defines homeomorphisms between two topological spaces. They are bijections with both
+directions continuous. We denote homeomorphisms with the notation `≃ₜ`.
+
+# Main definitions
+
+* `homeomorph α β`: The type of homeomorphisms from `α` to `β`.
+  This type can be denoted using the following notation: `α ≃ₜ β`.
+
+# Main results
+
+* Pretty much every topological property is preserved under homeomorphisms.
+* `homeomorph.homeomorph_of_continuous_open`: A continuous bijection that is
+  an open map is a homeomorphism.
+
+-/
+
 open set filter
 open_locale topological_space
 

@@ -7,6 +7,7 @@ Authors: Damiano Testa
 import algebra.group.defs
 
 /-!
+
 # Covariants and contravariants
 
 This file contains general lemmas and instances to work with the interactions between a relation and
@@ -76,6 +77,7 @@ def contravariant : Prop := ∀ (m) {n₁ n₂}, r (μ m n₁) (μ m n₂) → r
 
 /--  Given an action `μ` of a Type `M` on a Type `N` and a relation `r` on `N`, informally, the
 `covariant_class` says that "the action `μ` preserves the relation `r`.
+
 More precisely, the `covariant_class` is a class taking two Types `M N`, together with an "action"
 `μ : M → N → N` and a relation `r : N → N`.  Its unique field `elim` is the assertion that
 for all `m ∈ M` and all elements `n₁, n₂ ∈ N`, if the relation `r` holds for the pair
@@ -223,6 +225,16 @@ instance contravariant_mul_lt_of_covariant_mul_le [has_mul N] [linear_order N]
 instance covariant_swap_mul_le_of_covariant_mul_le [comm_semigroup N] [has_le N]
   [covariant_class N N (*) (≤)] : covariant_class N N (function.swap (*)) (≤) :=
 { elim := (covariant_flip_mul_iff N (≤)).mpr covariant_class.elim }
+
+@[to_additive]
+instance contravariant_swap_mul_le_of_contravariant_mul_le [comm_semigroup N] [has_le N]
+  [contravariant_class N N (*) (≤)] : contravariant_class N N (function.swap (*)) (≤) :=
+{ elim := (contravariant_flip_mul_iff N (≤)).mpr contravariant_class.elim }
+
+@[to_additive]
+instance contravariant_swap_mul_lt_of_contravariant_mul_lt [comm_semigroup N] [has_lt N]
+  [contravariant_class N N (*) (<)] : contravariant_class N N (function.swap (*)) (<) :=
+{ elim := (contravariant_flip_mul_iff N (<)).mpr contravariant_class.elim }
 
 @[to_additive]
 instance covariant_swap_mul_lt_of_covariant_mul_lt [comm_semigroup N] [has_lt N]

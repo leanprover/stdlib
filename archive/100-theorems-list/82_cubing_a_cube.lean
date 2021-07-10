@@ -513,7 +513,7 @@ begin
   dsimp only [decreasing_sequence], rw hnm
 end
 
-/-- A cube cannot be cubed. -/
+/-- **Dissection of Cubes**: A cube cannot be cubed. -/
 theorem cannot_cube_a_cube :
   ∀{n : ℕ}, n ≥ 3 →                              -- In ℝ^n for n ≥ 3
   ∀{ι : Type} [fintype ι] {cs : ι → cube n},     -- given a finite collection of (hyper)cubes

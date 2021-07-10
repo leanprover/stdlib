@@ -93,8 +93,10 @@ def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
   end,
   right_inv'  := λx hx, update_eq_iff.2 ⟨max_eq_left hx, λ i _, rfl⟩,
   source_eq    := rfl,
-  unique_diff' := by simpa only [singleton_pi]
-    using unique_diff_on.pi (fin n) (λ _, ℝ) _ _ (λ i ∈ ({0} : set (fin n)), unique_diff_on_Ici 0),
+  unique_diff' :=
+    have this : unique_diff_on ℝ _ :=
+      unique_diff_on.pi (fin n) (λ _, ℝ) _ _ (λ i ∈ ({0} : set (fin n)), unique_diff_on_Ici 0),
+    by simpa only [singleton_pi] using this,
   continuous_to_fun  := continuous_subtype_val,
   continuous_inv_fun := continuous_subtype_mk _ $ continuous_id.update 0 $
     (continuous_apply 0).max continuous_const }
@@ -113,8 +115,10 @@ def model_with_corners_euclidean_quadrant (n : ℕ) :
   left_inv'   := λ ⟨xval, xprop⟩ hx, by { ext i, simp only [subtype.coe_mk, xprop i, max_eq_left] },
   right_inv' := λ x hx, by { ext1 i, simp only [hx i, max_eq_left] },
   source_eq    := rfl,
-  unique_diff' := by simpa only [pi_univ_Ici]
-    using unique_diff_on.univ_pi (fin n) (λ _, ℝ) _ (λ i, unique_diff_on_Ici 0),
+  unique_diff' :=
+    have this : unique_diff_on ℝ _ :=
+      unique_diff_on.univ_pi (fin n) (λ _, ℝ) _ (λ i, unique_diff_on_Ici 0),
+    by simpa only [pi_univ_Ici] using this,
   continuous_to_fun  := continuous_subtype_val,
   continuous_inv_fun := continuous_subtype_mk _ $ continuous_pi $ λ i,
     (continuous_id.max continuous_const).comp (continuous_apply i) }

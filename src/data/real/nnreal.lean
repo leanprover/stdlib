@@ -787,3 +787,7 @@ begin
   { simp [h, real.coe_to_nnreal x h, le_abs_self] },
   { simp [real.to_nnreal, h, le_abs_self, abs_nonneg] }
 end
+
+lemma cast_nat_abs_eq_nnabs_cast (n : ℤ) :
+  (n.nat_abs : ℝ≥0) = real.nnabs n :=
+by { ext, rw [nnreal.coe_nat_cast, int.cast_nat_abs, nnreal.coe_nnabs] }

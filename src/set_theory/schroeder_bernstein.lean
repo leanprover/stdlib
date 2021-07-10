@@ -35,7 +35,7 @@ namespace embedding
 section antisymm
 variables {α : Type u} {β : Type v}
 
-/-- The Schröder-Bernstein Theorem
+/-- **The Schröder-Bernstein Theorem**:
 Given injections `α → β` and `β → α`, we can get a bijection `α → β`. -/
 theorem schroeder_bernstein {f : α → β} {g : β → α}
   (hf : function.injective f) (hg : function.injective g) : ∃ h : α → β, bijective h :=

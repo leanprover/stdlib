@@ -794,8 +794,8 @@ variables [char_zero K]
 /--The minimal polynomial of a root of unity `μ` divides `X ^ n - 1`. -/
 lemma minpoly_dvd_X_pow_sub_one : minpoly ℤ μ ∣ X ^ n - 1 :=
 begin
-  apply integer_dvd (is_integral h hpos) (polynomial.monic.is_primitive
-  (monic_X_pow_sub_C 1 (ne_of_lt hpos).symm)),
+  apply minpoly.gcd_domain_dvd ℚ (is_integral h hpos) (polynomial.monic.is_primitive
+    (monic_X_pow_sub_C 1 (ne_of_lt hpos).symm)),
   simp only [((is_primitive_root.iff_def μ n).mp h).left, aeval_X_pow, ring_hom.eq_int_cast,
   int.cast_one, aeval_one, alg_hom.map_sub, sub_self]
 end
@@ -825,7 +825,7 @@ lemma minpoly_dvd_expand {p : ℕ} (hprime : nat.prime p) (hdiv : ¬ p ∣ n) :
   minpoly ℤ μ ∣
   expand ℤ p (minpoly ℤ (μ ^ p)) :=
 begin
-  apply minpoly.integer_dvd (h.is_integral hpos),
+  apply minpoly.gcd_domain_dvd ℚ (h.is_integral hpos),
   { apply monic.is_primitive,
     rw [polynomial.monic, leading_coeff, nat_degree_expand, mul_comm, coeff_expand_mul'
         (nat.prime.pos hprime), ← leading_coeff, ← polynomial.monic],

@@ -479,7 +479,7 @@ end
 
 end riesz_extension
 
-/-- M. Riesz extension theorem: given a convex cone `s` in a vector space `E`, a submodule `p`,
+/-- M. **Riesz extension theorem**: given a convex cone `s` in a vector space `E`, a submodule `p`,
 and a linear `f : p → ℝ`, assume that `f` is nonnegative on `p ∩ s` and `p + s = E`. Then
 there exists a globally defined linear function `g : E → ℝ` that agrees with `f` on `p`,
 and is nonnegative on `s`. -/
@@ -495,7 +495,7 @@ begin
   { exact λ x hx, hgs ⟨x, _⟩ hx }
 end
 
-/-- Hahn-Banach theorem: if `N : E → ℝ` is a sublinear map, `f` is a linear map
+/-- **Hahn-Banach theorem**: if `N : E → ℝ` is a sublinear map, `f` is a linear map
 defined on a subspace of `E`, and `f x ≤ N x` for all `x` in the domain of `f`,
 then `f` can be extended to the whole space to a linear map `g` such that `g x ≤ N x`
 for all `x`. -/

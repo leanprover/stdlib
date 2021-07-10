@@ -351,7 +351,7 @@ local attribute [instance] splits_ℚ_ℂ
     the number of roots not fixed by complex conjugation (i.e. with some imaginary component). -/
 lemma card_complex_roots_eq_card_real_add_card_not_gal_inv (p : polynomial ℚ) :
   (p.root_set ℂ).to_finset.card = (p.root_set ℝ).to_finset.card +
-  (gal_action_hom p ℂ (restrict p ℂ (complex.conj_alg_equiv.restrict_scalars ℚ))).support.card :=
+  (gal_action_hom p ℂ (restrict p ℂ (complex.conj_ae.restrict_scalars ℚ))).support.card :=
 begin
   by_cases hp : p = 0,
   { simp_rw [hp, root_set_zero, set.to_finset_eq_empty_iff.mpr rfl, finset.card_empty, zero_add],
@@ -377,7 +377,7 @@ begin
       have key : is_scalar_tower.to_alg_hom ℚ ℝ ℂ z.re = z := by { ext, refl, rw hz2, refl },
       exact ⟨z.re, inj (by rwa [←aeval_alg_hom_apply, key, alg_hom.map_zero]), key⟩ } },
   have hc0 : ∀ w : p.root_set ℂ, gal_action_hom p ℂ
-    (restrict p ℂ (complex.conj_alg_equiv.restrict_scalars ℚ)) w = w ↔ w.val.im = 0,
+    (restrict p ℂ (complex.conj_ae.restrict_scalars ℚ)) w = w ↔ w.val.im = 0,
   { intro w,
     rw [subtype.ext_iff, gal_action_hom_restrict],
     exact complex.eq_conj_iff_im },
@@ -413,7 +413,7 @@ begin
     { exact nodup_roots ((separable_map (algebra_map ℚ ℂ)).mpr p_irr.separable) } },
   have h2 : fintype.card p.gal = fintype.card (gal_action_hom p ℂ).range :=
   fintype.card_congr (monoid_hom.of_injective (gal_action_hom_injective p ℂ)).to_equiv,
-  let conj := restrict p ℂ (complex.conj_alg_equiv.restrict_scalars ℚ),
+  let conj := restrict p ℂ (complex.conj_ae.restrict_scalars ℚ),
   refine ⟨gal_action_hom_injective p ℂ, λ x, (congr_arg (has_mem.mem x)
     (show (gal_action_hom p ℂ).range = ⊤, from _)).mpr (subgroup.mem_top x)⟩,
   apply equiv.perm.subgroup_eq_top_of_swap_mem,
@@ -436,10 +436,10 @@ lemma gal_action_hom_bijective_of_prime_degree'
 begin
   apply gal_action_hom_bijective_of_prime_degree p_irr p_deg,
   let n := (gal_action_hom p ℂ (restrict p ℂ
-    (complex.conj_alg_equiv.restrict_scalars ℚ))).support.card,
+    (complex.conj_ae.restrict_scalars ℚ))).support.card,
   have hn : 2 ∣ n :=
   equiv.perm.two_dvd_card_support (by rw [←monoid_hom.map_pow, ←monoid_hom.map_pow,
-    show alg_equiv.restrict_scalars ℚ complex.conj_alg_equiv ^ 2 = 1,
+    show alg_equiv.restrict_scalars ℚ complex.conj_ae ^ 2 = 1,
     from alg_equiv.ext complex.conj_conj, monoid_hom.map_one, monoid_hom.map_one]),
   have key := card_complex_roots_eq_card_real_add_card_not_gal_inv p,
   simp_rw [set.to_finset_card] at key,

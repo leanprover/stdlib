@@ -17,9 +17,52 @@ along with Hausdorff's Maximality Principle.
 * `max_chain_spec`: Hausdorff's Maximality Principle.
 * `exists_maximal_of_chains_bounded`: Zorn's Lemma. Many variants are offered.
 
+## Variants
+
+The primary statement of Zorn's lemma is `exists_maximal_of_chains_bounded`. Then it is specialized
+to particular relations:
+* `(≤)` with `zorn_partial_order`
+* `(⊆)` with `zorn_subset`
+* `(⊇)` with `zorn_superset`
+
+Lemma names carry modifiers:
+* `₀`: Quantifies over a set, as opposed to over a type.
+* `_nonempty`: Doesn't ask to prove that the empty chain is bounded and lets you give an element
+  that will be smaller than the maximal element found (the maximal element is no smaller than any
+  other element, but it can also be incomparable to some).
+
+## How-to
+
+This file comes across as confusing to those who haven't yet used it, so here is a detailed
+walkthrough:
+1. Know what relation on which type/set you're looking for. See Variants above. You can discharge
+  some conditions to Zorn's lemma directly using a `_nonempty` variant.
+2. Write down the definition of your type/set, put a `suffices : ∃ m, ∀ a, m ≺ a → a ≺ m, { ... },`
+  (or whatever you actually need) followed by a `apply some_version_of_zorn`.
+3. Fill in the details. This is where you start talking about chains.
+
+A typical proof using Zorn could look like this
+```lean
+lemma zorny_lemma : zorny_statement :=
+begin
+  let s : set α := {x | whatever x},
+  suffices : ∃ x ∈ s, ∀ y ∈ s, y ⊆ x → y = x, -- or with another operator
+  { exact proof_post_zorn },
+  apply zorn.zorn_subset, -- or another variant
+  rintro c hcs hc,
+  obtain rfl | hcnemp := c.eq_empty_or_nonempty, -- you might need to disjunct on c empty or not
+  { exact ⟨edge_case_construction,
+      proof_that_edge_case_construction_respects_whatever,
+      proof_that_edge_case_construction_contains_all_stuff_in_c⟩ },
+  exact ⟨construction,
+    proof_that_construction_respects_whatever,
+    proof_that_construction_contains_all_stuff_in_c⟩,
+end
+```
+
 ## Notes
 
-Ported from Isabelle/HOL. The 
+Originally ported from Isabelle/HOL. The
 [original file](https://isabelle.in.tum.de/dist/library/HOL/HOL/Zorn.html) was written by Jacques D.
 Fleuriot, Tobias Nipkow, Christian Sternagel.
 -/
@@ -79,7 +122,7 @@ lemma succ_spec {c : set α} (h : ∃ c', chain c ∧ super_chain c c') :
   super_chain c (succ_chain c) :=
 let ⟨c', hc'⟩ := h in
 have chain c ∧ super_chain c (some h),
-  from @some_spec _ (λc', chain c ∧ super_chain c c') _,
+  from @some_spec _ (λ c', chain c ∧ super_chain c c') _,
 by simp [succ_chain, dif_pos, h, this.right]
 
 lemma chain_succ {c : set α} (hc : chain c) :

@@ -314,7 +314,7 @@ gcd.induction r r' (by intros; simpa only [xgcd_zero_left]) $ λ x y h IH s t s'
     mod_eq_sub_mul_div]
 end
 
-/-- An explicit version of Bézout's lemma for Euclidean domains. -/
+/-- An explicit version of **Bézout's lemma** for Euclidean domains. -/
 theorem gcd_eq_gcd_ab (a b : R) : (gcd a b : R) = a * gcd_a a b + b * gcd_b a b :=
 by have := @xgcd_aux_P _ _ _ a b a b 1 0 0 1
   (by rw [P, mul_one, mul_zero, add_zero]) (by rw [P, mul_one, mul_zero, zero_add]);

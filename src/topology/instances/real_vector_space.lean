@@ -31,7 +31,7 @@ dense_embedding_of_rat.dense.equalizer
 /-- Reinterpret a continuous additive homomorphism between two real vector spaces
 as a continuous real-linear map. -/
 def to_real_linear_map (f : E →+ F) (hf : continuous f) : E →L[ℝ] F :=
-⟨⟨f, f.map_add, f.map_real_smul hf⟩, hf⟩
+⟨{ to_fun := f, map_add' := f.map_add, map_smul' := f.map_real_smul hf }, hf⟩
 
 @[simp] lemma coe_to_real_linear_map (f : E →+ F) (hf : continuous f) :
   ⇑(f.to_real_linear_map hf) = f := rfl

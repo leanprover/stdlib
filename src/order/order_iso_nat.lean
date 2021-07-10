@@ -63,7 +63,7 @@ theorem well_founded_iff_no_descending_seq :
 end rel_embedding
 
 namespace nat
-variables (s : set ℕ) [decidable_pred s] [infinite s]
+variables (s : set ℕ) [decidable_pred (∈ s)] [infinite s]
 
 /-- An order embedding from `ℕ` to itself with a specified range -/
 def order_embedding_of_set : ℕ ↪o ℕ :=

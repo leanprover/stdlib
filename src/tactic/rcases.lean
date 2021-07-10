@@ -299,7 +299,7 @@ meta mutual def rcases_core, rcases.continue
 with rcases_core : rcases_patt → expr → tactic (list uncleared_goal)
 | (rcases_patt.one `rfl) e := do
   (t, e) ← get_local_and_type e,
-  subst e,
+  subst' e,
   list.map (prod.mk []) <$> get_goals
 -- If the pattern is any other name, we already bound the name in the
 -- top-level `cases` tactic, so there is no more work to do for it.
@@ -478,7 +478,7 @@ with rcases_hint_core : ℕ → expr → tactic (rcases_patt × list expr)
   env ← get_env,
   let I := t.get_app_fn.const_name,
   (do guard (I = ``eq),
-    subst e,
+    subst' e,
     prod.mk (rcases_patt.one `rfl) <$> get_goals) <|>
   (do
     let c := env.constructors_of I,

@@ -255,18 +255,16 @@ begin
   { rintro ⟨x, ⟨hx, x0⟩⟩,
     exact absurd (hP x0) hx },
   let Rₚ := localization P.prime_compl,
-  let f := localization.of P.prime_compl,
   let Sₚ := localization (algebra.algebra_map_submonoid S P.prime_compl),
-  let g := localization.of (algebra.algebra_map_submonoid S P.prime_compl),
   letI : integral_domain (localization (algebra.algebra_map_submonoid S P.prime_compl)) :=
-    localization_map.integral_domain_localization (le_non_zero_divisors_of_domain hP0),
+    is_localization.integral_domain_localization (le_non_zero_divisors_of_domain hP0),
   obtain ⟨Qₚ : ideal Sₚ, Qₚ_maximal⟩ := exists_maximal Sₚ,
   haveI Qₚ_max : is_maximal (comap _ Qₚ) := @is_maximal_comap_of_is_integral_of_is_maximal Rₚ _ Sₚ _
-    (localization_algebra P.prime_compl f g)
-    (is_integral_localization f g H) _ Qₚ_maximal,
-  refine ⟨comap g.to_map Qₚ, ⟨comap_is_prime g.to_map Qₚ, _⟩⟩,
+    (localization_algebra P.prime_compl S)
+    (is_integral_localization H) _ Qₚ_maximal,
+  refine ⟨comap (algebra_map S Sₚ) Qₚ, ⟨comap_is_prime _ Qₚ, _⟩⟩,
   convert localization.at_prime.comap_maximal_ideal,
-  rw [comap_comap, ← local_ring.eq_maximal_ideal Qₚ_max, ← f.map_comp _],
+  rw [comap_comap, ← local_ring.eq_maximal_ideal Qₚ_max, ← is_localization.map_comp _],
   refl
 end
 

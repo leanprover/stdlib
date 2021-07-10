@@ -17,6 +17,9 @@ import data.nat.prime
 
 * `gcd_eq_gcd_ab`: Bézout's lemma, given `x y : ℕ`, `gcd x y = x * gcd_a x y + y * gcd_b x y`.
 
+## Tags
+
+Bézout's lemma, Bezout's lemma
 -/
 
 /-! ### Extended Euclidean algorithm -/
@@ -93,7 +96,7 @@ gcd.induction r r' (by simp) $ λ a b h IH s t s' t' p p', begin
   simp [mul_add, mul_comm, mul_left_comm, add_comm, add_left_comm, sub_eq_neg_add, mul_assoc]
 end
 
-/-- Bézout's lemma: given `x y : ℕ`, `gcd x y = x * a + y * b`, where `a = gcd_a x y` and
+/-- **Bézout's lemma**: given `x y : ℕ`, `gcd x y = x * a + y * b`, where `a = gcd_a x y` and
 `b = gcd_b x y` are computed by the extended Euclidean algorithm.
 -/
 theorem gcd_eq_gcd_ab : (gcd x y : ℤ) = x * gcd_a x y + y * gcd_b x y :=
@@ -133,6 +136,7 @@ def gcd_b : ℤ → ℤ → ℤ
 | m (of_nat n) := m.nat_abs.gcd_b n
 | m -[1+ n]    := -m.nat_abs.gcd_b n.succ
 
+/-- **Bézout's lemma** -/
 theorem gcd_eq_gcd_ab : ∀ x y : ℤ, (gcd x y : ℤ) = x * gcd_a x y + y * gcd_b x y
 | (m : ℕ) (n : ℕ) := nat.gcd_eq_gcd_ab _ _
 | (m : ℕ) -[1+ n] := show (_ : ℤ) = _ + -(n+1) * -_, by rw neg_mul_neg; apply nat.gcd_eq_gcd_ab

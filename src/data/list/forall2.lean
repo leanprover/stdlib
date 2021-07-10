@@ -5,22 +5,24 @@ Authors: Mario Carneiro, Johannes Hölzl
 -/
 import data.list.basic
 
-universes u v w z
+/-!
+# Double universal quantification on a list
+
+This file provides an API for `list.forall₂` (definition in `data.list.defs`).
+`forall₂ r l₁ l₂` means that `∀ a ∈ l₁, ∀ b ∈ l₂, r a b`, where `l₁`, `l₂` are lists.
+-/
 
 open nat function
-variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type z}
 
 namespace list
 
-/- forall₂ -/
-
-variables {r : α → β → Prop} {p : γ → δ → Prop}
+variables {α β γ δ : Type*} {r : α → β → Prop} {p : γ → δ → Prop}
 open relator
 
 mk_iff_of_inductive_prop list.forall₂ list.forall₂_iff
 
 @[simp] theorem forall₂_cons {R : α → β → Prop} {a b l₁ l₂} :
-  forall₂ R (a::l₁) (b::l₂) ↔ R a b ∧ forall₂ R l₁ l₂ :=
+  forall₂ R (a :: l₁) (b :: l₂) ↔ R a b ∧ forall₂ R l₁ l₂ :=
 ⟨λ h, by cases h with h₁ h₂; split; assumption, λ ⟨h₁, h₂⟩, forall₂.cons h₁ h₂⟩
 
 theorem forall₂.imp {R S : α → β → Prop}
@@ -28,31 +30,31 @@ theorem forall₂.imp {R S : α → β → Prop}
   (h : forall₂ R l₁ l₂) : forall₂ S l₁ l₂ :=
 by induction h; constructor; solve_by_elim
 
-lemma forall₂.mp {r q s : α → β → Prop} (h : ∀a b, r a b → q a b → s a b) :
-  ∀{l₁ l₂}, forall₂ r l₁ l₂ → forall₂ q l₁ l₂ → forall₂ s l₁ l₂
-| []      []      forall₂.nil           forall₂.nil           := forall₂.nil
-| (a::l₁) (b::l₂) (forall₂.cons hr hrs) (forall₂.cons hq hqs) :=
+lemma forall₂.mp {r q s : α → β → Prop} (h : ∀ a b, r a b → q a b → s a b) :
+  ∀ {l₁ l₂}, forall₂ r l₁ l₂ → forall₂ q l₁ l₂ → forall₂ s l₁ l₂
+| []        []        forall₂.nil           forall₂.nil           := forall₂.nil
+| (a :: l₁) (b :: l₂) (forall₂.cons hr hrs) (forall₂.cons hq hqs) :=
   forall₂.cons (h a b hr hq) (forall₂.mp hrs hqs)
 
-lemma forall₂.flip : ∀{a b}, forall₂ (flip r) b a → forall₂ r a b
+lemma forall₂.flip : ∀ {a b}, forall₂ (flip r) b a → forall₂ r a b
 | _ _                 forall₂.nil          := forall₂.nil
 | (a :: as) (b :: bs) (forall₂.cons h₁ h₂) := forall₂.cons h₁ h₂.flip
 
-lemma forall₂_same {r : α → α → Prop} : ∀{l}, (∀x∈l, r x x) → forall₂ r l l
-| []      _ := forall₂.nil
-| (a::as) h := forall₂.cons
+lemma forall₂_same {r : α → α → Prop} : ∀ {l}, (∀ x∈l, r x x) → forall₂ r l l
+| []        _ := forall₂.nil
+| (a :: as) h := forall₂.cons
     (h _ (mem_cons_self _ _))
-    (forall₂_same $ assume a ha, h a $ mem_cons_of_mem _ ha)
+    (forall₂_same $ λ a ha, h a $ mem_cons_of_mem _ ha)
 
 lemma forall₂_refl {r} [is_refl α r] (l : list α) : forall₂ r l l :=
-forall₂_same $ assume a h, is_refl.refl _
+forall₂_same $ λ a h, is_refl.refl _
 
 lemma forall₂_eq_eq_eq : forall₂ ((=) : α → α → Prop) = (=) :=
 begin
   funext a b, apply propext,
   split,
-  { assume h, induction h, {refl}, simp only [*]; split; refl },
-  { assume h, subst h, exact forall₂_refl _ }
+  { intro h, induction h, {refl}, simp only [*]; split; refl },
+  { intro h, subst h, exact forall₂_refl _ }
 end
 
 @[simp, priority 900] lemma forall₂_nil_left_iff {l} : forall₂ r nil l ↔ l = nil :=
@@ -62,46 +64,46 @@ end
 ⟨λ H, by cases H; refl, by rintro rfl; exact forall₂.nil⟩
 
 lemma forall₂_cons_left_iff {a l u} :
-  forall₂ r (a::l) u ↔ (∃b u', r a b ∧ forall₂ r l u' ∧ u = b :: u') :=
+  forall₂ r (a :: l) u ↔ (∃b u', r a b ∧ forall₂ r l u' ∧ u = b :: u') :=
 iff.intro
-  (assume h, match u, h with (b :: u'), forall₂.cons h₁ h₂ := ⟨b, u', h₁, h₂, rfl⟩ end)
-  (assume h, match u, h with _, ⟨b, u', h₁, h₂, rfl⟩ := forall₂.cons h₁ h₂ end)
+  (λ h, match u, h with (b :: u'), forall₂.cons h₁ h₂ := ⟨b, u', h₁, h₂, rfl⟩ end)
+  (λ h, match u, h with _, ⟨b, u', h₁, h₂, rfl⟩ := forall₂.cons h₁ h₂ end)
 
 lemma forall₂_cons_right_iff {b l u} :
-  forall₂ r u (b::l) ↔ (∃a u', r a b ∧ forall₂ r u' l ∧ u = a :: u') :=
+  forall₂ r u (b :: l) ↔ (∃a u', r a b ∧ forall₂ r u' l ∧ u = a :: u') :=
 iff.intro
-  (assume h, match u, h with (b :: u'), forall₂.cons h₁ h₂ := ⟨b, u', h₁, h₂, rfl⟩ end)
-  (assume h, match u, h with _, ⟨b, u', h₁, h₂, rfl⟩ := forall₂.cons h₁ h₂ end)
+  (λ h, match u, h with (b :: u'), forall₂.cons h₁ h₂ := ⟨b, u', h₁, h₂, rfl⟩ end)
+  (λ h, match u, h with _, ⟨b, u', h₁, h₂, rfl⟩ := forall₂.cons h₁ h₂ end)
 
 lemma forall₂_and_left {r : α → β → Prop} {p : α → Prop} :
-  ∀l u, forall₂ (λa b, p a ∧ r a b) l u ↔ (∀a∈l, p a) ∧ forall₂ r l u
+  ∀ l u, forall₂ (λa b, p a ∧ r a b) l u ↔ (∀ a∈l, p a) ∧ forall₂ r l u
 | []     u := by simp only [forall₂_nil_left_iff, forall_prop_of_false (not_mem_nil _),
     imp_true_iff, true_and]
-| (a::l) u := by simp only [forall₂_and_left l, forall₂_cons_left_iff, forall_mem_cons,
+| (a :: l) u := by simp only [forall₂_and_left l, forall₂_cons_left_iff, forall_mem_cons,
     and_assoc, and_comm, and.left_comm, exists_and_distrib_left.symm]
 
 @[simp] lemma forall₂_map_left_iff {f : γ → α} :
-  ∀{l u}, forall₂ r (map f l) u ↔ forall₂ (λc b, r (f c) b) l u
+  ∀ {l u}, forall₂ r (map f l) u ↔ forall₂ (λc b, r (f c) b) l u
 | []     _ := by simp only [map, forall₂_nil_left_iff]
-| (a::l) _ := by simp only [map, forall₂_cons_left_iff, forall₂_map_left_iff]
+| (a :: l) _ := by simp only [map, forall₂_cons_left_iff, forall₂_map_left_iff]
 
 @[simp] lemma forall₂_map_right_iff {f : γ → β} :
-  ∀{l u}, forall₂ r l (map f u) ↔ forall₂ (λa c, r a (f c)) l u
+  ∀ {l u}, forall₂ r l (map f u) ↔ forall₂ (λa c, r a (f c)) l u
 | _ []     := by simp only [map, forall₂_nil_right_iff]
-| _ (b::u) := by simp only [map, forall₂_cons_right_iff, forall₂_map_right_iff]
+| _ (b :: u) := by simp only [map, forall₂_cons_right_iff, forall₂_map_right_iff]
 
 lemma left_unique_forall₂' (hr : left_unique r) :
-  ∀{a b c}, forall₂ r a b → forall₂ r c b → a = c
+  ∀ {a b c}, forall₂ r a b → forall₂ r c b → a = c
 | a₀ nil a₁ forall₂.nil forall₂.nil := rfl
-| (a₀::l₀) (b::l) (a₁::l₁) (forall₂.cons ha₀ h₀) (forall₂.cons ha₁ h₁) :=
+| (a₀ :: l₀) (b :: l) (a₁ :: l₁) (forall₂.cons ha₀ h₀) (forall₂.cons ha₁ h₁) :=
   hr.unique ha₀ ha₁ ▸ left_unique_forall₂' h₀ h₁ ▸ rfl
 
 lemma left_unique_forall₂ (hr : left_unique r) : left_unique (forall₂ r) :=
 ⟨@left_unique_forall₂' _ _ _ hr⟩
 
-lemma right_unique_forall₂' (hr : right_unique r) : ∀{a b c}, forall₂ r a b → forall₂ r a c → b = c
+lemma right_unique_forall₂' (hr : right_unique r) : ∀ {a b c}, forall₂ r a b → forall₂ r a c → b = c
 | nil a₀ a₁ forall₂.nil forall₂.nil := rfl
-| (b::l) (a₀::l₀) (a₁::l₁) (forall₂.cons ha₀ h₀) (forall₂.cons ha₁ h₁) :=
+| (b :: l) (a₀ :: l₀) (a₁ :: l₁) (forall₂.cons ha₀ h₀) (forall₂.cons ha₁ h₁) :=
   hr.unique ha₀ ha₁ ▸ right_unique_forall₂' h₀ h₁ ▸ rfl
 
 lemma right_unique_forall₂ (hr : right_unique r) : right_unique (forall₂ r) :=
@@ -157,19 +159,19 @@ by rwa [drop_left] at h'
 
 lemma rel_mem (hr : bi_unique r) : (r ⇒ forall₂ r ⇒ iff) (∈) (∈)
 | a b h [] [] forall₂.nil := by simp only [not_mem_nil]
-| a b h (a'::as) (b'::bs) (forall₂.cons h₁ h₂) := rel_or (rel_eq hr h h₁) (rel_mem h h₂)
+| a b h (a' :: as) (b' :: bs) (forall₂.cons h₁ h₂) := rel_or (rel_eq hr h h₁) (rel_mem h h₂)
 
 lemma rel_map : ((r ⇒ p) ⇒ forall₂ r ⇒ forall₂ p) map map
 | f g h [] [] forall₂.nil := forall₂.nil
-| f g h (a::as) (b::bs) (forall₂.cons h₁ h₂) := forall₂.cons (h h₁) (rel_map @h h₂)
+| f g h (a :: as) (b :: bs) (forall₂.cons h₁ h₂) := forall₂.cons (h h₁) (rel_map @h h₂)
 
 lemma rel_append : (forall₂ r ⇒ forall₂ r ⇒ forall₂ r) append append
 | [] [] h l₁ l₂ hl := hl
-| (a::as) (b::bs) (forall₂.cons h₁ h₂) l₁ l₂ hl := forall₂.cons h₁ (rel_append h₂ hl)
+| (a :: as) (b :: bs) (forall₂.cons h₁ h₂) l₁ l₂ hl := forall₂.cons h₁ (rel_append h₂ hl)
 
 lemma rel_reverse : (forall₂ r ⇒ forall₂ r) reverse reverse
 | [] [] forall₂.nil := forall₂.nil
-| (a::as) (b::bs) (forall₂.cons h₁ h₂) := begin
+| (a :: as) (b :: bs) (forall₂.cons h₁ h₂) := begin
   simp only [reverse_cons],
   exact rel_append (rel_reverse h₂) (forall₂.cons h₁ forall₂.nil)
 end
@@ -177,15 +179,15 @@ end
 @[simp]
 lemma forall₂_reverse_iff {l₁ l₂} : forall₂ r (reverse l₁) (reverse l₂) ↔ forall₂ r l₁ l₂ :=
 iff.intro
-  (assume h, by { rw [← reverse_reverse l₁, ← reverse_reverse l₂], exact rel_reverse h })
-  (assume h, rel_reverse h)
+  (λ h, by { rw [← reverse_reverse l₁, ← reverse_reverse l₂], exact rel_reverse h })
+  (λ h, rel_reverse h)
 
 lemma rel_join : (forall₂ (forall₂ r) ⇒ forall₂ r) join join
 | [] [] forall₂.nil := forall₂.nil
-| (a::as) (b::bs) (forall₂.cons h₁ h₂) := rel_append h₁ (rel_join h₂)
+| (a :: as) (b :: bs) (forall₂.cons h₁ h₂) := rel_append h₁ (rel_join h₂)
 
 lemma rel_bind : (forall₂ r ⇒ (r ⇒ forall₂ p) ⇒ forall₂ p) list.bind list.bind :=
-assume a b h₁ f g h₂, rel_join (rel_map @h₂ h₁)
+λ a b h₁ f g h₂, rel_join (rel_map @h₂ h₁)
 
 lemma rel_foldl : ((p ⇒ r ⇒ p) ⇒ p ⇒ forall₂ r ⇒ p) foldl foldl
 | f g hfg _ _ h _ _ forall₂.nil := h
@@ -199,7 +201,7 @@ lemma rel_filter {p : α → Prop} {q : β → Prop} [decidable_pred p] [decidab
   (hpq : (r ⇒ (↔)) p q) :
   (forall₂ r ⇒ forall₂ r) (filter p) (filter q)
 | _ _ forall₂.nil := forall₂.nil
-| (a::as) (b::bs) (forall₂.cons h₁ h₂) :=
+| (a :: as) (b :: bs) (forall₂.cons h₁ h₂) :=
   begin
     by_cases p a,
     { have : q b, { rwa [← hpq h₁] },
@@ -220,7 +222,7 @@ end
 
 lemma rel_filter_map : ((r ⇒ option.rel p) ⇒ forall₂ r ⇒ forall₂ p) filter_map filter_map
 | f g hfg _ _ forall₂.nil := forall₂.nil
-| f g hfg (a::as) (b::bs) (forall₂.cons h₁ h₂) :=
+| f g hfg (a :: as) (b :: bs) (forall₂.cons h₁ h₂) :=
   by rw [filter_map_cons, filter_map_cons];
   from match f a, g b, hfg h₁ with
   | _, _, option.rel.none := rel_filter_map @hfg h₂

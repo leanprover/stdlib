@@ -13,21 +13,21 @@ import logic.function.conjugate
 
 ### Predicate
 
-* `eq_on f₁ f₂ s` : functions `f₁` and `f₂` are equal at every point of `s`;
-* `maps_to f s t` : `f` sends every point of `s` to a point of `t`;
-* `inj_on f s` : restriction of `f` to `s` is injective;
-* `surj_on f s t` : every point in `s` has a preimage in `s`;
-* `bij_on f s t` : `f` is a bijection between `s` and `t`;
-* `left_inv_on f' f s` : for every `x ∈ s` we have `f' (f x) = x`;
-* `right_inv_on f' f t` : for every `y ∈ t` we have `f (f' y) = y`;
-* `inv_on f' f s t` : `f'` is a two-side inverse of `f` on `s` and `t`, i.e.
-  we have `left_inv_on f' f s` and `right_inv_on f' f t`.
+* `set.eq_on f₁ f₂ s` : functions `f₁` and `f₂` are equal at every point of `s`;
+* `set.maps_to f s t` : `f` sends every point of `s` to a point of `t`;
+* `set.inj_on f s` : restriction of `f` to `s` is injective;
+* `set.surj_on f s t` : every point in `s` has a preimage in `s`;
+* `set.bij_on f s t` : `f` is a bijection between `s` and `t`;
+* `set.left_inv_on f' f s` : for every `x ∈ s` we have `f' (f x) = x`;
+* `set.right_inv_on f' f t` : for every `y ∈ t` we have `f (f' y) = y`;
+* `set.inv_on f' f s t` : `f'` is a two-side inverse of `f` on `s` and `t`, i.e.
+  we have `set.left_inv_on f' f s` and `set.right_inv_on f' f t`.
 
 ### Functions
 
-* `restrict f s` : restrict the domain of `f` to the set `s`;
-* `cod_restrict f s h` : given `h : ∀ x, f x ∈ s`, restrict the codomain of `f` to the set `s`;
-* `maps_to.restrict f s t h`: given `h : maps_to f s t`, restrict the domain of `f` to `s`
+* `set.restrict f s` : restrict the domain of `f` to the set `s`;
+* `set.cod_restrict f s h` : given `h : ∀ x, f x ∈ s`, restrict the codomain of `f` to the set `s`;
+* `set.maps_to.restrict f s t h`: given `h : maps_to f s t`, restrict the domain of `f` to `s`
   and the codomain to `t`.
 -/
 universes u v w x y

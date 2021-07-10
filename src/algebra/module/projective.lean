@@ -6,7 +6,7 @@ Authors: Kevin Buzzard
 
 import algebra.module.basic
 import linear_algebra.finsupp
-import linear_algebra.basis
+import linear_algebra.free_module
 
 /-!
 
@@ -166,9 +166,8 @@ begin
     simp },
 end
 
---TODO: use `module.free`
 /-- Free modules are projective. -/
-theorem projective_of_free {ι : Type*} (b : basis ι R P) : projective R P :=
+theorem projective_of_basis {ι : Type*} (b : basis ι R P) : projective R P :=
 begin
   -- need P →ₗ (P →₀ R) for definition of projective.
   -- get it from `ι → (P →₀ R)` coming from `b`.
@@ -178,6 +177,10 @@ begin
     linear_map.map_finsupp_sum],
   exact b.total_repr m,
 end
+
+@[priority 100]
+instance projective_of_free [module.free R P] : module.projective R P :=
+projective_of_basis $ module.free.choose_basis R P
 
 end ring
 

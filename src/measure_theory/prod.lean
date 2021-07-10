@@ -607,7 +607,7 @@ lemma lintegral_prod_swap [sigma_finite μ] (f : α × β → ℝ≥0∞)
   (hf : ae_measurable f (μ.prod ν)) : ∫⁻ z, f z.swap ∂(ν.prod μ) = ∫⁻ z, f z ∂(μ.prod ν) :=
 by { rw ← prod_swap at hf, rw [← lintegral_map' hf measurable_swap, prod_swap] }
 
-/-- Tonelli's Theorem: For `ℝ≥0∞`-valued measurable functions on `α × β`,
+/-- **Tonelli's Theorem**: For `ℝ≥0∞`-valued measurable functions on `α × β`,
   the integral of `f` is equal to the iterated integral. -/
 lemma lintegral_prod_of_measurable :
   ∀ (f : α × β → ℝ≥0∞) (hf : measurable f), ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ x, ∫⁻ y, f (x, y) ∂ν ∂μ :=
@@ -628,7 +628,7 @@ begin
     simp only [lintegral_supr hf h2f, lintegral_supr (kf _), k2f, lintegral_supr lf l2f, h3f] },
 end
 
-/-- Tonelli's Theorem: For `ℝ≥0∞`-valued almost everywhere measurable functions on `α × β`,
+/-- **Tonelli's Theorem**: For `ℝ≥0∞`-valued almost everywhere measurable functions on `α × β`,
   the integral of `f` is equal to the iterated integral. -/
 lemma lintegral_prod (f : α × β → ℝ≥0∞) (hf : ae_measurable f (μ.prod ν)) :
   ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ x, ∫⁻ y, f (x, y) ∂ν ∂μ :=
@@ -656,15 +656,15 @@ lemma lintegral_prod_symm [sigma_finite μ] (f : α × β → ℝ≥0∞)
   (hf : ae_measurable f (μ.prod ν)) : ∫⁻ z, f z ∂(μ.prod ν) = ∫⁻ y, ∫⁻ x, f (x, y) ∂μ ∂ν :=
 lintegral_prod_symm' f hf
 
-/-- The reversed version of Tonelli's Theorem. In this version `f` is in curried form, which makes
-  it easier for the elaborator to figure out `f` automatically. -/
+/-- The reversed version of **Tonelli's Theorem**. In this version `f` is in curried form, which
+makes it easier for the elaborator to figure out `f` automatically. -/
 lemma lintegral_lintegral ⦃f : α → β → ℝ≥0∞⦄
   (hf : ae_measurable (uncurry f) (μ.prod ν)) :
   ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ = ∫⁻ z, f z.1 z.2 ∂(μ.prod ν) :=
 (lintegral_prod _ hf).symm
 
-/-- The reversed version of Tonelli's Theorem (symmetric version). In this version `f` is in curried
-  form, which makes it easier for the elaborator to figure out `f` automatically. -/
+/-- The reversed version of **Tonelli's Theorem** (symmetric version). In this version `f` is in
+curried form, which makes it easier for the elaborator to figure out `f` automatically. -/
 lemma lintegral_lintegral_symm [sigma_finite μ] ⦃f : α → β → ℝ≥0∞⦄
   (hf : ae_measurable (uncurry f) (μ.prod ν)) :
   ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ = ∫⁻ z, f z.2 z.1 ∂(ν.prod μ) :=
@@ -863,8 +863,7 @@ begin
   rw [continuous_iff_continuous_at], intro g,
   refine tendsto_integral_of_L1 _ (L1.integrable_coe_fn g).integral_prod_left
     (eventually_of_forall $ λ h, (L1.integrable_coe_fn h).integral_prod_left) _,
-  simp_rw [edist_eq_coe_nnnorm_sub,
-    ← lintegral_fn_integral_sub (λ x, (nnnorm x : ℝ≥0∞)) (L1.integrable_coe_fn _)
+  simp_rw [← lintegral_fn_integral_sub (λ x, (nnnorm x : ℝ≥0∞)) (L1.integrable_coe_fn _)
     (L1.integrable_coe_fn g)],
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds _ (λ i, zero_le _) _,
   { exact λ i, ∫⁻ x, ∫⁻ y, nnnorm (i (x, y) - g (x, y)) ∂ν ∂μ },
@@ -879,7 +878,7 @@ begin
   rw [← tendsto_iff_norm_tendsto_zero], exact tendsto_id
 end
 
-/-- Fubini's Theorem: For integrable functions on `α × β`,
+/-- **Fubini's Theorem**: For integrable functions on `α × β`,
   the Bochner integral of `f` is equal to the iterated Bochner integral.
   `integrable_prod_iff` can be useful to show that the function in question in integrable.
   `measure_theory.integrable.integral_prod_right` is useful to show that the inner integral
@@ -905,19 +904,19 @@ begin
       exact integral_congr_ae (ae_eq_symm hfgx) } }
 end
 
-/-- Symmetric version of Fubini's Theorem: For integrable functions on `α × β`,
+/-- Symmetric version of **Fubini's Theorem**: For integrable functions on `α × β`,
   the Bochner integral of `f` is equal to the iterated Bochner integral.
   This version has the integrals on the right-hand side in the other order. -/
 lemma integral_prod_symm (f : α × β → E) (hf : integrable f (μ.prod ν)) :
   ∫ z, f z ∂(μ.prod ν) = ∫ y, ∫ x, f (x, y) ∂μ ∂ν :=
 by { simp_rw [← integral_prod_swap f hf.ae_measurable], exact integral_prod _ hf.swap }
 
-/-- Reversed version of Fubini's Theorem. -/
+/-- Reversed version of **Fubini's Theorem**. -/
 lemma integral_integral {f : α → β → E} (hf : integrable (uncurry f) (μ.prod ν)) :
   ∫ x, ∫ y, f x y ∂ν ∂μ = ∫ z, f z.1 z.2 ∂(μ.prod ν) :=
 (integral_prod _ hf).symm
 
-/-- Reversed version of Fubini's Theorem (symmetric version). -/
+/-- Reversed version of **Fubini's Theorem** (symmetric version). -/
 lemma integral_integral_symm {f : α → β → E} (hf : integrable (uncurry f) (μ.prod ν)) :
   ∫ x, ∫ y, f x y ∂ν ∂μ = ∫ z, f z.2 z.1 ∂(ν.prod μ) :=
 (integral_prod_symm _ hf.swap).symm

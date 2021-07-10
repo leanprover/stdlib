@@ -62,36 +62,51 @@ instance of_associative_ring : lie_ring A :=
 
 lemma of_associative_ring_bracket (x y : A) : ⁅x, y⁆ = x*y - y*x := rfl
 
+@[simp] lemma lie_apply {α : Type*} (f g : α → A) (a : α) : ⁅f, g⁆ a = ⁅f a, g a⁆ := rfl
+
 end lie_ring
 
-namespace lie_algebra
+section lie_algebra
 
 variables {R : Type u} [comm_ring R] [algebra R A]
 
 /-- An associative algebra gives rise to a Lie algebra by taking the bracket to be the ring
 commutator. -/
 @[priority 100]
-instance of_associative_algebra : lie_algebra R A :=
+instance lie_algebra.of_associative_algebra : lie_algebra R A :=
 { lie_smul := λ t x y,
     by rw [lie_ring.of_associative_ring_bracket, lie_ring.of_associative_ring_bracket,
            algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_sub], }
 
+namespace alg_hom
+
+variables {B : Type w} {C : Type w₁} [ring B] [ring C] [algebra R B] [algebra R C]
+variables (f : A →ₐ[R] B) (g : B →ₐ[R] C)
+
 /-- The map `of_associative_algebra` associating a Lie algebra to an associative algebra is
 functorial. -/
-def of_associative_algebra_hom {B : Type w} [ring B] [algebra R B] (f : A →ₐ[R] B) : A →ₗ⁅R⁆ B :=
+def to_lie_hom : A →ₗ⁅R⁆ B :=
  { map_lie' := λ x y, show f ⁅x,y⁆ = ⁅f x,f y⁆,
      by simp only [lie_ring.of_associative_ring_bracket, alg_hom.map_sub, alg_hom.map_mul],
   ..f.to_linear_map, }
 
-@[simp] lemma of_associative_algebra_hom_id : of_associative_algebra_hom (alg_hom.id R A) = 1 := rfl
+instance : has_coe (A →ₐ[R] B) (A →ₗ⁅R⁆ B) := ⟨to_lie_hom⟩
 
-@[simp] lemma of_associative_algebra_hom_apply {B : Type w} [ring B] [algebra R B]
-  (f : A →ₐ[R] B) (x : A) : of_associative_algebra_hom f x = f x := rfl
+@[simp] lemma to_lie_hom_coe : f.to_lie_hom = ↑f := rfl
 
-@[simp] lemma of_associative_algebra_hom_comp {B : Type w} {C : Type w₁}
-  [ring B] [ring C] [algebra R B] [algebra R C] (f : A →ₐ[R] B) (g : B →ₐ[R] C) :
-  of_associative_algebra_hom (g.comp f) =
-  (of_associative_algebra_hom g).comp (of_associative_algebra_hom f) := rfl
+@[simp] lemma coe_to_lie_hom : ((f : A →ₗ⁅R⁆ B) : A → B) = f := rfl
+
+lemma to_lie_hom_apply (x : A) : f.to_lie_hom x = f x := rfl
+
+@[simp] lemma to_lie_hom_id : (alg_hom.id R A : A →ₗ⁅R⁆ A) = lie_hom.id := rfl
+
+@[simp] lemma to_lie_hom_comp : (g.comp f : A →ₗ⁅R⁆ C) = (g : B →ₗ⁅R⁆ C).comp (f : A →ₗ⁅R⁆ B) := rfl
+
+lemma to_lie_hom_injective {f g : A →ₐ[R] B}
+  (h : (f : A →ₗ⁅R⁆ B) = (g : A →ₗ⁅R⁆ B)) : f = g :=
+by { ext a, exact lie_hom.congr_fun h a, }
+
+end alg_hom
 
 end lie_algebra
 
@@ -119,6 +134,22 @@ See also `lie_module.to_module_hom`. -/
 def lie_algebra.ad : L →ₗ⁅R⁆ module.End R L := lie_module.to_endomorphism R L L
 
 @[simp] lemma lie_algebra.ad_apply (x y : L) : lie_algebra.ad R L x y = ⁅x, y⁆ := rfl
+
+open lie_algebra
+
+lemma lie_algebra.ad_eq_lmul_left_sub_lmul_right (A : Type v) [ring A] [algebra R A] :
+  (ad R A : A → module.End R A) = algebra.lmul_left R - algebra.lmul_right R :=
+by { ext a b, simp [lie_ring.of_associative_ring_bracket], }
+
+variables {R L}
+
+lemma lie_subalgebra.ad_comp_incl_eq (K : lie_subalgebra R L) (x : K) :
+  (ad R L ↑x).comp (K.incl : K →ₗ[R] L) = (K.incl : K →ₗ[R] L).comp (ad R K x) :=
+begin
+  ext y,
+  simp only [ad_apply, lie_hom.coe_to_linear_map, lie_subalgebra.coe_incl, linear_map.coe_comp,
+    lie_subalgebra.coe_bracket, function.comp_app],
+end
 
 end adjoint_action
 

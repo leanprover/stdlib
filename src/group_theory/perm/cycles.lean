@@ -6,6 +6,7 @@ Authors: Chris Hughes
 import data.nat.parity
 import data.equiv.fintype
 import group_theory.perm.sign
+import data.finset.noncomm_prod
 /-!
 # Cyclic permutations
 
@@ -35,6 +36,7 @@ The following two definitions require that `β` is a `fintype`:
     a prime cycle and a transposition
 
 -/
+
 namespace equiv.perm
 open equiv function finset
 
@@ -245,14 +247,14 @@ calc sign f = sign (swap x (f x) * (swap x (f x) * f)) :
         pow_one, units.neg_mul_neg] }
 using_well_founded {rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, f.support.card)⟩]}
 
--- The lemma `support_pow_le` is relevant. It means that `h2` is equivalent to
+-- The lemma `support_gpow_le` is relevant. It means that `h2` is equivalent to
 -- `σ.support = (σ ^ n).support`, as well as to `σ.support.card ≤ (σ ^ n).support.card`.
-lemma is_cycle_of_is_cycle_pow {σ : perm α} {n : ℤ}
+lemma is_cycle_of_is_cycle_gpow {σ : perm α} {n : ℤ}
   (h1 : is_cycle (σ ^ n)) (h2 : σ.support ≤ (σ ^ n).support) : is_cycle σ :=
 begin
   have key : ∀ x : α, (σ ^ n) x ≠ x ↔ σ x ≠ x,
   { simp_rw [←mem_support],
-    exact finset.ext_iff.mp (le_antisymm (support_pow_le σ n) h2) },
+    exact finset.ext_iff.mp (le_antisymm (support_gpow_le σ n) h2) },
   obtain ⟨x, hx1, hx2⟩ := h1,
   refine ⟨x, (key x).mp hx1, λ y hy, _⟩,
   cases (hx2 y ((key y).mpr hy)) with i _,
@@ -343,6 +345,43 @@ lemma same_cycle_inv (f : perm β) {x y : β} : same_cycle f⁻¹ x y ↔ same_c
 
 lemma same_cycle_inv_apply {f : perm β} {x y : β} : same_cycle f x (f⁻¹ y) ↔ same_cycle f x y :=
 by rw [← same_cycle_inv, same_cycle_apply, same_cycle_inv]
+
+/-- Unlike `support_congr`, which assumes that `∀ (x ∈ g.support), f x = g x)`, here
+we have the weaker assumption that `∀ (x ∈ f.support), f x = g x`. -/
+lemma is_cycle.support_congr [fintype α] {f g : perm α} (hf : is_cycle f) (hg : is_cycle g)
+  (h : f.support ⊆ g.support) (h' : ∀ (x ∈ f.support), f x = g x) : f = g :=
+begin
+  have : f.support = g.support,
+  { refine le_antisymm h _,
+    intros z hz,
+    obtain ⟨x, hx, hf'⟩ := id hf,
+    have hx' : g x ≠ x,
+    { rwa [←h' x (mem_support.mpr hx)] },
+    obtain ⟨m, hm⟩ := hg.exists_pow_eq hx' (mem_support.mp hz),
+    have h'' : ∀ (x ∈ f.support ∩ g.support), f x = g x,
+    { intros x hx,
+      exact h' x (mem_of_mem_inter_left hx) },
+    rwa [←hm, ←pow_eq_on_of_mem_support h'' _ x (mem_inter_of_mem (mem_support.mpr hx)
+          (mem_support.mpr hx')), pow_apply_mem_support, mem_support] },
+  refine support_congr h _,
+  simpa [←this] using h'
+end
+
+/-- If two cyclic permutations agree on all terms in their intersection,
+and that intersection is not empty, then the two cyclic permutations must be equal. -/
+lemma is_cycle.eq_on_support_inter_nonempty_congr [fintype α] {f g : perm α}
+  (hf : is_cycle f) (hg : is_cycle g) (h : ∀ (x ∈ f.support ∩ g.support), f x = g x) {x : α}
+  (hx : f x = g x) (hx' : x ∈ f.support) : f = g :=
+begin
+  have hx'' : x ∈ g.support,
+  { rwa [mem_support, ←hx, ←mem_support] },
+  have : f.support ⊆ g.support,
+  { intros y hy,
+    obtain ⟨k, rfl⟩ := hf.exists_pow_eq (mem_support.mp hx') (mem_support.mp hy),
+    rwa [pow_eq_on_of_mem_support h _ _ (mem_inter_of_mem hx' hx''), pow_apply_mem_support] },
+  rw (inter_eq_left_iff_subset _ _).mpr this at h,
+  exact hf.support_congr hg this h
+end
 
 /-!
 ### `cycle_of`
@@ -458,6 +497,52 @@ else let ⟨m, hm₁, hm₂, hm₃⟩ := cycle_factors_aux l ((cycle_of f x)⁻�
                 inv_apply_self, inv_eq_iff_eq, eq_comm] }),
         hm₃⟩⟩
 
+lemma mem_list_cycles_iff {α : Type*} [fintype α] {l : list (perm α)}
+  (h1 : ∀ σ : perm α, σ ∈ l → σ.is_cycle)
+  (h2 : l.pairwise disjoint) {σ : perm α} :
+  σ ∈ l ↔ σ.is_cycle ∧ ∀ (a : α) (h4 : σ a ≠ a), σ a = l.prod a :=
+begin
+  suffices : σ.is_cycle → (σ ∈ l ↔ ∀ (a : α) (h4 : σ a ≠ a), σ a = l.prod a),
+  { exact ⟨λ hσ, ⟨h1 σ hσ, (this (h1 σ hσ)).mp hσ⟩, λ hσ, (this hσ.1).mpr hσ.2⟩ },
+  intro h3,
+  classical,
+  split,
+  { intros h a ha,
+    exact eq_on_support_mem_disjoint h h2 _ (mem_support.mpr ha) },
+  { intros h,
+    have hσl : σ.support ⊆ l.prod.support,
+    { intros x hx,
+      rw mem_support at hx,
+      rwa [mem_support, ←h _ hx] },
+    obtain ⟨a, ha, -⟩ := id h3,
+    rw ←mem_support at ha,
+    obtain ⟨τ, hτ, hτa⟩ := exists_mem_support_of_mem_support_prod (hσl ha),
+    have hτl : ∀ (x ∈ τ.support), τ x = l.prod x := eq_on_support_mem_disjoint hτ h2,
+    have key : ∀ (x ∈ σ.support ∩ τ.support), σ x = τ x,
+    { intros x hx,
+      rw [h x (mem_support.mp (mem_of_mem_inter_left hx)), hτl x (mem_of_mem_inter_right hx)] },
+    convert hτ,
+    refine h3.eq_on_support_inter_nonempty_congr (h1 _ hτ) key _ ha,
+    exact key a (mem_inter_of_mem ha hτa) }
+end
+
+lemma list_cycles_perm_list_cycles {α : Type*} [fintype α] {l₁ l₂ : list (perm α)}
+  (h₀ : l₁.prod = l₂.prod)
+  (h₁l₁ : ∀ σ : perm α, σ ∈ l₁ → σ.is_cycle) (h₁l₂ : ∀ σ : perm α, σ ∈ l₂ → σ.is_cycle)
+  (h₂l₁ : l₁.pairwise disjoint) (h₂l₂ : l₂.pairwise disjoint) :
+  l₁ ~ l₂ :=
+begin
+  classical,
+  have h₃l₁ : (1 : perm α) ∉ l₁ := λ h, (h₁l₁ 1 h).ne_one rfl,
+  have h₃l₂ : (1 : perm α) ∉ l₂ := λ h, (h₁l₂ 1 h).ne_one rfl,
+  refine (list.perm_ext (nodup_of_pairwise_disjoint h₃l₁ h₂l₁)
+    (nodup_of_pairwise_disjoint h₃l₂ h₂l₂)).mpr (λ σ, _),
+  by_cases hσ : σ.is_cycle,
+  { obtain ⟨a, ha⟩ := not_forall.mp (mt ext hσ.ne_one),
+    rw [mem_list_cycles_iff h₁l₁ h₂l₁, mem_list_cycles_iff h₁l₂ h₂l₂, h₀] },
+  { exact iff_of_false (mt (h₁l₁ σ) hσ) (mt (h₁l₂ σ) hσ) }
+end
+
 /-- Factors a permutation `f` into a list of disjoint cyclic permutations that multiply to `f`. -/
 def cycle_factors [fintype α] [linear_order α] (f : perm α) :
   {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint} :=
@@ -470,6 +555,125 @@ def trunc_cycle_factors [fintype α] (f : perm α) :
 quotient.rec_on_subsingleton (@univ α _).1
   (λ l h, trunc.mk (cycle_factors_aux l f h))
   (show ∀ x, f x ≠ x → x ∈ (@univ α _).1, from λ _ _, mem_univ _)
+
+section cycle_factors_finset
+
+variables [fintype α] (f : perm α)
+
+/-- Factors a permutation `f` into a `finset` of disjoint cyclic permutations that multiply to `f`.
+-/
+def cycle_factors_finset : finset (perm α) :=
+(trunc_cycle_factors f).lift
+  (λ (l : {l : list (perm α) // l.prod = f ∧ (∀ g ∈ l, is_cycle g) ∧ l.pairwise disjoint}),
+    l.val.to_finset) (λ ⟨l, hl⟩ ⟨l', hl'⟩, list.to_finset_eq_of_perm _ _
+      (list_cycles_perm_list_cycles (hl'.left.symm ▸ hl.left) hl.right.left (hl'.right.left)
+        hl.right.right hl'.right.right))
+
+lemma cycle_factors_finset_eq_list_to_finset {σ : perm α} {l : list (perm α)} (hn : l.nodup) :
+  σ.cycle_factors_finset = l.to_finset ↔ (∀ f : perm α, f ∈ l → f.is_cycle) ∧
+    l.pairwise disjoint ∧ l.prod = σ :=
+begin
+  obtain ⟨⟨l', hp', hc', hd'⟩, hl⟩ := trunc.exists_rep σ.trunc_cycle_factors,
+  have ht : cycle_factors_finset σ = l'.to_finset,
+  { rw [cycle_factors_finset, ←hl, trunc.lift_mk] },
+  rw ht,
+  split,
+  { intro h,
+    have hn' : l'.nodup,
+    { refine nodup_of_pairwise_disjoint _ hd',
+      intro H,
+      exact is_cycle.ne_one (hc' _ H) rfl },
+    have hperm : l ~ l' := list.perm_of_nodup_nodup_to_finset_eq hn hn' h.symm,
+    refine ⟨_, _, _⟩,
+    { exact λ _ h, hc' _ (hperm.subset h)},
+    { rwa list.perm.pairwise_iff disjoint.symmetric hperm },
+    { rw [←hp', hperm.symm.prod_eq'],
+      refine hd'.imp _,
+      exact λ _ _, disjoint.commute } },
+  { rintro ⟨hc, hd, hp⟩,
+    refine list.to_finset_eq_of_perm _ _ _,
+    refine list_cycles_perm_list_cycles _ hc' hc hd' hd,
+    rw [hp, hp'] }
+end
+
+lemma cycle_factors_finset_eq_finset {σ : perm α} {s : finset (perm α)} :
+  σ.cycle_factors_finset = s ↔ (∀ f : perm α, f ∈ s → f.is_cycle) ∧
+    (∃ h : (∀ (a ∈ s) (b ∈ s), a ≠ b → disjoint a b), s.noncomm_prod id
+      (λ a ha b hb, (em (a = b)).by_cases (λ h, h ▸ commute.refl a)
+        (set.pairwise_on.mono' (λ _ _, disjoint.commute) h a ha b hb)) = σ) :=
+begin
+  obtain ⟨l, hl, rfl⟩ := s.exists_list_nodup_eq,
+  rw cycle_factors_finset_eq_list_to_finset hl,
+  simp only [noncomm_prod_to_finset, hl, exists_prop, list.mem_to_finset, and.congr_left_iff,
+             and.congr_right_iff, list.map_id, ne.def],
+  intros,
+  exact ⟨list.forall_of_pairwise disjoint.symmetric, hl.pairwise_of_forall_ne⟩
+end
+
+lemma cycle_factors_finset_pairwise_disjoint (p : perm α) (hp : p ∈ cycle_factors_finset f)
+  (q : perm α) (hq : q ∈ cycle_factors_finset f) (h : p ≠ q) :
+  disjoint p q :=
+begin
+  have : f.cycle_factors_finset = f.cycle_factors_finset := rfl,
+  obtain ⟨-, hd, -⟩ := cycle_factors_finset_eq_finset.mp this,
+  exact hd p hp q hq h
+end
+
+-- TODO: use #7578
+lemma cycle_factors_finset_mem_commute (p : perm α) (hp : p ∈ cycle_factors_finset f)
+  (q : perm α) (hq : q ∈ cycle_factors_finset f) :
+  _root_.commute p q :=
+begin
+  by_cases h : p = q,
+  { exact h ▸ commute.refl _ },
+  { exact (cycle_factors_finset_pairwise_disjoint _ _ hp _ hq h).commute }
+end
+
+/-- The product of cycle factors is equal to the original `f : perm α`. -/
+lemma cycle_factors_finset_noncomm_prod :
+  f.cycle_factors_finset.noncomm_prod id (cycle_factors_finset_mem_commute f) = f :=
+begin
+  have : f.cycle_factors_finset = f.cycle_factors_finset := rfl,
+  obtain ⟨-, hd, hp⟩ := cycle_factors_finset_eq_finset.mp this,
+  exact hp
+end
+
+lemma mem_cycle_factors_finset_iff {f p : perm α} :
+  p ∈ cycle_factors_finset f ↔ p.is_cycle ∧ ∀ (a ∈ p.support), p a = f a :=
+begin
+  obtain ⟨l, hl, hl'⟩ := f.cycle_factors_finset.exists_list_nodup_eq,
+  rw ←hl',
+  rw [eq_comm, cycle_factors_finset_eq_list_to_finset hl] at hl',
+  simpa [list.mem_to_finset, ne.def, ←hl'.right.right]
+    using mem_list_cycles_iff hl'.left hl'.right.left
+end
+
+lemma cycle_factors_finset_eq_empty_iff :
+  cycle_factors_finset f = ∅ ↔ f = 1 :=
+by simpa [cycle_factors_finset_eq_finset] using eq_comm
+
+@[simp] lemma cycle_factors_finset_eq_singleton_self_iff :
+  f.cycle_factors_finset = {f} ↔ f.is_cycle :=
+by simp [cycle_factors_finset_eq_finset]
+
+lemma cycle_factors_finset_eq_singleton_iff {g : perm α} :
+  f.cycle_factors_finset = {g} ↔ f.is_cycle ∧ f = g :=
+begin
+  suffices : f = g → (g.is_cycle ↔ f.is_cycle),
+  { simpa [cycle_factors_finset_eq_finset, eq_comm] },
+  rintro rfl,
+  exact iff.rfl
+end
+
+/-- Two permutations `f g : perm α` have the same cycle factors iff they are the same. -/
+lemma cycle_factors_finset_injective : function.injective (@cycle_factors_finset α _ _) :=
+begin
+  intros f g h,
+  rw ←cycle_factors_finset_noncomm_prod f,
+  simpa [h] using cycle_factors_finset_noncomm_prod g
+end
+
+end cycle_factors_finset
 
 @[elab_as_eliminator] lemma cycle_induction_on [fintype β] (P : perm β → Prop) (σ : perm β)
   (base_one : P 1) (base_cycles : ∀ σ : perm β, σ.is_cycle → P σ)
@@ -559,8 +763,8 @@ begin
   cases exists_pow_eq_self_of_coprime h0 with m hm,
   have h2' : (σ ^ n).support = ⊤ := eq.trans (support_pow_coprime h0) h2,
   have h1' : is_cycle ((σ ^ n) ^ (m : ℤ)) := by rwa ← hm at h1,
-  replace h1' : is_cycle (σ ^ n) := is_cycle_of_is_cycle_pow h1'
-    (le_trans (support_pow_le σ n) (ge_of_eq (congr_arg support hm))),
+  replace h1' : is_cycle (σ ^ n) := is_cycle_of_is_cycle_gpow h1'
+    (le_trans (support_gpow_le σ n) (ge_of_eq (congr_arg support hm))),
   rw [eq_top_iff, ←closure_cycle_adjacent_swap h1' h2' x, closure_le, set.insert_subset],
   exact ⟨subgroup.pow_mem (closure _) (subset_closure (set.mem_insert σ _)) n,
     set.singleton_subset_iff.mpr (subset_closure (set.mem_insert_of_mem _ (set.mem_singleton _)))⟩,

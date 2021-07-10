@@ -276,7 +276,7 @@ begin
   apply (skew_adjoint_matrices_lie_subalgebra_equiv (JD l R) (PD l R) (is_unit_PD l R)).trans,
   apply lie_equiv.of_eq,
   ext A,
-  rw [JD_transform, ← unit_of_invertible_val (2 : R), ←units.smul_def, lie_subalgebra.mem_coe,
+  rw [JD_transform, ← coe_unit_of_invertible (2 : R), ←units.smul_def, lie_subalgebra.mem_coe,
       mem_skew_adjoint_matrices_lie_subalgebra_unit_smul],
   refl,
 end
@@ -360,10 +360,10 @@ begin
   symmetry,
   apply (skew_adjoint_matrices_lie_subalgebra_equiv_transpose
     (indefinite_diagonal (unit ⊕ l) l R)
-    (matrix.reindex_alg_equiv (equiv.sum_assoc punit l l)) (matrix.transpose_reindex _ _)).trans,
+    (matrix.reindex_alg_equiv _ (equiv.sum_assoc punit l l)) (matrix.transpose_reindex _ _)).trans,
   apply lie_equiv.of_eq,
   ext A,
-  rw [JB_transform, ← unit_of_invertible_val (2 : R), ←units.smul_def, lie_subalgebra.mem_coe,
+  rw [JB_transform, ← coe_unit_of_invertible (2 : R), ←units.smul_def, lie_subalgebra.mem_coe,
       lie_subalgebra.mem_coe, mem_skew_adjoint_matrices_lie_subalgebra_unit_smul],
   simpa [indefinite_diagonal_assoc],
 end

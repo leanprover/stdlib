@@ -92,7 +92,7 @@ lemma mul_lt_mul_pow_succ {n a q : ℕ} (a0 : 0 < a) (q1 : 1 < q) :
   n * q < a * q ^ (n + 1) :=
 begin
   rw [pow_succ', ← mul_assoc, mul_lt_mul_right (zero_lt_one.trans q1)],
-  exact lt_mul_of_one_le_of_lt' (nat.succ_le_iff.mpr a0) (nat.lt_pow_self q1 n),
+  exact lt_mul_of_one_le_of_lt (nat.succ_le_iff.mpr a0) (nat.lt_pow_self q1 n),
 end
 
 end nat

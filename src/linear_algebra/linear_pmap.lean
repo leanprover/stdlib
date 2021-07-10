@@ -71,24 +71,25 @@ f.to_fun.map_smul c x
 over rings, and requires a proof of `∀ c, c • x = 0 → c • y = 0`. -/
 noncomputable def mk_span_singleton' (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0) :
   linear_pmap R E F :=
-begin
-  replace H : ∀ c₁ c₂ : R, c₁ • x = c₂ • x → c₁ • y = c₂ • y,
+{ domain := R ∙ x,
+  to_fun :=
+  have H : ∀ c₁ c₂ : R, c₁ • x = c₂ • x → c₁ • y = c₂ • y,
   { intros c₁ c₂ h,
     rw [← sub_eq_zero, ← sub_smul] at h ⊢,
     exact H _ h },
-  refine ⟨R ∙ x, λ z, _, _, _⟩,
-  { exact (classical.some (mem_span_singleton.1 z.prop) • y) },
-  { intros z₁ z₂,
-    rw [← add_smul],
-    apply H,
-    simp only [add_smul, sub_smul, classical.some_spec (mem_span_singleton.1 _)],
-    apply coe_add },
-  { intros c z,
-    rw [smul_smul],
-    apply H,
-    simp only [mul_smul, classical.some_spec (mem_span_singleton.1 _)],
-    apply coe_smul }
-end
+  { to_fun := λ z, (classical.some (mem_span_singleton.1 z.prop) • y),
+    map_add' := λ y z, begin
+      rw [← add_smul],
+      apply H,
+      simp only [add_smul, sub_smul, classical.some_spec (mem_span_singleton.1 _)],
+      apply coe_add
+    end,
+    map_smul' := λ c z, begin
+      rw [smul_smul],
+      apply H,
+      simp only [mul_smul, classical.some_spec (mem_span_singleton.1 _)],
+      apply coe_smul
+    end } }
 
 @[simp] lemma domain_mk_span_singleton (x : E) (y : F) (H : ∀ c : R, c • x = 0 → c • y = 0) :
   (mk_span_singleton' x y H).domain = R ∙ x := rfl
@@ -213,7 +214,7 @@ begin
     simp only [← eq_sub_iff_add_eq] at hxy,
     simp only [coe_sub, coe_mk, coe_mk, hxy, ← sub_add, ← sub_sub, sub_self, zero_sub, ← H],
     apply neg_add_eq_sub },
-  refine ⟨⟨fg, _, _⟩, fg_eq⟩,
+  refine ⟨{ to_fun := fg, .. }, fg_eq⟩,
   { rintros ⟨z₁, hz₁⟩ ⟨z₂, hz₂⟩,
     rw [← add_assoc, add_right_comm (f _), ← map_add, add_assoc, ← map_add],
     apply fg_eq,
@@ -326,7 +327,7 @@ begin
     rcases hc (P x).1.1 (P x).1.2 p.1 p.2 with ⟨q, hqc, hxq, hpq⟩,
     refine (hxq.2 _).trans (hpq.2 _).symm,
     exacts [of_le hpq.1 y, hxy, rfl] },
-  refine ⟨⟨f, _, _⟩, _⟩,
+  refine ⟨{ to_fun := f, .. }, _⟩,
   { intros x y,
     rcases hc (P x).1.1 (P x).1.2 (P y).1.1 (P y).1.2 with ⟨p, hpc, hpx, hpy⟩,
     set x' := of_le hpx.1 ⟨x, (P x).2⟩,

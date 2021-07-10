@@ -59,6 +59,10 @@ Another application is the construction of a partition of unity from a collectio
 function. In this case the finite set depends on the point and it's convenient to have a definition
 that does not mention the set explicitly.
 
+The first arguments in all definitions and lemmas is the codomain of the function of the big
+operator. This is necessary for the heuristic in `@[to_additive]`.
+See the documentation of `to_additive.attr` for more information.
+
 ## Todo
 
 We did not add `is_finite (X : Type) : Prop`, because it is simply `nonempty (fintype X)`.
@@ -77,7 +81,7 @@ open function set
 -/
 
 section sort
-variables {α β ι : Sort*} {M N : Type*} [comm_monoid M] [comm_monoid N]
+variables {M N : Type*} {α β ι : Sort*} [comm_monoid M] [comm_monoid N]
 
 open_locale big_operators
 
@@ -89,7 +93,7 @@ open_locale classical
 
 /-- Sum of `f x` as `x` ranges over the elements of the support of `f`, if it's finite. Zero
 otherwise. -/
-@[irreducible] noncomputable def finsum {M} [add_comm_monoid M] (f : α → M) : M :=
+@[irreducible] noncomputable def finsum {M α} [add_comm_monoid M] (f : α → M) : M :=
 if h : finite (support (f ∘ plift.down)) then ∑ i in h.to_finset, f i.down else 0
 
 /-- Product of `f x` as `x` ranges over the elements of the multiplicative support of `f`, if it's
@@ -146,7 +150,7 @@ end
 finprod_eq_single f (default α) $ λ x hx, (hx $ unique.eq_default _).elim
 
 @[simp, to_additive] lemma finprod_true (f : true → M) : ∏ᶠ i, f i = f trivial :=
-@finprod_unique true M _ ⟨⟨trivial⟩, λ _, rfl⟩ f
+@finprod_unique M true _ ⟨⟨trivial⟩, λ _, rfl⟩ f
 
 @[to_additive] lemma finprod_eq_dif {p : Prop} [decidable p] (f : p → M) :
   ∏ᶠ i, f i = if h : p then f h else 1 :=

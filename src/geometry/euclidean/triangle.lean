@@ -292,7 +292,7 @@ variables {V : Type*} {P : Type*} [inner_product_space ℝ V] [metric_space P]
     [normed_add_torsor V P]
 include V
 
-/-- Pythagorean theorem, if-and-only-if angle-at-point form. -/
+/-- **Pythagorean theorem**, if-and-only-if angle-at-point form. -/
 lemma dist_sq_eq_dist_sq_add_dist_sq_iff_angle_eq_pi_div_two (p1 p2 p3 : P) :
   dist p1 p3 * dist p1 p3 = dist p1 p2 * dist p1 p2 + dist p3 p2 * dist p3 p2 ↔
     ∠ p1 p2 p3 = π / 2 :=
@@ -301,7 +301,7 @@ by erw [pseudo_metric_space.dist_comm p3 p2, dist_eq_norm_vsub V p1 p3, dist_eq_
         ←norm_sub_sq_eq_norm_sq_add_norm_sq_iff_angle_eq_pi_div_two,
         vsub_sub_vsub_cancel_right p1, ←neg_vsub_eq_vsub_rev p2 p3, norm_neg]
 
-/-- Law of cosines (cosine rule), angle-at-point form. -/
+/-- **Law of cosines** (cosine rule), angle-at-point form. -/
 lemma dist_sq_eq_dist_sq_add_dist_sq_sub_two_mul_dist_mul_dist_mul_cos_angle
     (p1 p2 p3 : P) :
   dist p1 p3 * dist p1 p3 =
@@ -318,7 +318,7 @@ end
 
 alias dist_sq_eq_dist_sq_add_dist_sq_sub_two_mul_dist_mul_dist_mul_cos_angle ← law_cos
 
-/-- Pons asinorum, angle-at-point form. -/
+/-- **Isosceles Triangle Theorem**: Pons asinorum, angle-at-point form. -/
 lemma angle_eq_angle_of_dist_eq {p1 p2 p3 : P} (h : dist p1 p2 = dist p1 p3) :
   ∠ p1 p2 p3 = ∠ p1 p3 p2 :=
 begin
@@ -340,7 +340,7 @@ begin
   exact norm_eq_of_angle_sub_eq_angle_sub_rev_of_angle_ne_pi h hpi
 end
 
-/-- The sum of the angles of a possibly degenerate triangle (where the
+/-- The **sum of the angles of a triangle** (possibly degenerate, where the
 given vertex is distinct from the others), angle-at-point. -/
 lemma angle_add_angle_add_angle_eq_pi {p1 p2 p3 : P} (h2 : p2 ≠ p1) (h3 : p3 ≠ p1) :
   ∠ p1 p2 p3 + ∠ p2 p3 p1 + ∠ p3 p1 p2 = π :=
@@ -354,7 +354,7 @@ begin
                                                 (λ he, h2 (vsub_eq_zero_iff_eq.1 he))
 end
 
-/-- Stewart's Theorem. -/
+/-- **Stewart's Theorem**. -/
 theorem dist_sq_mul_dist_add_dist_sq_mul_dist (a b c p : P) (h : ∠ b p c = π) :
   dist a b ^ 2 * dist c p + dist a c ^ 2 * dist b p =
   dist b c * (dist a p ^ 2 + dist b p * dist c p) :=
@@ -365,7 +365,7 @@ begin
   ring,
 end
 
-/-- Apollonius's Theorem. -/
+/-- **Apollonius's Theorem**. -/
 theorem dist_sq_add_dist_sq_eq_two_mul_dist_midpoint_sq_add_half_dist_sq (a b c : P) :
   dist a b ^ 2 + dist a c ^ 2 = 2 * (dist a (midpoint ℝ b c) ^ 2 + (dist b c / 2) ^ 2) :=
 begin

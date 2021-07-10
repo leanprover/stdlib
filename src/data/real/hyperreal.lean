@@ -246,8 +246,7 @@ eq.trans (eq_of_is_st_real h1) (eq_of_is_st_real h2).symm
 
 lemma is_st_iff_abs_sub_lt_delta {x : ℝ*} {r : ℝ} :
   is_st x r ↔ ∀ (δ : ℝ), 0 < δ → abs (x - r) < δ :=
-by simp only [abs_sub_lt_iff, @sub_lt _ _ (r : ℝ*) x _,
-    @sub_lt_iff_lt_add' _ _ x (r : ℝ*) _, and_comm]; refl
+by simp only [abs_sub_lt_iff, sub_lt_iff_lt_add, is_st, and_comm, add_comm]
 
 lemma is_st_add {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st (x + y) (r + s) :=
 λ hxr hys d hd,
@@ -257,7 +256,7 @@ have hys' : _ := hys (d / 2) (half_pos hd),
  by convert add_lt_add hxr'.2 hys'.2 using 1; norm_cast; linarith⟩
 
 lemma is_st_neg {x : ℝ*} {r : ℝ} (hxr : is_st x r) : is_st (-x) (-r) :=
-λ d hd, by show -(r : ℝ*) - d < -x ∧ -x < -r + d; cases (hxr d hd); split; linarith
+λ d hd, show -(r : ℝ*) - d < -x ∧ -x < -r + d, by cases (hxr d hd); split; linarith
 
 lemma is_st_sub {x y : ℝ*} {r s : ℝ} : is_st x r → is_st y s → is_st (x - y) (r - s) :=
 λ hxr hys, by rw [sub_eq_add_neg, sub_eq_add_neg]; exact is_st_add hxr (is_st_neg hys)

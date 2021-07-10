@@ -191,6 +191,9 @@ is_open.inter h₁ $ is_open_compl_iff.mpr h₂
 lemma is_closed.inter (h₁ : is_closed s₁) (h₂ : is_closed s₂) : is_closed (s₁ ∩ s₂) :=
 by { rw [← is_open_compl_iff] at *, rw compl_inter, exact is_open.union h₁ h₂ }
 
+lemma is_closed.sdiff {s t : set α} (h₁ : is_closed s) (h₂ : is_open t) : is_closed (s \ t) :=
+is_closed.inter h₁ (is_closed_compl_iff.mpr h₂)
+
 lemma is_closed_bUnion {s : set β} {f : β → set α} (hs : finite s) :
   (∀i∈s, is_closed (f i)) → is_closed (⋃i∈s, f i) :=
 finite.induction_on hs

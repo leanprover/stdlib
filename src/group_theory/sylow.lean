@@ -159,7 +159,7 @@ lemma one_mem_fixed_points_rotate (n : ℕ) [fact (0 < n)] :
 rotate_eq_self_iff_eq_repeat.2 ⟨(1 : G),
   show list.repeat (1 : G) n = list.repeat 1 (list.repeat (1 : G) n).length, by simp⟩ _
 
-/-- Cauchy's theorem -/
+/-- **Cauchy's theorem** -/
 lemma exists_prime_order_of_dvd_card [fintype G] (p : ℕ) [hp : fact p.prime]
   (hdvd : p ∣ card G) : ∃ x : G, order_of x = p :=
 let n : ℕ+ := ⟨p - 1, nat.sub_pos_of_lt hp.1.one_lt⟩ in
@@ -223,7 +223,7 @@ def fixed_points_mul_left_cosets_equiv_quotient (H : subgroup G) [fintype (H : s
   (λ a, (@mem_fixed_points_mul_left_cosets_iff_mem_normalizer _ _ _ _inst_2 _).symm)
   (by intros; refl)
 
-/-- The first of the Sylow theorems. -/
+/-- The first of the **Sylow theorems** -/
 theorem exists_subgroup_card_pow_prime [fintype G] (p : ℕ) : ∀ {n : ℕ} [hp : fact p.prime]
   (hdvd : p ^ n ∣ card G), ∃ H : subgroup G, fintype.card H = p ^ n
 | 0 := λ _ _, ⟨(⊥ : subgroup G), by convert card_bot⟩

@@ -189,6 +189,11 @@ monotone.map_max cast_mono
   ((abs q : ℤ) : α) = abs q :=
 by simp [abs]
 
+lemma cast_nat_abs {R : Type*} [linear_ordered_ring R] : ∀ (n : ℤ), (n.nat_abs : R) = abs n
+| (n : ℕ) := by simp only [int.nat_abs_of_nat, int.cast_coe_nat, nat.abs_cast]
+| -[1+n]  := by simp only [int.nat_abs, int.cast_neg_succ_of_nat, abs_neg,
+                           ← nat.cast_succ, nat.abs_cast]
+
 lemma coe_int_dvd [comm_ring α] (m n : ℤ) (h : m ∣ n) :
   (m : α) ∣ (n : α) :=
 ring_hom.map_dvd (int.cast_ring_hom α) h

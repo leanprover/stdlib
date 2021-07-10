@@ -42,8 +42,6 @@ def list_equiv_lazy_list (α : Type*) : list α ≃ lazy_list α :=
                     ext, cases x, refl },
   left_inv := by { intro, induction x, refl, simp! [*] } }
 
-instance {α : Type u} : inhabited (lazy_list α) := ⟨nil⟩
-
 instance {α : Type u} [decidable_eq α] : decidable_eq (lazy_list α)
 | nil nil := is_true rfl
 | (cons x xs) (cons y ys) :=

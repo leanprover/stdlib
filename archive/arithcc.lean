@@ -281,7 +281,7 @@ begin
   rwa if_neg (ne_of_lt hr) at h
 end
 
-/-- The main theorem on compiler correctness.
+/-- The main **compiler correctness theorem**.
 
 Unlike Theorem 1 in the paper, both `map` and the assumption on `t` are explicit.
 -/

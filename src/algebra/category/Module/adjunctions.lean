@@ -51,6 +51,8 @@ adjunction.mk_of_hom_equiv
   finsupp.lhom_ext' (λ x, linear_map.ext_ring
     (finsupp.sum_map_domain_index_add_monoid_hom (λ y, ((smul_add_hom R ↥M).flip) (g y))).symm) }
 
+instance : is_right_adjoint (forget (Module.{u} R)) := ⟨_, adj R⟩
+
 end
 
 namespace free

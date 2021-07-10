@@ -2,14 +2,19 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Supplementary theorems about the `string` type.
 -/
 import data.list.basic
 import data.char
 
+/-!
+# Strings
+
+Supplementary theorems about the `string` type.
+-/
+
 namespace string
 
+/-- `<` on string iterators. This coincides with `<` on strings as lists. -/
 def ltb : iterator → iterator → bool
 | s₁ s₂ := begin
   cases s₂.has_next, {exact ff},

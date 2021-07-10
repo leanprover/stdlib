@@ -736,9 +736,7 @@ quotient.sound ⟨⟨empty_equiv_pempty.symm, λ _ _, iff.rfl⟩⟩
 @[simp] theorem card_zero : card 0 = 0 := rfl
 
 protected theorem zero_le (o : ordinal) : 0 ≤ o :=
-induction_on o $ λ α r _,
-⟨⟨⟨embedding.of_not_nonempty $ λ ⟨a⟩, a.elim,
-  λ a, a.elim⟩, λ a, a.elim⟩⟩
+induction_on o $ λ α r _, ⟨⟨⟨embedding.of_is_empty, is_empty_elim⟩, is_empty_elim⟩⟩
 
 @[simp] protected theorem le_zero {o : ordinal} : o ≤ 0 ↔ o = 0 :=
 by simp only [le_antisymm_iff, ordinal.zero_le, and_true]

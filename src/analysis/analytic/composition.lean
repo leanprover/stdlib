@@ -481,7 +481,6 @@ begin
   refine ⟨r, r_pos, nnreal.summable_of_le I _⟩,
   simp_rw div_eq_mul_inv,
   refine summable.mul_left _ _,
-  have h4 : ∀ n : ℕ, 0 < (4 ^ n : ℝ≥0)⁻¹ := λ n, nnreal.inv_pos.2 (pow_pos zero_lt_four _),
   have : ∀ n : ℕ, has_sum (λ c : composition n, (4 ^ n : ℝ≥0)⁻¹) (2 ^ (n - 1) / 4 ^ n),
   { intro n,
     convert has_sum_fintype (λ c : composition n, (4 ^ n : ℝ≥0)⁻¹),

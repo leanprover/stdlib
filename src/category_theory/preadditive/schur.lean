@@ -34,7 +34,7 @@ variables {C : Type u} [category.{v} C]
 variables [preadditive C]
 
 /--
-The part of Schur's lemma that holds in any preadditive category with kernels:
+The part of **Schur's lemma** that holds in any preadditive category with kernels:
 that a nonzero morphism between simple objects is an isomorphism.
 -/
 lemma is_iso_of_hom_simple [has_kernels C] {X Y : C} [simple X] [simple Y] {f : X ⟶ Y} (w : f ≠ 0) :
@@ -63,7 +63,7 @@ open finite_dimensional
 variables (𝕜 : Type*) [field 𝕜]
 
 /--
-Part of Schur's lemma for `𝕜`-linear categories:
+Part of **Schur's lemma** for `𝕜`-linear categories:
 the hom space between two non-isomorphic simple objects is 0-dimensional.
 -/
 lemma finrank_hom_simple_simple_eq_zero_of_not_iso
@@ -119,7 +119,7 @@ end
 variables [has_kernels C]
 
 /--
-Schur's lemma for endomorphisms in `𝕜`-linear categories.
+**Schur's lemma** for endomorphisms in `𝕜`-linear categories.
 -/
 lemma finrank_endomorphism_simple_eq_one
   (X : C) [simple.{v} X] [I : finite_dimensional 𝕜 (X ⟶ X)] :
@@ -132,7 +132,7 @@ lemma endomorphism_simple_eq_smul_id
 (finrank_eq_one_iff_of_nonzero' (𝟙 X) (id_nonzero X)).mp (finrank_endomorphism_simple_eq_one 𝕜 X) f
 
 /--
-Schur's lemma for `𝕜`-linear categories:
+**Schur's lemma** for `𝕜`-linear categories:
 if hom spaces are finite dimensional, then the hom space between simples is at most 1-dimensional.
 
 See `finrank_hom_simple_simple_eq_one_iff` and `finrank_hom_simple_simple_eq_zero_iff` below

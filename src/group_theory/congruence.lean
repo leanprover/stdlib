@@ -210,10 +210,8 @@ See Note [use has_coe_t]. -/
 relation", priority 0]
 instance : has_coe_t M c.quotient := ⟨@quotient.mk _ c.to_setoid⟩
 
-/-- The quotient of a type with decidable equality by a congruence relation also has
-    decidable equality. -/
-@[to_additive "The quotient of a type with decidable equality by an additive congruence relation
-also has decidable equality."]
+/-- The quotient by a decidable congruence relation has decidable equality. -/
+@[to_additive "The quotient by a decidable additive congruence relation has decidable equality."]
 instance [d : ∀ a b, decidable (c a b)] : decidable_eq c.quotient :=
 @quotient.decidable_eq M c.to_setoid d
 

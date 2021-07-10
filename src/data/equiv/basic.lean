@@ -1560,76 +1560,76 @@ protected def of_eq {α : Type u} {s t : set α} (h : s = t) : s ≃ t :=
   right_inv := λ _, subtype.eq rfl }
 
 /-- If `a ∉ s`, then `insert a s` is equivalent to `s ⊕ punit`. -/
-protected def insert {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s) :
+protected def insert {α} {s : set.{u} α} [decidable_pred (∈ s)] {a : α} (H : a ∉ s) :
   (insert a s : set α) ≃ s ⊕ punit.{u+1} :=
 calc (insert a s : set α) ≃ ↥(s ∪ {a}) : equiv.set.of_eq (by simp)
 ... ≃ s ⊕ ({a} : set α) : equiv.set.union (by finish [set.subset_def])
 ... ≃ s ⊕ punit.{u+1} : sum_congr (equiv.refl _) (equiv.set.singleton _)
 
-@[simp] lemma insert_symm_apply_inl {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s)
+@[simp] lemma insert_symm_apply_inl {α} {s : set.{u} α} [decidable_pred (∈ s)] {a : α} (H : a ∉ s)
   (b : s) : (equiv.set.insert H).symm (sum.inl b) = ⟨b, or.inr b.2⟩ :=
 rfl
 
-@[simp] lemma insert_symm_apply_inr {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s)
+@[simp] lemma insert_symm_apply_inr {α} {s : set.{u} α} [decidable_pred (∈ s)] {a : α} (H : a ∉ s)
   (b : punit.{u+1}) : (equiv.set.insert H).symm (sum.inr b) = ⟨a, or.inl rfl⟩ :=
 rfl
 
-@[simp] lemma insert_apply_left {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s) :
+@[simp] lemma insert_apply_left {α} {s : set.{u} α} [decidable_pred (∈ s)] {a : α} (H : a ∉ s) :
   equiv.set.insert H ⟨a, or.inl rfl⟩ = sum.inr punit.star :=
 (equiv.set.insert H).apply_eq_iff_eq_symm_apply.2 rfl
 
-@[simp] lemma insert_apply_right {α} {s : set.{u} α} [decidable_pred s] {a : α} (H : a ∉ s)
+@[simp] lemma insert_apply_right {α} {s : set.{u} α} [decidable_pred (∈ s)] {a : α} (H : a ∉ s)
   (b : s) : equiv.set.insert H ⟨b, or.inr b.2⟩ = sum.inl b :=
 (equiv.set.insert H).apply_eq_iff_eq_symm_apply.2 rfl
 
 /-- If `s : set α` is a set with decidable membership, then `s ⊕ sᶜ` is equivalent to `α`. -/
-protected def sum_compl {α} (s : set α) [decidable_pred s] : s ⊕ (sᶜ : set α) ≃ α :=
+protected def sum_compl {α} (s : set α) [decidable_pred (∈ s)] : s ⊕ (sᶜ : set α) ≃ α :=
 calc s ⊕ (sᶜ : set α) ≃ ↥(s ∪ sᶜ) : (equiv.set.union (by simp [set.ext_iff])).symm
 ... ≃ @univ α : equiv.set.of_eq (by simp)
 ... ≃ α : equiv.set.univ _
 
-@[simp] lemma sum_compl_apply_inl {α : Type u} (s : set α) [decidable_pred s] (x : s) :
+@[simp] lemma sum_compl_apply_inl {α : Type u} (s : set α) [decidable_pred (∈ s)] (x : s) :
   equiv.set.sum_compl s (sum.inl x) = x := rfl
 
-@[simp] lemma sum_compl_apply_inr {α : Type u} (s : set α) [decidable_pred s] (x : sᶜ) :
+@[simp] lemma sum_compl_apply_inr {α : Type u} (s : set α) [decidable_pred (∈ s)] (x : sᶜ) :
   equiv.set.sum_compl s (sum.inr x) = x := rfl
 
-lemma sum_compl_symm_apply_of_mem {α : Type u} {s : set α} [decidable_pred s] {x : α}
+lemma sum_compl_symm_apply_of_mem {α : Type u} {s : set α} [decidable_pred (∈ s)] {x : α}
   (hx : x ∈ s) : (equiv.set.sum_compl s).symm x = sum.inl ⟨x, hx⟩ :=
 have ↑(⟨x, or.inl hx⟩ : (s ∪ sᶜ : set α)) ∈ s, from hx,
 by { rw [equiv.set.sum_compl], simpa using set.union_apply_left _ this }
 
-lemma sum_compl_symm_apply_of_not_mem {α : Type u} {s : set α} [decidable_pred s] {x : α}
+lemma sum_compl_symm_apply_of_not_mem {α : Type u} {s : set α} [decidable_pred (∈ s)] {x : α}
   (hx : x ∉ s) : (equiv.set.sum_compl s).symm x = sum.inr ⟨x, hx⟩ :=
 have ↑(⟨x, or.inr hx⟩ : (s ∪ sᶜ : set α)) ∈ sᶜ, from hx,
 by { rw [equiv.set.sum_compl], simpa using set.union_apply_right _ this }
 
-@[simp] lemma sum_compl_symm_apply {α : Type*} {s : set α} [decidable_pred s] {x : s} :
+@[simp] lemma sum_compl_symm_apply {α : Type*} {s : set α} [decidable_pred (∈ s)] {x : s} :
   (equiv.set.sum_compl s).symm x = sum.inl x :=
 by cases x with x hx; exact set.sum_compl_symm_apply_of_mem hx
 
 @[simp] lemma sum_compl_symm_apply_compl {α : Type*} {s : set α}
-  [decidable_pred s] {x : sᶜ} : (equiv.set.sum_compl s).symm x = sum.inr x :=
+  [decidable_pred (∈ s)] {x : sᶜ} : (equiv.set.sum_compl s).symm x = sum.inr x :=
 by cases x with x hx; exact set.sum_compl_symm_apply_of_not_mem hx
 
 /-- `sum_diff_subset s t` is the natural equivalence between
 `s ⊕ (t \ s)` and `t`, where `s` and `t` are two sets. -/
-protected def sum_diff_subset {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] :
+protected def sum_diff_subset {α} {s t : set α} (h : s ⊆ t) [decidable_pred (∈ s)] :
   s ⊕ (t \ s : set α) ≃ t :=
 calc s ⊕ (t \ s : set α) ≃ (s ∪ (t \ s) : set α) :
   (equiv.set.union (by simp [inter_diff_self])).symm
 ... ≃ t : equiv.set.of_eq (by { simp [union_diff_self, union_eq_self_of_subset_left h] })
 
 @[simp] lemma sum_diff_subset_apply_inl
-  {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] (x : s) :
+  {α} {s t : set α} (h : s ⊆ t) [decidable_pred (∈ s)] (x : s) :
   equiv.set.sum_diff_subset h (sum.inl x) = inclusion h x := rfl
 
 @[simp] lemma sum_diff_subset_apply_inr
-  {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] (x : t \ s) :
+  {α} {s t : set α} (h : s ⊆ t) [decidable_pred (∈ s)] (x : t \ s) :
   equiv.set.sum_diff_subset h (sum.inr x) = inclusion (diff_subset t s) x := rfl
 
 lemma sum_diff_subset_symm_apply_of_mem
-  {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] {x : t} (hx : x.1 ∈ s) :
+  {α} {s t : set α} (h : s ⊆ t) [decidable_pred (∈ s)] {x : t} (hx : x.1 ∈ s) :
   (equiv.set.sum_diff_subset h).symm x = sum.inl ⟨x, hx⟩ :=
 begin
   apply (equiv.set.sum_diff_subset h).injective,
@@ -1638,7 +1638,7 @@ begin
 end
 
 lemma sum_diff_subset_symm_apply_of_not_mem
-  {α} {s t : set α} (h : s ⊆ t) [decidable_pred s] {x : t} (hx : x.1 ∉ s) :
+  {α} {s t : set α} (h : s ⊆ t) [decidable_pred (∈ s)] {x : t} (hx : x.1 ∉ s) :
   (equiv.set.sum_diff_subset h).symm x = sum.inr ⟨x, ⟨x.2, hx⟩⟩  :=
 begin
   apply (equiv.set.sum_diff_subset h).injective,
@@ -1648,7 +1648,7 @@ end
 
 /-- If `s` is a set with decidable membership, then the sum of `s ∪ t` and `s ∩ t` is equivalent
 to `s ⊕ t`. -/
-protected def union_sum_inter {α : Type u} (s t : set α) [decidable_pred s] :
+protected def union_sum_inter {α : Type u} (s t : set α) [decidable_pred (∈ s)] :
   (s ∪ t : set α) ⊕ (s ∩ t : set α) ≃ s ⊕ t :=
 calc  (s ∪ t : set α) ⊕ (s ∩ t : set α)
     ≃ (s ∪ t \ s : set α) ⊕ (s ∩ t : set α) : by rw [union_diff_self]
@@ -1664,8 +1664,8 @@ calc  (s ∪ t : set α) ⊕ (s ∩ t : set α)
 /-- Given an equivalence `e₀` between sets `s : set α` and `t : set β`, the set of equivalences
 `e : α ≃ β` such that `e ↑x = ↑(e₀ x)` for each `x : s` is equivalent to the set of equivalences
 between `sᶜ` and `tᶜ`. -/
-protected def compl {α : Type u} {β : Type v} {s : set α} {t : set β} [decidable_pred s]
-  [decidable_pred t] (e₀ : s ≃ t) :
+protected def compl {α : Type u} {β : Type v} {s : set α} {t : set β} [decidable_pred (∈ s)]
+  [decidable_pred (∈ t)] (e₀ : s ≃ t) :
   {e : α ≃ β // ∀ x : s, e x = e₀ x} ≃ ((sᶜ : set α) ≃ (tᶜ : set β)) :=
 { to_fun := λ e, subtype_equiv e
     (λ a, not_congr $ iff.symm $ maps_to.mem_iff
@@ -1954,6 +1954,17 @@ end
 lemma swap_apply_eq_iff {x y z w : α} :
   swap x y z = w ↔ z = swap x y w :=
 by rw [apply_eq_iff_eq_symm_apply, symm_swap]
+
+lemma swap_apply_ne_self_iff {a b x : α} : swap a b x ≠ x ↔ a ≠ b ∧ (x = a ∨ x = b) :=
+begin
+  by_cases hab : a = b,
+  { simp [hab] },
+  by_cases hax : x = a,
+  { simp [hax, eq_comm] },
+  by_cases hbx : x = b,
+  { simp [hbx] },
+  simp [hab, hax, hbx, swap_apply_of_ne_of_ne]
+end
 
 namespace perm
 

@@ -203,6 +203,10 @@ has_limits_of_has_limits_creates_limits Profinite_to_Top
 instance has_colimits : limits.has_colimits Profinite :=
 has_colimits_of_reflective to_CompHaus
 
+noncomputable
+instance forget_preserves_limits : limits.preserves_limits (forget Profinite) :=
+by apply limits.comp_preserves_limits Profinite_to_Top (forget _)
+
 variables {X Y : Profinite.{u}} (f : X ⟶ Y)
 
 /-- Any morphism of profinite spaces is a closed map. -/

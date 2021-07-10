@@ -152,6 +152,10 @@ begin
   split_ifs; simp [*]
 end
 
+@[to_additive] lemma comp_mul_indicator_const (c : M) (f : M → N) (hf : f 1 = 1) :
+  (λ x, f (s.mul_indicator (λ x, c) x)) = s.mul_indicator (λ x, f c) :=
+(mul_indicator_comp_of_one hf).symm
+
 @[to_additive] lemma mul_indicator_preimage (s : set α) (f : α → M) (B : set M) :
   (mul_indicator s f)⁻¹' B = s.ite (f ⁻¹' B) (1 ⁻¹' B) :=
 piecewise_preimage s f 1 B

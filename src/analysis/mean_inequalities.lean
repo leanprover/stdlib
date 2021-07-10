@@ -114,7 +114,7 @@ variables {ι : Type u} (s : finset ι)
 
 namespace real
 
-/-- AM-GM inequality: the geometric mean is less than or equal to the arithmetic mean, weighted
+/-- AM-GM inequality: the **geometric mean is less than or equal to the arithmetic mean**, weighted
 version for real-valued nonnegative functions. -/
 theorem geom_mean_le_arith_mean_weighted (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
   (hw' : ∑ i in s, w i = 1) (hz : ∀ i ∈ s, 0 ≤ z i) :

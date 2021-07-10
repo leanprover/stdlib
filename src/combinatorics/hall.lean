@@ -88,7 +88,7 @@ end
 /--
 First case of the inductive step: assuming that
 `∀ (s : finset ι), s.nonempty → s ≠ univ → s.card < (s.bUnion t).card`
-and that the statement of Hall's Marriage Theorem is true for all
+and that the statement of **Hall's Marriage Theorem** is true for all
 `ι'` of cardinality ≤ `n`, then it is true for `ι` of cardinality `n + 1`.
 -/
 lemma hall_hard_inductive_step_A {n : ℕ} (hn : fintype.card ι = n + 1)
@@ -280,7 +280,7 @@ end
 end hall_marriage_theorem
 
 /--
-This the version of Hall's Marriage Theorem in terms of indexed
+This the version of **Hall's Marriage Theorem** in terms of indexed
 families of finite sets `t : ι → finset α`.  It states that there is a
 set of distinct representatives if and only if every union of `k` of the
 sets has at least `k` elements.
@@ -316,7 +316,7 @@ begin
 end
 
 /--
-This is a version of Hall's Marriage Theorem in terms of a relation
+This is a version of **Hall's Marriage Theorem** in terms of a relation
 between types `α` and `β` such that `α` is finite and the image of
 each `x : α` is finite (it suffices for `β` to be finite).  There is
 an injective function `α → β` respecting the relation iff every subset of
@@ -344,7 +344,7 @@ begin
 end
 
 /--
-This is a version of Hall's Marriage Theorem in terms of a relation between finite types.
+This is a version of **Hall's Marriage Theorem** in terms of a relation between finite types.
 There is an injective function `α → β` respecting the relation iff every subset of
 `k` terms of `α` is related to at least `k` terms of `β`.
 

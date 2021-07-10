@@ -10,6 +10,7 @@ import linear_algebra.tensor_product
 import ring_theory.subring
 import deprecated.subring
 import algebra.opposites
+import algebra.iterate_hom
 
 /-!
 # Algebra over Commutative Semiring
@@ -161,11 +162,19 @@ calc algebra_map R A r = algebra_map R A r * 1 : (mul_one _).symm
 lemma algebra_map_eq_smul_one' : ⇑(algebra_map R A) = λ r, r • (1 : A) :=
 funext algebra_map_eq_smul_one
 
+/-- `mul_comm` for `algebra`s when one element is from the base ring. -/
 theorem commutes (r : R) (x : A) : algebra_map R A r * x = x * algebra_map R A r :=
 algebra.commutes' r x
 
-theorem left_comm (r : R) (x y : A) : x * (algebra_map R A r * y) = algebra_map R A r * (x * y) :=
+/-- `mul_left_comm` for `algebra`s when one element is from the base ring. -/
+theorem left_comm (x : A) (r : R) (y : A) :
+  x * (algebra_map R A r * y) = algebra_map R A r * (x * y) :=
 by rw [← mul_assoc, ← commutes, mul_assoc]
+
+/-- `mul_right_comm` for `algebra`s when one element is from the base ring. -/
+theorem right_comm (x : A) (r : R) (y : A) :
+  (x * algebra_map R A r) * y = (x * y) * algebra_map R A r :=
+by rw [mul_assoc, commutes, ←mul_assoc]
 
 instance _root_.is_scalar_tower.right : is_scalar_tower R A A :=
 ⟨λ x y z, by rw [smul_eq_mul, smul_eq_mul, smul_def, smul_def, mul_assoc]⟩
@@ -440,6 +449,9 @@ instance coe_add_monoid_hom : has_coe (A →ₐ[R] B) (A →+ B) := ⟨λ f, ↑
 @[simp, norm_cast] lemma coe_mk {f : A → B} (h₁ h₂ h₃ h₄ h₅) :
   ⇑(⟨f, h₁, h₂, h₃, h₄, h₅⟩ : A →ₐ[R] B) = f := rfl
 
+-- make the coercion the simp-normal form
+@[simp] lemma to_ring_hom_eq_coe (f : A →ₐ[R] B) : f.to_ring_hom = f := rfl
+
 @[simp, norm_cast] lemma coe_to_ring_hom (f : A →ₐ[R] B) : ⇑(f : A →+* B) = f := rfl
 
 -- as `simp` can already prove this lemma, it is not tagged with the `simp` attribute.
@@ -571,11 +583,36 @@ def to_linear_map : A →ₗ B :=
 
 @[simp] lemma to_linear_map_apply (p : A) : φ.to_linear_map p = φ p := rfl
 
-theorem to_linear_map_inj {φ₁ φ₂ : A →ₐ[R] B} (H : φ₁.to_linear_map = φ₂.to_linear_map) : φ₁ = φ₂ :=
-ext $ λ x, show φ₁.to_linear_map x = φ₂.to_linear_map x, by rw H
+theorem to_linear_map_injective : function.injective (to_linear_map : _ → (A →ₗ[R] B)) :=
+λ φ₁ φ₂ h, ext $ linear_map.congr_fun h
 
 @[simp] lemma comp_to_linear_map (f : A →ₐ[R] B) (g : B →ₐ[R] C) :
   (g.comp f).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
+
+@[simp] lemma to_linear_map_id : to_linear_map (alg_hom.id R A) = linear_map.id :=
+linear_map.ext $ λ _, rfl
+
+/-- Promote a `linear_map` to an `alg_hom` by supplying proofs about the behavior on `1` and `*`. -/
+@[simps]
+def of_linear_map (f : A →ₗ[R] B) (map_one : f 1 = 1) (map_mul : ∀ x y, f (x * y) = f x * f y) :
+  A →ₐ[R] B :=
+{ to_fun := f,
+  map_one' := map_one,
+  map_mul' := map_mul,
+  commutes' := λ c, by simp only [algebra.algebra_map_eq_smul_one, f.map_smul, map_one],
+  .. f.to_add_monoid_hom }
+
+@[simp] lemma of_linear_map_to_linear_map (map_one) (map_mul) :
+  of_linear_map φ.to_linear_map map_one map_mul = φ :=
+by { ext, refl }
+
+@[simp] lemma to_linear_map_of_linear_map (f : A →ₗ[R] B) (map_one) (map_mul) :
+  to_linear_map (of_linear_map f map_one map_mul) = f :=
+by { ext, refl }
+
+@[simp] lemma of_linear_map_id (map_one) (map_mul) :
+  of_linear_map linear_map.id map_one map_mul = alg_hom.id R A :=
+ext $ λ _, rfl
 
 lemma map_list_prod (s : list A) :
   φ s.prod = (s.map φ).prod :=
@@ -719,14 +756,8 @@ rfl
 @[simp, norm_cast] lemma coe_ring_equiv : ((e : A₁ ≃+* A₂) : A₁ → A₂) = e := rfl
 @[simp] lemma coe_ring_equiv' : (e.to_ring_equiv : A₁ → A₂) = e := rfl
 
-lemma coe_ring_equiv_injective : function.injective (λ e : A₁ ≃ₐ[R] A₂, (e : A₁ ≃+* A₂)) :=
-begin
-  intros f g w,
-  ext,
-  replace w : ((f : A₁ ≃+* A₂) : A₁ → A₂) = ((g : A₁ ≃+* A₂) : A₁ → A₂) :=
-    congr_arg (λ e : A₁ ≃+* A₂, (e : A₁ → A₂)) w,
-  exact congr_fun w a,
-end
+lemma coe_ring_equiv_injective : function.injective (coe : (A₁ ≃ₐ[R] A₂) → (A₁ ≃+* A₂)) :=
+λ e₁ e₂ h, ext $ ring_equiv.congr_fun h
 
 @[simp] lemma map_add : ∀ x y, e (x + y) = e x + e y := e.to_add_equiv.map_add
 
@@ -761,6 +792,9 @@ instance has_coe_to_alg_hom : has_coe (A₁ ≃ₐ[R] A₂) (A₁ →ₐ[R] A₂
 
 @[simp, norm_cast] lemma coe_alg_hom : ((e : A₁ →ₐ[R] A₂) : A₁ → A₂) = e :=
 rfl
+
+lemma coe_alg_hom_injective : function.injective (coe : (A₁ ≃ₐ[R] A₂) → (A₁ →ₐ[R] A₂)) :=
+λ e₁ e₂ h, ext $ alg_hom.congr_fun h
 
 /-- The two paths coercion can take to a `ring_hom` are equivalent -/
 lemma coe_ring_hom_commutes : ((e : A₁ →ₐ[R] A₂) : A₁ →+* A₂) = ((e : A₁ ≃+* A₂) : A₁ →+* A₂) :=
@@ -881,29 +915,44 @@ by { ext, refl }
 /-- If an algebra morphism has an inverse, it is a algebra isomorphism. -/
 def of_alg_hom (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ : f.comp g = alg_hom.id R A₂)
   (h₂ : g.comp f = alg_hom.id R A₁) : A₁ ≃ₐ[R] A₂ :=
-{ inv_fun   := g,
+{ to_fun    := f,
+  inv_fun   := g,
   left_inv  := alg_hom.ext_iff.1 h₂,
   right_inv := alg_hom.ext_iff.1 h₁,
   ..f }
+
+lemma coe_alg_hom_of_alg_hom (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ h₂) :
+  ↑(of_alg_hom f g h₁ h₂) = f := alg_hom.ext $ λ _, rfl
+
+@[simp]
+lemma of_alg_hom_coe_alg_hom (f : A₁ ≃ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ h₂) :
+  of_alg_hom ↑f g h₁ h₂ = f := ext $ λ _, rfl
+
+lemma of_alg_hom_symm (f : A₁ →ₐ[R] A₂) (g : A₂ →ₐ[R] A₁) (h₁ h₂) :
+  (of_alg_hom f g h₁ h₂).symm = of_alg_hom g f h₂ h₁ := rfl
 
 /-- Promotes a bijective algebra homomorphism to an algebra equivalence. -/
 noncomputable def of_bijective (f : A₁ →ₐ[R] A₂) (hf : function.bijective f) : A₁ ≃ₐ[R] A₂ :=
 { .. ring_equiv.of_bijective (f : A₁ →+* A₂) hf, .. f }
 
 /-- Forgetting the multiplicative structures, an equivalence of algebras is a linear equivalence. -/
-def to_linear_equiv (e : A₁ ≃ₐ[R] A₂) : A₁ ≃ₗ[R] A₂ :=
-{ to_fun    := e.to_fun,
-  map_add'  := λ x y, by simp,
+@[simps apply] def to_linear_equiv (e : A₁ ≃ₐ[R] A₂) : A₁ ≃ₗ[R] A₂ :=
+{ to_fun    := e,
   map_smul' := λ r x, by simp [algebra.smul_def''],
-  inv_fun   := e.symm.to_fun,
-  left_inv  := e.left_inv,
-  right_inv := e.right_inv, }
+  inv_fun   := e.symm,
+  .. e }
 
-@[simp] lemma to_linear_equiv_apply (e : A₁ ≃ₐ[R] A₂) (x : A₁) : e.to_linear_equiv x = e x := rfl
+@[simp] lemma to_linear_equiv_refl :
+  (alg_equiv.refl : A₁ ≃ₐ[R] A₁).to_linear_equiv = linear_equiv.refl R A₁ := rfl
 
-theorem to_linear_equiv_inj {e₁ e₂ : A₁ ≃ₐ[R] A₂} (H : e₁.to_linear_equiv = e₂.to_linear_equiv) :
-  e₁ = e₂ :=
-ext $ λ x, show e₁.to_linear_equiv x = e₂.to_linear_equiv x, by rw H
+@[simp] lemma to_linear_equiv_symm (e : A₁ ≃ₐ[R] A₂) :
+  e.to_linear_equiv.symm = e.symm.to_linear_equiv := rfl
+
+@[simp] lemma to_linear_equiv_trans (e₁ : A₁ ≃ₐ[R] A₂) (e₂ : A₂ ≃ₐ[R] A₃) :
+  (e₁.trans e₂).to_linear_equiv = e₁.to_linear_equiv.trans e₂.to_linear_equiv := rfl
+
+theorem to_linear_equiv_injective : function.injective (to_linear_equiv : _ → (A₁ ≃ₗ[R] A₂)) :=
+λ e₁ e₂ h, ext $ linear_equiv.congr_fun h
 
 /-- Interpret an algebra equivalence as a linear map. -/
 def to_linear_map : A₁ →ₗ[R] A₂ :=
@@ -917,9 +966,8 @@ e.to_alg_hom.to_linear_map
 
 @[simp] lemma to_linear_map_apply (x : A₁) : e.to_linear_map x = e x := rfl
 
-theorem to_linear_map_inj {e₁ e₂ : A₁ ≃ₐ[R] A₂} (H : e₁.to_linear_map = e₂.to_linear_map) :
-  e₁ = e₂ :=
-ext $ λ x, show e₁.to_linear_map x = e₂.to_linear_map x, by rw H
+theorem to_linear_map_injective : function.injective (to_linear_map : _ → (A₁ →ₗ[R] A₂)) :=
+λ e₁ e₂ h, ext $ linear_map.congr_fun h
 
 @[simp] lemma trans_to_linear_map (f : A₁ ≃ₐ[R] A₂) (g : A₂ ≃ₐ[R] A₃) :
   (f.trans g).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
@@ -934,12 +982,20 @@ variables (l : A₁ ≃ₗ[R] A₂)
 Upgrade a linear equivalence to an algebra equivalence,
 given that it distributes over multiplication and action of scalars.
 -/
+@[simps apply]
 def of_linear_equiv : A₁ ≃ₐ[R] A₂ :=
 { to_fun := l,
   inv_fun := l.symm,
   map_mul' := map_mul,
   commutes' := commutes,
   ..l }
+
+@[simp]
+lemma of_linear_equiv_symm :
+  (of_linear_equiv l map_mul commutes).symm = of_linear_equiv l.symm
+    ((of_linear_equiv l map_mul commutes).symm.map_mul)
+    ((of_linear_equiv l map_mul commutes).symm.commutes) :=
+rfl
 
 @[simp] lemma of_linear_equiv_to_linear_equiv (map_mul) (commutes) :
   of_linear_equiv e.to_linear_equiv map_mul commutes = e :=
@@ -948,8 +1004,6 @@ by { ext, refl }
 @[simp] lemma to_linear_equiv_of_linear_equiv :
   to_linear_equiv (of_linear_equiv l map_mul commutes) = l :=
 by { ext, refl }
-
-@[simp] lemma of_linear_equiv_apply (x : A₁) : of_linear_equiv l map_mul commutes x = l x := rfl
 
 end of_linear_equiv
 
@@ -1168,6 +1222,10 @@ def lmul_left_right (vw: A × A) : A →ₗ[R] A :=
 def lmul' : A ⊗[R] A →ₗ[R] A :=
 tensor_product.lift (lmul R A).to_linear_map
 
+lemma commute_lmul_left_right (a b : A) :
+  commute (lmul_left R a) (lmul_right R b) :=
+by { ext c, exact (mul_assoc a c b).symm, }
+
 variables {R A}
 
 @[simp] lemma lmul_apply (p q : A) : lmul R A p q = p * q := rfl
@@ -1189,6 +1247,38 @@ by { ext, simp only [linear_map.id_coe, mul_one, id.def, lmul_right_apply] }
 @[simp] lemma lmul_right_mul (a b : A) :
   lmul_right R (a * b) = (lmul_right R b).comp (lmul_right R a) :=
 by { ext, simp only [lmul_right_apply, linear_map.comp_apply, mul_assoc] }
+
+@[simp] lemma lmul_left_zero_eq_zero :
+  lmul_left R (0 : A) = 0 :=
+(lmul R A).map_zero
+
+@[simp] lemma lmul_right_zero_eq_zero :
+  lmul_right R (0 : A) = 0 :=
+(lmul R A).to_linear_map.flip.map_zero
+
+@[simp] lemma lmul_left_eq_zero_iff (a : A) :
+  lmul_left R a = 0 ↔ a = 0 :=
+begin
+  split; intros h,
+  { rw [← mul_one a, ← lmul_left_apply a 1, h, linear_map.zero_apply], },
+  { rw h, exact lmul_left_zero_eq_zero, },
+end
+
+@[simp] lemma lmul_right_eq_zero_iff (a : A) :
+  lmul_right R a = 0 ↔ a = 0 :=
+begin
+  split; intros h,
+  { rw [← one_mul a, ← lmul_right_apply a 1, h, linear_map.zero_apply], },
+  { rw h, exact lmul_right_zero_eq_zero, },
+end
+
+@[simp] lemma pow_lmul_left (a : A) (n : ℕ) :
+  (lmul_left R a) ^ n = lmul_left R (a ^ n) :=
+((lmul R A).map_pow a n).symm
+
+@[simp] lemma pow_lmul_right (a : A) (n : ℕ) :
+  (lmul_right R a) ^ n = lmul_right R (a ^ n) :=
+linear_map.coe_injective $ ((lmul_right R a).coe_pow n).symm ▸ (mul_right_iterate a n)
 
 @[simp] lemma lmul'_apply {x y : A} : lmul' R (x ⊗ₜ y) = x * y :=
 by simp only [algebra.lmul', tensor_product.lift.tmul, alg_hom.to_linear_map_apply, lmul_apply]

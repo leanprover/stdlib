@@ -5,6 +5,7 @@ Authors: Yakov Pechersky
 -/
 import data.list.rotate
 import data.finset.basic
+import data.fintype.list
 
 /-!
 # Cycles of a list
@@ -508,6 +509,20 @@ A `s : cycle α` that is made up of at least two unique elements.
 -/
 def nontrivial (s : cycle α) : Prop := ∃ (x y : α) (h : x ≠ y), x ∈ s ∧ y ∈ s
 
+@[simp] lemma nontrivial_coe_nodup_iff {l : list α} (hl : l.nodup) :
+  nontrivial (l : cycle α) ↔ 2 ≤ l.length :=
+begin
+  rw nontrivial,
+  rcases l with (_ | ⟨hd, _ | ⟨hd', tl⟩⟩),
+  { simp },
+  { simp },
+  { simp only [mem_cons_iff, exists_prop, mem_coe_iff, list.length, ne.def, nat.succ_le_succ_iff,
+               zero_le, iff_true],
+    refine ⟨hd, hd', _, by simp⟩,
+    simp only [not_or_distrib, mem_cons_iff, nodup_cons] at hl,
+    exact hl.left.left }
+end
+
 @[simp] lemma nontrivial_reverse_iff {s : cycle α} :
   s.reverse.nontrivial ↔ s.nontrivial :=
 by simp [nontrivial]
@@ -547,6 +562,15 @@ begin
     simp [this] }
 end
 
+lemma nodup.nontrivial_iff {s : cycle α} (h : nodup s) :
+  nontrivial s ↔ ¬ subsingleton s :=
+begin
+  rw length_subsingleton_iff,
+  induction s using quotient.induction_on',
+  simp only [mk'_eq_coe, nodup_coe_iff] at h,
+  simp [h, nat.succ_le_iff]
+end
+
 /--
 The `s : cycle α` as a `multiset α`.
 -/
@@ -557,8 +581,36 @@ section decidable
 
 variable [decidable_eq α]
 
+/--
+Auxiliary decidability algorithm for lists that contain at least two unique elements.
+-/
+def decidable_nontrivial_coe : Π (l : list α), decidable (nontrivial (l : cycle α))
+| []            := is_false (by simp [nontrivial])
+| [x]           := is_false (by simp [nontrivial])
+| (x :: y :: l) := if h : x = y
+  then @decidable_of_iff' _ (nontrivial ((x :: l) : cycle α))
+    (by simp [h, nontrivial])
+    (decidable_nontrivial_coe (x :: l))
+  else is_true ⟨x, y, h, by simp, by simp⟩
+
+instance {s : cycle α} : decidable (nontrivial s) :=
+quot.rec_on_subsingleton s decidable_nontrivial_coe
+
 instance {s : cycle α} : decidable (nodup s) :=
 quot.rec_on_subsingleton s (λ (l : list α), list.nodup_decidable l)
+
+instance fintype_nodup_cycle [fintype α] : fintype {s : cycle α // s.nodup} :=
+fintype.of_surjective (λ (l : {l : list α // l.nodup}), ⟨l.val, by simpa using l.prop⟩) (λ ⟨s, hs⟩,
+  begin
+    induction s using quotient.induction_on',
+    exact ⟨⟨s, hs⟩, by simp⟩
+  end)
+
+instance fintype_nodup_nontrivial_cycle [fintype α] :
+  fintype {s : cycle α // s.nodup ∧ s.nontrivial} :=
+fintype.subtype (((finset.univ : finset {s : cycle α // s.nodup}).map
+  (function.embedding.subtype _)).filter cycle.nontrivial)
+  (by simp)
 
 /--
 The `s : cycle α` as a `finset α`.
@@ -584,10 +636,7 @@ def prev : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=
 
 @[simp] lemma prev_reverse_eq_next (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
   s.reverse.prev (nodup_reverse_iff.mpr hs) x (mem_reverse_iff.mpr hx) = s.next hs x hx :=
-begin
-  induction s using quot.induction_on,
-  exact prev_reverse_eq_next _ hs _ _
-end
+(quotient.induction_on' s prev_reverse_eq_next) hs x hx
 
 @[simp] lemma next_reverse_eq_prev (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
   s.reverse.next (nodup_reverse_iff.mpr hs) x (mem_reverse_iff.mpr hx) = s.prev hs x hx :=
@@ -603,6 +652,14 @@ end
 lemma prev_mem (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
   s.prev hs x hx ∈ s :=
 by { rw [←next_reverse_eq_prev, ←mem_reverse_iff], exact next_mem _ _ _ _ }
+
+@[simp] lemma prev_next (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
+  s.prev hs (s.next hs x hx) (next_mem s hs x hx) = x :=
+(quotient.induction_on' s prev_next) hs x hx
+
+@[simp] lemma next_prev (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
+  s.next hs (s.prev hs x hx) (prev_mem s hs x hx) = x :=
+(quotient.induction_on' s next_prev) hs x hx
 
 end decidable
 

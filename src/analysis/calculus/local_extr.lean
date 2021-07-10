@@ -301,14 +301,14 @@ lemma exists_local_extr_Ioo (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfI
 let ⟨c, cmem, hc⟩ := exists_Ioo_extr_on_Icc f hab hfc hfI
 in ⟨c, cmem, hc.is_local_extr $ Icc_mem_nhds cmem.1 cmem.2⟩
 
-/-- Rolle's Theorem `has_deriv_at` version -/
+/-- **Rolle's Theorem** `has_deriv_at` version -/
 lemma exists_has_deriv_at_eq_zero (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfI : f a = f b)
   (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) :
   ∃ c ∈ Ioo a b, f' c = 0 :=
 let ⟨c, cmem, hc⟩ := exists_local_extr_Ioo f hab hfc hfI in
   ⟨c, cmem, hc.has_deriv_at_eq_zero $ hff' c cmem⟩
 
-/-- Rolle's Theorem `deriv` version -/
+/-- **Rolle's Theorem** `deriv` version -/
 lemma exists_deriv_eq_zero (hab : a < b) (hfc : continuous_on f (Icc a b)) (hfI : f a = f b) :
   ∃ c ∈ Ioo a b, deriv f c = 0 :=
 let ⟨c, cmem, hc⟩ := exists_local_extr_Ioo f hab hfc hfI in
@@ -316,7 +316,7 @@ let ⟨c, cmem, hc⟩ := exists_local_extr_Ioo f hab hfc hfI in
 
 variables {f f'} {l : ℝ}
 
-/-- Rolle's Theorem, a version for a function on an open interval: if `f` has derivative `f'`
+/-- **Rolle's Theorem**, a version for a function on an open interval: if `f` has derivative `f'`
 on `(a, b)` and has the same limit `l` at `𝓝[Ioi a] a` and `𝓝[Iio b] b`, then `f' c = 0`
 for some `c ∈ (a, b)`.  -/
 lemma exists_has_deriv_at_eq_zero' (hab : a < b)
@@ -336,9 +336,9 @@ begin
   exact ⟨Ioo a b, Ioo_mem_nhds hc.1 hc.2, extend_from_extends this⟩
 end
 
-/-- Rolle's Theorem, a version for a function on an open interval: if `f` has the same limit `l` at
-`𝓝[Ioi a] a` and `𝓝[Iio b] b`, then `deriv f c = 0` for some `c ∈ (a, b)`. This version does not
-require differentiability of `f` because we define `deriv f c = 0` whenever `f` is not
+/-- **Rolle's Theorem**, a version for a function on an open interval: if `f` has the same limit
+`l` at `𝓝[Ioi a] a` and `𝓝[Iio b] b`, then `deriv f c = 0` for some `c ∈ (a, b)`. This version
+does not require differentiability of `f` because we define `deriv f c = 0` whenever `f` is not
 differentiable at `c`. -/
 lemma exists_deriv_eq_zero' (hab : a < b)
   (hfa : tendsto f (𝓝[Ioi a] a) (𝓝 l)) (hfb : tendsto f (𝓝[Iio b] b) (𝓝 l)) :

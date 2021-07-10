@@ -59,15 +59,13 @@
   links :
     mathlib archive : https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/16_abel_ruffini.lean
 17:
-  title  : De Moivre’s Theorem
+  title  : De Moivre’s Formula
   decl   : complex.cos_add_sin_mul_I_pow
   author : Abhimanyu Pallavi Sudhir
 18:
   title  : Liouville’s Theorem and the Construction of Transcendental Numbers
   author : Jujian Zhang
-  links  :
-    result: https://github.com/jjaassoonn/transcendental/blob/master/src/liouville_theorem.lean
-    website: https://jjaassoonn.github.io/transcendental/
+  decl   :  liouville.transcendental
 19:
   title  : Four Squares Theorem
   decl   : nat.sum_four_squares
@@ -87,7 +85,7 @@
   decl   : pythagorean_triple.classification
   author : Paul van Wamelen
 24:
-  title  : The Undecidability of the Continuum Hypothesis
+  title  : The Independence of the Continuum Hypothesis
   author : Jesse Michael Han and Floris van Doorn
   links  :
     result: https://github.com/flypitch/flypitch/blob/master/src/summary.lean
@@ -170,7 +168,7 @@
 50:
   title  : The Number of Platonic Solids
 51:
-  title  : Wilson’s Theorem
+  title  : Wilson’s Lemma
   decl   : zmod.wilsons_lemma
   author : Chris Hughes
 52:
@@ -346,7 +344,7 @@
   title  : Pick’s Theorem
 93:
   title  : The Birthday Problem
-  decl   : fintype.card_embedding
+  decl   : fintype.card_embedding_eq
   links  :
     mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/93_birthday_problem.lean
   author : Eric Rodriguez
@@ -356,6 +354,8 @@
   author : Joseph Myers
 95:
   title  : Ptolemy’s Theorem
+  decl   : euclidean_geometry.mul_dist_add_mul_dist_eq_mul_dist_of_cospherical
+  author : Manuel Candales
 96:
   title  : Principle of Inclusion/Exclusion
   links  :

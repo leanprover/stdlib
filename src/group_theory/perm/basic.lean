@@ -254,19 +254,20 @@ equiv.ext $ λ x, begin
       monoid_hom.coe_mk] }
 end
 
+lemma of_subtype_apply_of_mem {p : α → Prop} [decidable_pred p]
+  (f : perm (subtype p)) {x : α} (hx : p x) :
+  of_subtype f x = f ⟨x, hx⟩ :=
+dif_pos hx
+
+@[simp] lemma of_subtype_apply_coe {p : α → Prop} [decidable_pred p]
+  (f : perm (subtype p)) (x : subtype p)  :
+  of_subtype f x = f x :=
+subtype.cases_on x $ λ _, of_subtype_apply_of_mem f
+
 lemma of_subtype_apply_of_not_mem {p : α → Prop} [decidable_pred p]
   (f : perm (subtype p)) {x : α} (hx : ¬ p x) :
   of_subtype f x = x :=
 dif_neg hx
-
-lemma of_subtype_apply_coe {p : α → Prop} [decidable_pred p]
-  (f : perm (subtype p)) (x : subtype p) :
-  of_subtype f ↑x = ↑(f x) :=
-begin
-  change dite _ _ _ = _,
-  rw [dif_pos, subtype.coe_eta],
-  exact x.2,
-end
 
 lemma mem_iff_of_subtype_apply_mem {p : α → Prop} [decidable_pred p]
   (f : perm (subtype p)) (x : α) :

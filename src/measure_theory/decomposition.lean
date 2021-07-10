@@ -6,7 +6,6 @@ Authors: Johannes Hölzl
 Hahn decomposition theorem
 
 TODO:
-* introduce finite measures (into ℝ≥0)
 * show general for signed measures (into ℝ)
 -/
 import measure_theory.measure_space
@@ -23,7 +22,7 @@ private lemma aux {m : ℕ} {γ d : ℝ} (h : γ - (1 / 2) ^ m < d) :
   γ - 2 * (1 / 2) ^ m + (1 / 2) ^ m ≤ d :=
 by linarith
 
-lemma hahn_decomposition (hμ : μ univ < ∞) (hν : ν univ < ∞) :
+lemma hahn_decomposition [finite_measure μ] [finite_measure ν] :
   ∃s, measurable_set s ∧
     (∀t, measurable_set t → t ⊆ s → ν t ≤ μ t) ∧
     (∀t, measurable_set t → t ⊆ sᶜ → μ t ≤ ν t) :=
@@ -32,8 +31,8 @@ begin
   let c : set ℝ := d '' {s | measurable_set s },
   let γ : ℝ := Sup c,
 
-  have hμ : ∀s, μ s < ∞ := assume s, lt_of_le_of_lt (measure_mono $ subset_univ _) hμ,
-  have hν : ∀s, ν s < ∞ := assume s, lt_of_le_of_lt (measure_mono $ subset_univ _) hν,
+  have hμ : ∀s, μ s < ∞ := measure_lt_top μ,
+  have hν : ∀s, ν s < ∞ := measure_lt_top ν,
   have to_nnreal_μ : ∀s, ((μ s).to_nnreal : ℝ≥0∞) = μ s :=
     (assume s, ennreal.coe_to_nnreal $ ne_top_of_lt $ hμ _),
   have to_nnreal_ν : ∀s, ((ν s).to_nnreal : ℝ≥0∞) = ν s :=

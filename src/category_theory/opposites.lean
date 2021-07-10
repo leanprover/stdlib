@@ -24,8 +24,8 @@ lemma quiver.hom.unop_inj {X Y : Cᵒᵖ} :
   function.injective (quiver.hom.unop : (X ⟶ Y) → (unop Y ⟶ unop X)) :=
 λ _ _ H, congr_arg quiver.hom.op H
 
-@[simp] lemma quiver.hom.unop_op {X Y : C} {f : X ⟶ Y} : f.op.unop = f := rfl
-@[simp] lemma quiver.hom.op_unop {X Y : Cᵒᵖ} {f : X ⟶ Y} : f.unop.op = f := rfl
+@[simp] lemma quiver.hom.unop_op {X Y : C} (f : X ⟶ Y) : f.op.unop = f := rfl
+@[simp] lemma quiver.hom.op_unop {X Y : Cᵒᵖ} (f : X ⟶ Y) : f.unop.op = f := rfl
 
 end quiver
 
@@ -231,7 +231,7 @@ we can take the "unopposite" of each component obtaining a natural transformatio
 end
 
 section
-variables {F G : C ⥤ Dᵒᵖ}
+variables {F G H : C ⥤ Dᵒᵖ}
 
 /--
 Given a natural transformation `α : F ⟶ G`, for `F G : C ⥤ Dᵒᵖ`,
@@ -244,6 +244,11 @@ taking `unop` of each component gives a natural transformation `G.left_op ⟶ F.
     dsimp,
     simp_rw [← unop_comp, α.naturality]
   end }
+
+@[simp] lemma left_op_id : (𝟙 F : F ⟶ F).left_op = 𝟙 F.left_op := rfl
+
+@[simp] lemma left_op_comp (α : F ⟶ G) (β : G ⟶ H) :
+  (α ≫ β).left_op = β.left_op ≫ α.left_op := rfl
 
 /--
 Given a natural transformation `α : F.left_op ⟶ G.left_op`, for `F G : C ⥤ Dᵒᵖ`,
@@ -262,7 +267,7 @@ taking `op` of each component gives a natural transformation `G ⟶ F`.
 end
 
 section
-variables {F G : Cᵒᵖ ⥤ D}
+variables {F G H : Cᵒᵖ ⥤ D}
 
 /--
 Given a natural transformation `α : F ⟶ G`, for `F G : Cᵒᵖ ⥤ D`,
@@ -275,6 +280,11 @@ taking `op` of each component gives a natural transformation `G.right_op ⟶ F.r
     dsimp,
     simp_rw [← op_comp, α.naturality]
   end }
+
+@[simp] lemma right_op_id : (𝟙 F : F ⟶ F).right_op = 𝟙 F.right_op := rfl
+
+@[simp] lemma right_op_comp (α : F ⟶ G) (β : G ⟶ H) :
+  (α ≫ β).right_op = β.right_op ≫ α.right_op := rfl
 
 /--
 Given a natural transformation `α : F.right_op ⟶ G.right_op`, for `F G : Cᵒᵖ ⥤ D`,

@@ -158,10 +158,9 @@ variables {R : Type*}
 
 section module
 variables {η : Type*} {ιs : η → Type*} {Ms : η → Type*}
-variables [ring R] [∀i, add_comm_group (Ms i)] [∀i, module R (Ms i)]
 
-lemma linear_independent_std_basis [decidable_eq η]
-  (v : Πj, ιs j → (Ms j)) (hs : ∀i, linear_independent R (v i)) :
+lemma linear_independent_std_basis [ring R] [∀i, add_comm_group (Ms i)] [∀i, module R (Ms i)]
+  [decidable_eq η] (v : Πj, ιs j → (Ms j)) (hs : ∀i, linear_independent R (v i)) :
   linear_independent R (λ (ji : Σ j, ιs j), std_basis R Ms ji.1 (v ji.1 ji.2)) :=
 begin
   have hs' : ∀j : η, linear_independent R (λ i : ιs j, std_basis R Ms j (v j i)),
@@ -186,6 +185,8 @@ begin
     { convert set.disjoint_singleton_left.2 hiJ using 0 },
     exact (disjoint_std_basis_std_basis _ _ _ _ h₃).mono h₁ h₂ }
 end
+
+variables [semiring R] [∀i, add_comm_monoid (Ms i)] [∀i, module R (Ms i)]
 
 variable [fintype η]
 

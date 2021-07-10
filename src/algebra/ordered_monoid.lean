@@ -41,7 +41,6 @@ class ordered_comm_monoid (α : Type*) extends comm_monoid α, partial_order α 
   * `a ≤ b → c + a ≤ c + b` (addition is monotone)
   * `a + b < a + c → b < c`.
 -/
-
 @[protect_proj, ancestor add_comm_monoid partial_order]
 class ordered_add_comm_monoid (α : Type*) extends add_comm_monoid α, partial_order α :=
 (add_le_add_left       : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b)
@@ -57,21 +56,25 @@ instance ordered_comm_monoid.to_covariant_class_left (M : Type*) [ordered_comm_m
 { elim := λ a b c bc, ordered_comm_monoid.mul_le_mul_left _ _ bc a }
 
 @[to_additive]
-instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
-  covariant_class M M (function.swap (*)) (≤) :=
-{ elim := λ a b c bc,
-    by { convert ordered_comm_monoid.mul_le_mul_left _ _ bc a; simp_rw mul_comm } }
-
-@[to_additive]
 instance ordered_comm_monoid.to_contravariant_class_left (M : Type*) [ordered_comm_monoid M] :
   contravariant_class M M (*) (<) :=
-{ elim := λ a b c bc, ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc }
+{ elim := λ a b c, ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ }
 
+/- This instance can be proven with `by apply_instance`.  However, `with_bot ℕ` does not
+pick up a `covariant_class M M (function.swap (*)) (≤)` instance without it (see PR #7940). -/
+@[to_additive]
+instance ordered_comm_monoid.to_covariant_class_right (M : Type*) [ordered_comm_monoid M] :
+  covariant_class M M (function.swap (*)) (≤) :=
+covariant_swap_mul_le_of_covariant_mul_le M
+
+/- This instance can be proven with `by apply_instance`.  However, by analogy with the
+instance `ordered_comm_monoid.to_covariant_class_right` above, I imagine that without
+this instance, some Type would not have a `contravariant_class M M (function.swap (*)) (≤)`
+instance. -/
 @[to_additive]
 instance ordered_comm_monoid.to_contravariant_class_right (M : Type*) [ordered_comm_monoid M] :
   contravariant_class M M (function.swap (*)) (<) :=
-{ elim := λ a b c (bc : b * a < c * a), by { rw [mul_comm _ a, mul_comm _ a] at bc,
-    exact ordered_comm_monoid.lt_of_mul_lt_mul_left _ _ _ bc } }
+contravariant_swap_mul_lt_of_contravariant_mul_lt M
 
 end ordered_instances
 
@@ -135,7 +138,7 @@ lemma top_add (a : α) : ⊤ + a = ⊤ := linear_ordered_add_comm_monoid_with_to
 
 @[simp]
 lemma add_top (a : α) : a + ⊤ = ⊤ :=
-by rw [add_comm, top_add]
+trans (add_comm _ _) (top_add _)
 
 end linear_ordered_add_comm_monoid_with_top
 
@@ -272,7 +275,6 @@ instance [ordered_comm_monoid α] : ordered_comm_monoid (with_zero α) :=
 /-
 Note 1 : the below is not an instance because it requires `zero_le`. It seems
 like a rather pathological definition because α already has a zero.
-
 Note 2 : there is no multiplicative analogue because it does not seem necessary.
 Mathematicians might be more likely to use the order-dual version, where all
 elements are ≤ 1 and then 1 is the top element.
@@ -330,7 +332,7 @@ variables [has_one α]
 coe_eq_coe
 
 @[simp, to_additive] theorem one_eq_coe {a : α} : 1 = (a : with_top α) ↔ a = 1 :=
-by rw [eq_comm, coe_eq_one]
+trans eq_comm coe_eq_one
 
 attribute [norm_cast] coe_one coe_eq_one coe_zero coe_eq_zero one_eq_coe zero_eq_coe
 
@@ -346,7 +348,7 @@ local attribute [semireducible] with_zero
 
 instance [add_semigroup α] : add_semigroup (with_top α) :=
 { add := (+),
-  ..(by apply_instance : add_semigroup (additive (with_zero (multiplicative α)))) }
+  ..(infer_instance : add_semigroup (additive (with_zero (multiplicative α)))) }
 
 @[norm_cast] lemma coe_add [has_add α] {a b : α} : ((a + b : α) : with_top α) = a + b := rfl
 
@@ -362,7 +364,7 @@ lemma coe_bit1 [has_add α] [has_one α] {a : α} : ((bit1 a : α) : with_top α
 @[simp] lemma top_add [has_add α] {a : with_top α} : ⊤ + a = ⊤ := rfl
 
 lemma add_eq_top [has_add α] {a b : with_top α} : a + b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
-by {cases a; cases b; simp [none_eq_top, some_eq_coe, ←with_top.coe_add, ←with_zero.coe_add]}
+by cases a; cases b; simp [none_eq_top, some_eq_coe, ←with_top.coe_add, ←with_zero.coe_add]
 
 lemma add_lt_top [has_add α] [partial_order α] {a b : with_top α} : a + b < ⊤ ↔ a < ⊤ ∧ b < ⊤ :=
 by simp [lt_top_iff_ne_top, add_eq_top, not_or_distrib]
@@ -510,7 +512,7 @@ class canonically_ordered_add_monoid (α : Type*) extends ordered_add_comm_monoi
 /-- A canonically ordered monoid is an ordered commutative monoid
   in which the ordering coincides with the divisibility relation,
   which is to say, `a ≤ b` iff there exists `c` with `b = a * c`.
-  Example seem rare; it seems more likely that the `order_dual`
+  Examples seem rare; it seems more likely that the `order_dual`
   of a naturally-occurring lattice satisfies this than the lattice
   itself (for example, dual of the lattice of ideals of a PID or
   Dedekind domain satisfy this; collections of all things ≤ 1 seem to
@@ -536,7 +538,8 @@ le_iff_exists_mul.mpr ⟨b, rfl⟩
 lemma self_le_mul_left (a b : α) : a ≤ b * a :=
 by { rw [mul_comm], exact self_le_mul_right a b }
 
-@[simp, to_additive zero_le] lemma one_le (a : α) : 1 ≤ a := le_iff_exists_mul.mpr ⟨a, by simp⟩
+@[simp, to_additive zero_le] lemma one_le (a : α) : 1 ≤ a :=
+le_iff_exists_mul.mpr ⟨a, (one_mul _).symm⟩
 
 @[simp, to_additive] lemma bot_eq_one : (⊥ : α) = 1 :=
 le_antisymm bot_le (one_le ⊥)
@@ -777,9 +780,8 @@ in which multiplication is cancellative and monotone. -/
 class linear_ordered_cancel_comm_monoid (α : Type u)
   extends ordered_cancel_comm_monoid α, linear_ordered_comm_monoid α
 
-section linear_ordered_cancel_comm_monoid
-
-variables [linear_ordered_cancel_comm_monoid α]
+section covariant_class_mul_le
+variables [cancel_comm_monoid α] [linear_order α] [covariant_class α α (*) (≤)]
 
 @[to_additive] lemma min_mul_mul_left (a b c : α) : min (a * b) (a * c) = a * min b c :=
 (monotone_id.const_mul' a).map_min.symm
@@ -808,6 +810,11 @@ min_le_iff.2 $ or.inr $ le_mul_of_one_le_left' ha
 lemma max_le_mul_of_one_le {a b : α} (ha : 1 ≤ a) (hb : 1 ≤ b) : max a b ≤ a * b :=
 max_le_iff.2 ⟨le_mul_of_one_le_right' hb, le_mul_of_one_le_left' ha⟩
 
+end covariant_class_mul_le
+
+section linear_ordered_cancel_comm_monoid
+variables [linear_ordered_cancel_comm_monoid α]
+
 /-- Pullback a `linear_ordered_cancel_comm_monoid` under an injective map.
 See note [reducible non-instances]. -/
 @[reducible, to_additive function.injective.linear_ordered_cancel_add_comm_monoid
@@ -834,6 +841,11 @@ instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
     apply lt_of_mul_lt_mul_left' (by convert h : (id a : α) * c < a * b),
   ..order_dual.partial_order α,
   ..show comm_monoid α, by apply_instance }
+
+@[to_additive ordered_cancel_add_comm_monoid.to_contravariant_class]
+instance ordered_cancel_comm_monoid.to_contravariant_class [ordered_cancel_comm_monoid α] :
+  contravariant_class (order_dual α) (order_dual α) has_mul.mul has_le.le :=
+{ elim := λ a b c bc, (ordered_cancel_comm_monoid.le_of_mul_le_mul_left a c b (dual_le.mp bc)) }
 
 @[to_additive]
 instance [ordered_cancel_comm_monoid α] : ordered_cancel_comm_monoid (order_dual α) :=
@@ -908,9 +920,9 @@ instance [linear_ordered_comm_monoid α] : linear_ordered_add_comm_monoid (addit
   ..additive.ordered_add_comm_monoid }
 
 instance [sub_neg_monoid α] : sub_neg_monoid (order_dual α) :=
-{ ..show sub_neg_monoid α, by apply_instance }
+{ ..show sub_neg_monoid α, from infer_instance }
 
 instance [div_inv_monoid α] : div_inv_monoid (order_dual α) :=
-{ ..show div_inv_monoid α, by apply_instance }
+{ ..show div_inv_monoid α, from infer_instance }
 
 end type_tags

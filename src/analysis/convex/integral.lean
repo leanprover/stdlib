@@ -60,7 +60,7 @@ begin
       (simple_func.integrable_approx_on hfm hfi h₀ hc _)],
     exact tendsto_integral_of_L1 _ hfi
       (eventually_of_forall $ simple_func.integrable_approx_on hfm hfi h₀ hc)
-      (simple_func.tendsto_approx_on_L1_edist hfm h₀ hfs (hfi.sub hc).2) },
+      (simple_func.tendsto_approx_on_L1_nnnorm hfm h₀ hfs (hfi.sub hc).2) },
   refine hsc.mem_of_tendsto (tendsto_const_nhds.smul this) (eventually_of_forall $ λ n, _),
   have : ∑ y in (F n).range, (μ ((F n) ⁻¹' {y})).to_real = (μ univ).to_real,
     by rw [← (F n).sum_range_measure_preimage_singleton, @ennreal.to_real_sum _ _

@@ -6,6 +6,31 @@ Authors: Scott Morrison, Bhavik Mehta
 import category_theory.limits.has_limits
 import category_theory.discrete_category
 
+/-!
+# Categorical (co)products
+
+This file defines (co)products as special cases of (co)limits.
+
+A product is the categorical generalization of the object `Π i, f i` where `f : ι → C`. It is a
+limit cone over the diagram formed by `f`, implemented by converting `f` into a functor
+`discrete ι ⥤ C`.
+
+A coproduct is the dual concept.
+
+## Main definitions
+
+* a `fan` is a cone over a discrete category
+* `fan.mk` constructs a fan from an indexed collection of maps
+* a `pi` is a `limit (discrete.functor f)`
+
+Each of these has a dual.
+
+## Implementation notes
+As with the other special shapes in the limits library, all the definitions here are given as
+`abbreviation`s of the general statements for limits, so all the `simp` lemmas and theorems about
+general limits can be used.
+-/
+
 noncomputable theory
 
 universes v u u₂
@@ -123,8 +148,8 @@ section comparison
 variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
 variables (f : β → C)
 
--- TODO: show this is an iso iff G preserves the product of f.
-/-- The comparison morphism for the product of `f`. -/
+/-- The comparison morphism for the product of `f`. This is an iso iff `G` preserves the product
+of `f`, see `preserves_product.of_iso_comparison`. -/
 def pi_comparison [has_product f] [has_product (λ b, G.obj (f b))] :
   G.obj (∏ f) ⟶ ∏ (λ b, G.obj (f b)) :=
 pi.lift (λ b, G.map (pi.π f b))
@@ -140,8 +165,8 @@ lemma map_lift_pi_comparison [has_product f] [has_product (λ b, G.obj (f b))]
   G.map (pi.lift g) ≫ pi_comparison G f = pi.lift (λ j, G.map (g j)) :=
 by { ext, simp [← G.map_comp] }
 
--- TODO: show this is an iso iff G preserves the coproduct of f.
-/-- The comparison morphism for the coproduct of `f`. -/
+/-- The comparison morphism for the coproduct of `f`. This is an iso iff `G` preserves the coproduct
+of `f`, see `preserves_coproduct.of_iso_comparison`. -/
 def sigma_comparison [has_coproduct f] [has_coproduct (λ b, G.obj (f b))] :
   ∐ (λ b, G.obj (f b)) ⟶ G.obj (∐ f) :=
 sigma.desc (λ b, G.map (sigma.ι f b))

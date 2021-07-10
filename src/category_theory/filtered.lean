@@ -82,6 +82,19 @@ instance is_filtered_or_empty_of_semilattice_sup
 instance is_filtered_of_semilattice_sup_nonempty
   (α : Type u) [semilattice_sup α] [nonempty α] : is_filtered α := {}
 
+-- TODO: Define `codirected_order` and provide the dual to this instance.
+@[priority 100]
+instance is_filtered_or_empty_of_directed_order
+  (α : Type u) [directed_order α] : is_filtered_or_empty α :=
+{ cocone_objs := λ X Y, let ⟨Z,h1,h2⟩ := directed_order.directed X Y in
+    ⟨Z, hom_of_le h1, hom_of_le h2, trivial⟩,
+  cocone_maps := λ X Y f g, ⟨Y, 𝟙 _, by simp⟩ }
+
+-- TODO: Define `codirected_order` and provide the dual to this instance.
+@[priority 100]
+instance is_filtered_of_directed_order_nonempty
+  (α : Type u) [directed_order α] [nonempty α] : is_filtered α := {}
+
 -- Sanity checks
 example (α : Type u) [semilattice_sup_bot α] : is_filtered α := by apply_instance
 example (α : Type u) [semilattice_sup_top α] : is_filtered α := by apply_instance
@@ -481,5 +494,35 @@ lemma of_equivalence (h : C ≌ D) : is_cofiltered D :=
 of_left_adjoint h.to_adjunction
 
 end is_cofiltered
+
+section opposite
+open opposite
+
+instance is_cofiltered_op_of_is_filtered [is_filtered C] : is_cofiltered Cᵒᵖ :=
+{ cocone_objs := λ X Y, ⟨op (is_filtered.max X.unop Y.unop),
+    (is_filtered.left_to_max _ _).op, (is_filtered.right_to_max _ _).op, trivial⟩,
+  cocone_maps := λ X Y f g, ⟨op (is_filtered.coeq f.unop g.unop),
+    (is_filtered.coeq_hom _ _).op, begin
+      rw [(show f = f.unop.op, by simp), (show g = g.unop.op, by simp),
+        ← op_comp, ← op_comp],
+      congr' 1,
+      exact is_filtered.coeq_condition f.unop g.unop,
+    end⟩,
+  nonempty := ⟨op is_filtered.nonempty.some⟩ }
+
+instance is_filtered_op_of_is_cofiltered [is_cofiltered C] : is_filtered Cᵒᵖ :=
+{ cocone_objs := λ X Y, ⟨op (is_cofiltered.min X.unop Y.unop),
+    (is_cofiltered.min_to_left X.unop Y.unop).op,
+    (is_cofiltered.min_to_right X.unop Y.unop).op, trivial⟩,
+  cocone_maps := λ X Y f g, ⟨op (is_cofiltered.eq f.unop g.unop),
+    (is_cofiltered.eq_hom f.unop g.unop).op, begin
+      rw [(show f = f.unop.op, by simp), (show g = g.unop.op, by simp),
+        ← op_comp, ← op_comp],
+      congr' 1,
+      exact is_cofiltered.eq_condition f.unop g.unop,
+    end⟩,
+  nonempty := ⟨op is_cofiltered.nonempty.some⟩ }
+
+end opposite
 
 end category_theory

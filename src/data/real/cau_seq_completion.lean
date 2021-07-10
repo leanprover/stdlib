@@ -2,11 +2,15 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Robert Y. Lewis
-
-Generalizes the Cauchy completion of (ℚ, abs) to the completion of a
-commutative ring with absolute value.
 -/
 import data.real.cau_seq
+
+/-!
+# Cauchy completion
+
+This file generalizes the Cauchy completion of `(ℚ, abs)` to the completion of a commutative ring
+with absolute value.
+-/
 
 namespace cau_seq.completion
 open cau_seq

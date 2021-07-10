@@ -11,7 +11,8 @@ import data.equiv.transfer_instance
 /-!
 # Free Algebras
 
-Given a commutative semiring `R`, and a type `X`, we construct the free `R`-algebra on `X`.
+Given a commutative semiring `R`, and a type `X`, we construct the free unital, associative
+`R`-algebra on `X`.
 
 ## Notation
 

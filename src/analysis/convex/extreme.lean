@@ -12,13 +12,35 @@ import analysis.convex.topology
 
 This file defines extreme sets and extreme points for sets in a real vector space.
 
+An extreme set of `A` is a subset of `A` that is as far as it can get in any outward direction: If
+point `x` is in it and point `y ∈ A`, then the line passing through `x` and `y` leaves `A` at `x`.
+This is an analytic notion of "being on the side of". It is weaker than being exposed (see
+`is_exposed.is_extreme`).
+
+## Main declarations
+
+* `is_extreme A B`: States that `B` is an extreme set of `A` (in the literature, `A` is often
+  implicit).
+* `set.extreme_points A`: Set of extreme points of `A` (corresponding to extreme singletons).
+* `convex.mem_extreme_points_iff_convex_remove`: A useful equivalent condition to being an extreme
+  point: `x` is an extreme point iff `A \ {x}` is convex.
+
+## Implementation notes
+
+The exact definition of extremeness has been carefully chosen so as to make as many lemmas
+unconditional. In practice, `A` is often assumed to be a convex set.
+
 ## References
 
-See chapter 8 of [Convexity][simon2011]
+See chapter 8 of [Barry Simon, *Convexity*][simon2011]
 
-TODO:
-- add exposed sets to this file.
-- define convex independence and prove lemmas related to extreme points.
+## TODO
+
+* define convex independence, intrinsic frontier and prove lemmas related to extreme sets and
+  points.
+* generalise to Locally Convex Topological Vector Spaces™
+
+More not-yet-PRed stuff is available on the branch `sperner_again`.
 -/
 
 open_locale classical affine
@@ -26,8 +48,8 @@ open set
 
 variables {E : Type*} [add_comm_group E] [module ℝ E] {x : E} {A B C : set E}
 
-/-- A set B is extreme to a set A if B ⊆ A and all points of B only belong to open segments whose
-ends are in B. -/
+/-- A set `B` is an extreme subset of `A` if `B ⊆ A` and all points of `B` only belong to open
+segments whose ends are in `B`. -/
 def is_extreme (A B : set E) : Prop :=
 B ⊆ A ∧ ∀ x₁ x₂ ∈ A, ∀ x ∈ B, x ∈ open_segment x₁ x₂ → x₁ ∈ B ∧ x₂ ∈ B
 
@@ -113,8 +135,8 @@ lemma mono (hAC : is_extreme A C) (hBA : B ⊆ A) (hCB : C ⊆ B) :
 
 end is_extreme
 
-/-- A point x is an extreme point of a set A if x belongs to no open segment with ends in A, except
-for the obvious `open_segment x x`. -/
+/-- A point `x` is an extreme point of a set `A` if `x` belongs to no open segment with ends in
+`A`, except for the obvious `open_segment x x`. -/
 def set.extreme_points (A : set E) : set E :=
 {x ∈ A | ∀ (x₁ x₂ ∈ A), x ∈ open_segment x₁ x₂ → x₁ = x ∧ x₂ = x}
 
@@ -122,6 +144,8 @@ lemma extreme_points_def :
   x ∈ A.extreme_points ↔ x ∈ A ∧ ∀ (x₁ x₂ ∈ A), x ∈ open_segment x₁ x₂ → x₁ = x ∧ x₂ = x :=
 iff.rfl
 
+/-- A useful restatement using `segment`: `x` is an extreme point iff the only (closed) segments
+that contain it are those with `x` as one of their endpoints. -/
 lemma mem_extreme_points_iff_forall_segment :
   x ∈ A.extreme_points ↔ x ∈ A ∧ ∀ (x₁ x₂ ∈ A), x ∈ segment x₁ x₂ → x₁ = x ∨ x₂ = x :=
 begin
@@ -147,12 +171,9 @@ begin
   split,
   { rintro ⟨hxA, hAx⟩,
     use singleton_subset_iff.2 hxA,
-    rintro x₁ x₂ hx₁A hx₂A y (rfl : y = x) hxs,
-    exact hAx x₁ x₂ hx₁A hx₂A hxs },
-  rintro hx,
-  use singleton_subset_iff.1 hx.1,
-  rintro x₁ x₂ hx₁ hx₂ hxs,
-  exact hx.2 x₁ x₂ hx₁ hx₂ x rfl hxs
+    rintro x₁ x₂ hx₁A hx₂A y (rfl : y = x),
+    exact hAx x₁ x₂ hx₁A hx₂A },
+  exact λ hx, ⟨singleton_subset_iff.1 hx.1, λ x₁ x₂ hx₁ hx₂, hx.2 x₁ x₂ hx₁ hx₂ x rfl⟩,
 end
 
 lemma extreme_points_subset : A.extreme_points ⊆ A := λ x hx, hx.1
@@ -163,7 +184,7 @@ subset_empty_iff.1 extreme_points_subset
 
 @[simp] lemma extreme_points_singleton :
   ({x} : set E).extreme_points = {x} :=
-subset.antisymm extreme_points_subset $ singleton_subset_iff.2
+extreme_points_subset.antisymm $ singleton_subset_iff.2
   ⟨mem_singleton x, λ x₁ x₂ hx₁ hx₂ _, ⟨hx₁, hx₂⟩⟩
 
 lemma convex.mem_extreme_points_iff_convex_remove (hA : convex A) :

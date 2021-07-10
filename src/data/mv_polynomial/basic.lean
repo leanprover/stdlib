@@ -423,7 +423,7 @@ begin
   rw mul_def,
   -- We need to manipulate both sides into a shape to which we can apply `finset.sum_bij_ne_zero`,
   -- so we need to turn both sides into a sum over a product.
-  have := @finset.sum_product (σ →₀ ℕ) R _ _ p.support q.support
+  have := @finset.sum_product R (σ →₀ ℕ) _ _ p.support q.support
     (λ x, if (x.1 + x.2 = n) then coeff x.1 p * coeff x.2 q else 0),
   convert this.symm using 1; clear this,
   { rw [coeff],

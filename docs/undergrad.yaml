@@ -178,9 +178,9 @@ Ring Theory:
     field $\R$ of real numbers: 'real.division_ring'
     field $\C$ of complex numbers: 'complex.field'
     $\C$ is algebraically closed: 'complex.exists_root'
-    field of fractions of an integral domain: 'fraction_map'
+    field of fractions of an integral domain: 'is_fraction_ring'
     algebraic elements: 'is_algebraic'
-    transcendental elements:
+    transcendental elements: 'transcendental'
     algebraic extensions: 'algebra.is_algebraic'
     algebraically closed fields: 'is_alg_closed'
     rupture fields: 'adjoin_root'

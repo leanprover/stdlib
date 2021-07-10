@@ -142,7 +142,7 @@ theorem encodek₂ [encodable α] (a : α) : decode₂ α (encode a) = some a :=
 mem_decode₂.2 rfl
 
 /-- The encoding function has decidable range. -/
-def decidable_range_encode (α : Type*) [encodable α] : decidable_pred (set.range (@encode α _)) :=
+def decidable_range_encode (α : Type*) [encodable α] : decidable_pred (∈ set.range (@encode α _)) :=
 λ x, decidable_of_iff (option.is_some (decode₂ α x))
   ⟨λ h, ⟨option.get h, by rw [← decode₂_is_partial_inv (option.get h), option.some_get]⟩,
   λ ⟨n, hn⟩, by rw [← hn, encodek₂]; exact rfl⟩

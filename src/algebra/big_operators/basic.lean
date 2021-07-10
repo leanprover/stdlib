@@ -27,10 +27,16 @@ Let `s` be a `finset α`, and `f : α → β` a function.
 * `∑ x, f x` is notation for `finset.sum finset.univ f`
   (assuming `α` is a `fintype` and `β` is an `add_comm_monoid`)
 
+## Implementation Notes
+
+The first arguments in all definitions and lemmas is the codomain of the function of the big
+operator. This is necessary for the heuristic in `@[to_additive]`.
+See the documentation of `to_additive.attr` for more information.
+
 -/
 
 universes u v w
-variables {α : Type u} {β : Type v} {γ : Type w}
+variables {β : Type u} {α : Type v} {γ : Type w}
 
 namespace finset
 
@@ -42,7 +48,7 @@ as `x` ranges over the elements of the finite set `s`.
 of the finite set `s`."]
 protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1.map f).prod
 
-@[simp, to_additive] lemma prod_mk [comm_monoid β] (s : multiset α) (hs) (f : α → β) :
+@[simp, to_additive] lemma prod_mk [comm_monoid β] (s : multiset α) (hs : s.nodup) (f : α → β) :
   (⟨s, hs⟩ : finset α).prod f = (s.map f).prod :=
 rfl
 
@@ -88,7 +94,7 @@ variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 
 @[to_additive]
 theorem prod_eq_fold [comm_monoid β] (s : finset α) (f : α → β) :
-  (∏ x in s, f x) = s.fold (*) 1 f :=
+  ∏ x in s, f x = s.fold (*) 1 f :=
 rfl
 
 @[simp] lemma sum_multiset_singleton (s : finset α) :
@@ -112,7 +118,8 @@ lemma ring_hom.map_list_prod [semiring β] [semiring γ] (f : β →+* γ) (l : 
   f l.prod = (l.map f).prod :=
 f.to_monoid_hom.map_list_prod l
 
-lemma ring_hom.map_list_sum [semiring β] [semiring γ] (f : β →+* γ) (l : list β) :
+lemma ring_hom.map_list_sum [non_assoc_semiring β] [non_assoc_semiring γ]
+  (f : β →+* γ) (l : list β) :
   f l.sum = (l.map f).sum :=
 f.to_add_monoid_hom.map_list_sum l
 
@@ -121,7 +128,8 @@ lemma ring_hom.map_multiset_prod [comm_semiring β] [comm_semiring γ] (f : β �
   f s.prod = (s.map f).prod :=
 f.to_monoid_hom.map_multiset_prod s
 
-lemma ring_hom.map_multiset_sum [semiring β] [semiring γ] (f : β →+* γ) (s : multiset β) :
+lemma ring_hom.map_multiset_sum [non_assoc_semiring β] [non_assoc_semiring γ]
+  (f : β →+* γ) (s : multiset β) :
   f s.sum = (s.map f).sum :=
 f.to_add_monoid_hom.map_multiset_sum s
 
@@ -130,7 +138,7 @@ lemma ring_hom.map_prod [comm_semiring β] [comm_semiring γ] (g : β →+* γ) 
   g (∏ x in s, f x) = ∏ x in s, g (f x) :=
 g.to_monoid_hom.map_prod f s
 
-lemma ring_hom.map_sum [semiring β] [semiring γ]
+lemma ring_hom.map_sum [non_assoc_semiring β] [non_assoc_semiring γ]
   (g : β →+* γ) (f : α → β) (s : finset α) :
   g (∑ x in s, f x) = ∑ x in s, g (f x) :=
 g.to_add_monoid_hom.map_sum f s
@@ -155,7 +163,7 @@ section comm_monoid
 variables [comm_monoid β]
 
 @[simp, to_additive]
-lemma prod_empty {α : Type u} {f : α → β} : (∏ x in (∅:finset α), f x) = 1 := rfl
+lemma prod_empty {f : α → β} : (∏ x in (∅:finset α), f x) = 1 := rfl
 
 @[simp, to_additive]
 lemma prod_insert [decidable_eq α] : a ∉ s → (∏ x in (insert a s), f x) = f a * ∏ x in s, f x :=
@@ -193,12 +201,9 @@ lemma prod_pair [decidable_eq α] {a b : α} (h : a ≠ b) :
   (∏ x in ({a, b} : finset α), f x) = f a * f b :=
 by rw [prod_insert (not_mem_singleton.2 h), prod_singleton]
 
-@[simp, priority 1100] lemma prod_const_one : (∏ x in s, (1 : β)) = 1 :=
+@[simp, priority 1100, to_additive]
+lemma prod_const_one : (∏ x in s, (1 : β)) = 1 :=
 by simp only [finset.prod, multiset.map_const, multiset.prod_repeat, one_pow]
-@[simp, priority 1100] lemma sum_const_zero {β} {s : finset α} [add_comm_monoid β] :
-  (∑ x in s, (0 : β)) = 0 :=
-@prod_const_one _ (multiplicative β) _ _
-attribute [to_additive] prod_const_one
 
 @[simp, to_additive]
 lemma prod_image [decidable_eq α] {s : finset γ} {g : γ → α} :
@@ -738,14 +743,6 @@ begin
   exact prod_congr rfl hfg
 end
 
-lemma sum_range_succ_comm {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) :
-  ∑ x in range (n + 1), f x = f n + ∑ x in range n, f x :=
-by rw [range_succ, sum_insert not_mem_range_self]
-
-lemma sum_range_succ {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) :
-  ∑ x in range (n + 1), f x = ∑ x in range n, f x + f n :=
-by simp only [add_comm, sum_range_succ_comm]
-
 @[to_additive]
 lemma prod_range_succ_comm (f : ℕ → β) (n : ℕ) :
   ∏ x in range (n + 1), f x = f n * ∏ x in range n, f x :=
@@ -756,11 +753,13 @@ lemma prod_range_succ (f : ℕ → β) (n : ℕ) :
   ∏ x in range (n + 1), f x = (∏ x in range n, f x) * f n :=
 by simp only [mul_comm, prod_range_succ_comm]
 
+@[to_additive]
 lemma prod_range_succ' (f : ℕ → β) :
   ∀ n : ℕ, (∏ k in range (n + 1), f k) = (∏ k in range n, f (k+1)) * f 0
 | 0       := prod_range_succ _ _
 | (n + 1) := by rw [prod_range_succ _ n, mul_right_comm, ← prod_range_succ', prod_range_succ]
 
+@[to_additive]
 lemma eventually_constant_prod {u : ℕ → β} {N : ℕ} (hu : ∀ n ≥ N, u n = 1) {n : ℕ} (hn : N ≤ n) :
   ∏ k in range (n + 1), u k = ∏ k in range (N + 1), u k :=
 begin
@@ -772,13 +771,7 @@ begin
   simp [hu]
 end
 
-lemma eventually_constant_sum {β} [add_comm_monoid β] {u : ℕ → β} {N : ℕ}
-  (hu : ∀ n ≥ N, u n = 0) {n : ℕ} (hn : N ≤ n) :
-  ∑ k in range (n + 1), u k = ∑ k in range (N + 1), u k :=
-@eventually_constant_prod (multiplicative β) _ _ _ hu _ hn
-
-attribute [to_additive] eventually_constant_prod
-
+@[to_additive]
 lemma prod_range_add (f : ℕ → β) (n m : ℕ) :
   ∏ x in range (n + m), f x =
   (∏ x in range n, f x) * (∏ x in range m, f (n + x)) :=
@@ -793,15 +786,10 @@ lemma prod_range_zero (f : ℕ → β) :
   ∏ k in range 0, f k = 1 :=
 by rw [range_zero, prod_empty]
 
+@[to_additive sum_range_one]
 lemma prod_range_one (f : ℕ → β) :
   ∏ k in range 1, f k = f 0 :=
-by { rw [range_one], apply @prod_singleton ℕ β 0 f }
-
-lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
-  ∑ k in range 1, f k = f 0 :=
-@prod_range_one (multiplicative δ) _ f
-
-attribute [to_additive finset.sum_range_one] prod_range_one
+by { rw [range_one], apply @prod_singleton β ℕ 0 f }
 
 open multiset
 
@@ -829,14 +817,10 @@ lemma sum_multiset_map_count [decidable_eq α] (s : multiset α)
 @prod_multiset_map_count _ _ _ (multiplicative M) _ f
 attribute [to_additive] prod_multiset_map_count
 
+@[to_additive]
 lemma prod_multiset_count [decidable_eq α] [comm_monoid α] (s : multiset α) :
   s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
 by { convert prod_multiset_map_count s id, rw map_id }
-
-lemma sum_multiset_count [decidable_eq α] [add_comm_monoid α] (s : multiset α) :
-  s.sum = ∑ m in s.to_finset, s.count m • m :=
-@prod_multiset_count (multiplicative α) _ _ s
-attribute [to_additive] prod_multiset_count
 
 /--
 To prove a property of a product, it suffices to prove that
@@ -936,7 +920,7 @@ lemma prod_pow (s : finset α) (n : ℕ) (f : α → β) :
 by haveI := classical.dec_eq α; exact
 finset.induction_on s (by simp) (by simp [mul_pow] {contextual := tt})
 
--- `to_additive` fails on this lemma, so we prove it manually below
+@[to_additive]
 lemma prod_flip {n : ℕ} (f : ℕ → β) :
   ∏ r in range (n + 1), f (n - r) = ∏ k in range (n + 1), f k :=
 begin
@@ -1066,6 +1050,8 @@ by { rw [update_eq_piecewise, prod_piecewise], simp [h] }
 
 /-- If a product of a `finset` of size at most 1 has a given value, so
 do the terms in that product. -/
+@[to_additive eq_of_card_le_one_of_sum_eq "If a sum of a `finset` of size at most 1 has a given
+value, so do the terms in that sum."]
 lemma eq_of_card_le_one_of_prod_eq {s : finset α} (hc : s.card ≤ 1) {f : α → β} {b : β}
     (h : ∏ x in s, f x = b) : ∀ x ∈ s, f x = b :=
 begin
@@ -1081,26 +1067,6 @@ begin
     rw prod_singleton at h,
     exact h }
 end
-
-/-- If a sum of a `finset` of size at most 1 has a given value, so do
-the terms in that sum. -/
-lemma eq_of_card_le_one_of_sum_eq [add_comm_monoid γ] {s : finset α} (hc : s.card ≤ 1)
-    {f : α → γ} {b : γ} (h : ∑ x in s, f x = b) : ∀ x ∈ s, f x = b :=
-begin
-  intros x hx,
-  by_cases hc0 : s.card = 0,
-  { exact false.elim (card_ne_zero_of_mem hx hc0) },
-  { have h1 : s.card = 1 := le_antisymm hc (nat.one_le_of_lt (nat.pos_of_ne_zero hc0)),
-    rw card_eq_one at h1,
-    cases h1 with x2 hx2,
-    rw [hx2, mem_singleton] at hx,
-    simp_rw hx2 at h,
-    rw hx,
-    rw sum_singleton at h,
-    exact h }
-end
-
-attribute [to_additive eq_of_card_le_one_of_sum_eq] eq_of_card_le_one_of_prod_eq
 
 /-- If a function applied at a point is 1, a product is unchanged by
 removing that point, if present, from a `finset`. -/
@@ -1156,12 +1122,12 @@ attribute [to_additive] prod_update_of_mem
 
 lemma sum_nsmul [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :
   (∑ x in s, n • (f x)) = n • ((∑ x in s, f x)) :=
-@prod_pow _ (multiplicative β) _ _ _ _
+@prod_pow (multiplicative β) _ _ _ _ _
 attribute [to_additive sum_nsmul] prod_pow
 
 @[simp] lemma sum_const [add_comm_monoid β] (b : β) :
   (∑ x in s, b) = s.card • b :=
-@prod_const _ (multiplicative β) _ _ _
+@prod_const (multiplicative β) _ _ _ _
 attribute [to_additive] prod_const
 
 lemma card_eq_sum_ones (s : finset α) : s.card = ∑ _ in s, 1 :=
@@ -1175,7 +1141,7 @@ begin
 end
 
 @[simp]
-lemma sum_boole {s : finset α} {p : α → Prop} [semiring β] {hp : decidable_pred p} :
+lemma sum_boole {s : finset α} {p : α → Prop} [non_assoc_semiring β] {hp : decidable_pred p} :
   (∑ x in s, if p x then (1 : β) else (0 : β)) = (s.filter p).card :=
 by simp [sum_ite]
 
@@ -1191,14 +1157,9 @@ lemma sum_int_cast [add_comm_group β] [has_one β] (s : finset α) (f : α → 
 
 lemma sum_comp [add_comm_monoid β] [decidable_eq γ] {s : finset α} (f : γ → β) (g : α → γ) :
   ∑ a in s, f (g a) = ∑ b in s.image g, (s.filter (λ a, g a = b)).card • (f b) :=
-@prod_comp _ (multiplicative β) _ _ _ _ _ _
+@prod_comp (multiplicative β) _ _ _ _ _ _ _
 attribute [to_additive "The sum of the composition of functions `f` and `g`, is the sum
 over `b ∈ s.image g` of `f b` times of the cardinality of the fibre of `b`"] prod_comp
-
-lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
-  ∀ n : ℕ, (∑ i in range (n + 1), f i) = (∑ i in range n, f (i + 1)) + f 0 :=
-@prod_range_succ' (multiplicative β) _ _
-attribute [to_additive] prod_range_succ'
 
 lemma eq_sum_range_sub [add_comm_group β] (f : ℕ → β) (n : ℕ) :
   f n = f 0 + ∑ i in range n, (f (i+1) - f i) :=
@@ -1210,17 +1171,6 @@ begin
   conv_lhs { rw [finset.eq_sum_range_sub f] },
   simp [finset.sum_range_succ', add_comm]
 end
-
-lemma sum_range_add {β} [add_comm_monoid β] (f : ℕ → β) (n : ℕ) (m : ℕ) :
-  (∑ x in range (n + m), f x) =
-  (∑ x in range n, f x) + (∑ x in range m, f (n + x)) :=
-@prod_range_add (multiplicative β) _ _ _ _
-attribute [to_additive] prod_range_add
-
-lemma sum_flip [add_comm_monoid β] {n : ℕ} (f : ℕ → β) :
-  (∑ i in range (n + 1), f (n - i)) = (∑ i in range (n + 1), f i) :=
-@prod_flip (multiplicative β) _ _ _
-attribute [to_additive] prod_flip
 
 section opposite
 
@@ -1467,3 +1417,15 @@ end multiset
 @[simp, norm_cast] lemma units.coe_prod {M : Type*} [comm_monoid M]
   (f : α → units M) (s : finset α) : (↑∏ i in s, f i : M) = ∏ i in s, f i :=
 (units.coe_hom M).map_prod _ _
+
+lemma nat_abs_sum_le {ι : Type*} (s : finset ι) (f : ι → ℤ) :
+  (∑ i in s, f i).nat_abs ≤ ∑ i in s, (f i).nat_abs :=
+begin
+  classical,
+  apply finset.induction_on s,
+  { simp only [finset.sum_empty, int.nat_abs_zero] },
+  { intros i s his IH,
+    simp only [his, finset.sum_insert, not_false_iff],
+    exact (int.nat_abs_add_le _ _).trans (add_le_add le_rfl IH) }
+end
+

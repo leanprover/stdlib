@@ -907,7 +907,7 @@ section lintegral
 open simple_func
 variables [measurable_space α] {μ : measure α}
 
-/-- The lower Lebesgue integral of a function `f` with respect to a measure `μ`. -/
+/-- The **lower Lebesgue integral** of a function `f` with respect to a measure `μ`. -/
 def lintegral (μ : measure α) (f : α → ℝ≥0∞) : ℝ≥0∞ :=
 ⨆ (g : α →ₛ ℝ≥0∞) (hf : ⇑g ≤ f), g.lintegral μ
 

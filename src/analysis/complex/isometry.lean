@@ -3,11 +3,7 @@ Copyright (c) 2021 François Sunatori. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: François Sunatori
 -/
-import analysis.complex.basic
-import data.complex.exponential
-import data.real.sqrt
-import analysis.normed_space.linear_isometry
-import algebra.group.units
+import analysis.complex.circle
 
 /-!
 # Isometries of the Complex Plane
@@ -32,29 +28,46 @@ open complex
 
 local notation `|` x `|` := complex.abs x
 
+/-- An element of the unit circle defines a `linear_isometry_equiv` from `ℂ` to itself, by
+rotation. This is an auxiliary construction; use `rotation`, which has more structure, by
+preference. -/
+def rotation_aux (a : circle) : ℂ ≃ₗᵢ[ℝ] ℂ :=
+{ to_fun := λ z, a * z,
+  map_add' := mul_add ↑a,
+  map_smul' := λ t z, by { simp only [smul_coe], ring },
+  inv_fun := λ z, a⁻¹ * z,
+  left_inv := λ z, by { field_simp [nonzero_of_mem_circle], ring },
+  right_inv := λ z, by { field_simp [nonzero_of_mem_circle], ring },
+  norm_map' := by simp }
+
+/-- An element of the unit circle defines a `linear_isometry_equiv` from `ℂ` to itself, by
+rotation. -/
+def rotation : circle →* (ℂ ≃ₗᵢ[ℝ] ℂ) :=
+{ to_fun := rotation_aux,
+  map_one' := by { ext1, simp [rotation_aux] },
+  map_mul' := λ a b, by { ext1, simp [rotation_aux] } }
+
+@[simp] lemma rotation_apply (a : circle) (z : ℂ) : rotation a z = a * z := rfl
+
 lemma linear_isometry.re_apply_eq_re_of_add_conj_eq (f : ℂ →ₗᵢ[ℝ] ℂ)
   (h₃ : ∀ z, z + conj z = f z + conj (f z)) (z : ℂ) : (f z).re = z.re :=
 by simpa [ext_iff, add_re, add_im, conj_re, conj_im, ←two_mul,
          (show (2 : ℝ) ≠ 0, by simp [two_ne_zero'])] using (h₃ z).symm
 
 lemma linear_isometry.im_apply_eq_im_or_neg_of_re_apply_eq_re {f : ℂ →ₗᵢ[ℝ] ℂ}
-  (h₁ :  ∀ z, |f z| = |z|) (h₂ : ∀ z, (f z).re = z.re) (z : ℂ) :
+  (h₂ : ∀ z, (f z).re = z.re) (z : ℂ) :
   (f z).im = z.im ∨ (f z).im = -z.im :=
 begin
-  specialize h₁ z,
-  simp only [complex.abs] at h₁,
+  have h₁ := f.norm_map z,
+  simp only [complex.abs, norm_eq_abs] at h₁,
   rwa [real.sqrt_inj (norm_sq_nonneg _) (norm_sq_nonneg _), norm_sq_apply (f z), norm_sq_apply z,
     h₂, add_left_cancel_iff, mul_self_eq_mul_self_iff] at h₁,
 end
 
-lemma linear_isometry.abs_apply_sub_one_eq_abs_sub_one {f : ℂ →ₗᵢ[ℝ] ℂ} (h : f 1 = 1) (z : ℂ) :
-  ∥f z - 1∥ = ∥z - 1∥ :=
-by rw [←linear_isometry.norm_map f (z - 1), linear_isometry.map_sub, h]
-
 lemma linear_isometry.im_apply_eq_im {f : ℂ →ₗᵢ[ℝ] ℂ} (h : f 1 = 1) (z : ℂ) :
   z + conj z = f z + conj (f z) :=
 begin
-  have := linear_isometry.abs_apply_sub_one_eq_abs_sub_one h z,
+  have : ∥f z - 1∥ = ∥z - 1∥ := by rw [← f.norm_map (z - 1), f.map_sub, h],
   apply_fun λ x, x ^ 2 at this,
   simp only [norm_eq_abs, ←norm_sq_eq_abs] at this,
   rw [←of_real_inj, ←mul_conj, ←mul_conj] at this,
@@ -74,77 +87,32 @@ begin
   apply linear_isometry.im_apply_eq_im h,
 end
 
-lemma linear_isometry_complex_aux (f : ℂ →ₗᵢ[ℝ] ℂ) (h : f 1 = 1) :
-  (∀ z, f z = z) ∨ (∀ z, f z = conj z) :=
+lemma linear_isometry_complex_aux {f : ℂ ≃ₗᵢ[ℝ] ℂ} (h : f 1 = 1) :
+  f = linear_isometry_equiv.refl ℝ ℂ ∨ f = conj_lie :=
 begin
   have h0 : f I = I ∨ f I = -I,
-  { have : |f I| = 1,
-    { rw [←norm_eq_abs, linear_isometry.norm_map, norm_eq_abs, abs_I] },
+  { have : |f I| = 1 := by simpa using f.norm_map complex.I,
     simp only [ext_iff, ←and_or_distrib_left, neg_re, I_re, neg_im, neg_zero],
     split,
     { rw ←I_re,
-      rw linear_isometry.re_apply_eq_re h },
-    { apply linear_isometry.im_apply_eq_im_or_neg_of_re_apply_eq_re,
-      { intro z, rw [←norm_eq_abs, ←norm_eq_abs, linear_isometry.norm_map] },
-      { intro z, rw linear_isometry.re_apply_eq_re h } } },
-  refine or.imp (λ h1, _) (λ h1 z, _) h0,
-  { suffices : f.to_linear_map = linear_isometry.id.to_linear_map,
-    { simp [this, ←linear_isometry.coe_to_linear_map, linear_map.id_apply] },
-    apply basis.ext basis_one_I,
-    intro i,
-    fin_cases i,
-    { simp [h] },
-    { simp only [matrix.head_cons, linear_isometry.coe_to_linear_map,
-        linear_map.id_coe, id.def, matrix.cons_val_one], simpa } },
-  { suffices : f.to_linear_map = conj_li.to_linear_map,
-    { rw [←linear_isometry.coe_to_linear_map, this],
-      simp only [linear_isometry.coe_to_linear_map], refl },
-    apply basis.ext basis_one_I,
-    intro i,
-    fin_cases i,
-    { simp only [h, linear_isometry.coe_to_linear_map, matrix.cons_val_zero], simpa },
-    { simp only [matrix.head_cons, linear_isometry.coe_to_linear_map,
-        linear_map.id_coe, id.def, matrix.cons_val_one], simpa } },
+      exact @linear_isometry.re_apply_eq_re f.to_linear_isometry h I, },
+    { apply @linear_isometry.im_apply_eq_im_or_neg_of_re_apply_eq_re f.to_linear_isometry,
+      intro z, rw @linear_isometry.re_apply_eq_re f.to_linear_isometry h } },
+  refine h0.imp (λ h' : f I = I, _) (λ h' : f I = -I, _);
+  { apply linear_isometry_equiv.to_linear_equiv_injective,
+    apply complex.basis_one_I.ext',
+    intros i,
+    fin_cases i; simp [h, h'] }
 end
 
-lemma linear_isometry_complex (f : ℂ →ₗᵢ[ℝ] ℂ) :
-  ∃ a : ℂ, |a| = 1 ∧ ((∀ z, f z = a * z) ∨ (∀ z, f z = a * conj z)) :=
+lemma linear_isometry_complex (f : ℂ ≃ₗᵢ[ℝ] ℂ) :
+  ∃ a : circle, f = rotation a ∨ f = conj_lie.trans (rotation a) :=
 begin
-  let a := f 1,
+  let a : circle := ⟨f 1, by simpa using f.norm_map 1⟩,
   use a,
-  split,
-  { simp only [← norm_eq_abs, a, linear_isometry.norm_map, norm_one] },
-  { let g : ℂ →ₗᵢ[ℝ] ℂ :=
-    { to_fun := λ z, a⁻¹ * f z,
-      map_add' := by {
-        intros x y,
-        rw linear_isometry.map_add,
-        rw mul_add },
-      map_smul' := by {
-        intros m x,
-        rw linear_isometry.map_smul,
-        rw algebra.mul_smul_comm },
-      norm_map' := by {
-        intros x,
-        simp,
-        suffices : ∥f 1∥⁻¹ * ∥f x∥ = ∥x∥, { simpa },
-        iterate 2 { rw linear_isometry.norm_map },
-        simp } },
-    have hg1 : g 1 = 1 := by {
-      change a⁻¹ * a = 1,
-      rw inv_mul_cancel,
-      rw ← norm_sq_pos,
-      rw norm_sq_eq_abs,
-      change 0 < ∥a∥ ^ 2,
-      rw linear_isometry.norm_map,
-      simp },
-    have h : (∀ z, g z = z) ∨ (∀ z, g z = conj z) := linear_isometry_complex_aux g hg1,
-    change (∀ z, a⁻¹ * f z = z) ∨ (∀ z, a⁻¹ * f z = conj z) at h,
-    have ha : a ≠ 0 := by {
-      rw ← norm_sq_pos,
-      rw norm_sq_eq_abs,
-      change 0 < ∥a∥ ^ 2,
-      rw linear_isometry.norm_map,
-      simp },
-    simpa only [← inv_mul_eq_iff_eq_mul' ha] }
+  have : (f.trans (rotation a).symm) 1 = 1,
+  { simpa using rotation_apply a⁻¹ (f 1) },
+  refine (linear_isometry_complex_aux this).imp (λ h₁, _) (λ h₂, _),
+  { simpa using eq_mul_of_inv_mul_eq h₁ },
+  { exact eq_mul_of_inv_mul_eq h₂ }
 end

@@ -471,12 +471,24 @@ end
 
 @[simp] lemma map_one : (1 : polynomial R).map f = 1 := eval₂_one _ _
 
+@[simp] lemma map_mul : (p * q).map f = p.map f * q.map f :=
+by { rw [map, eval₂_mul_noncomm], exact λ k, (commute_X _).symm }
+
+@[simp] lemma map_smul (r : R) : (r • p).map f = f r • p.map f :=
+by rw [map, eval₂_smul, ring_hom.comp_apply, C_mul']
+
+/-- `polynomial.map` as a `ring_hom` -/
+def map_ring_hom (f : R →+* S) : polynomial R →+* polynomial S :=
+{ to_fun := polynomial.map f,
+  map_add' := λ _ _, map_add f,
+  map_zero' := map_zero f,
+  map_mul' := λ _ _, map_mul f,
+  map_one' := map_one f }
+
+@[simp] lemma coe_map_ring_hom (f : R →+* S) : ⇑(map_ring_hom f) = map f := rfl
+
 @[simp] theorem map_nat_cast (n : ℕ) : (n : polynomial R).map f = n :=
-begin
-  induction n with n ih,
-  { simp },
-  { rw [n.cast_succ, map_add, ih, map_one, n.cast_succ] }
-end
+(map_ring_hom f).map_nat_cast n
 
 @[simp]
 lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=
@@ -535,24 +547,8 @@ variables (f)
 
 open is_semiring_hom
 
-@[simp] lemma map_mul : (p * q).map f = p.map f * q.map f :=
-by { rw [map, eval₂_mul_noncomm], exact λ k, (commute_X _).symm }
-
 instance map.is_semiring_hom : is_semiring_hom (map f) :=
-{ map_zero := eval₂_zero _ _,
-  map_one := eval₂_one _ _,
-  map_add := λ _ _, eval₂_add _ _,
-  map_mul := λ _ _, map_mul f, }
-
-/-- `polynomial.map` as a `ring_hom` -/
-def map_ring_hom (f : R →+* S) : polynomial R →+* polynomial S :=
-{ to_fun := polynomial.map f,
-  map_add' := λ _ _, eval₂_add _ _,
-  map_zero' := eval₂_zero _ _,
-  map_mul' := λ _ _, map_mul f,
-  map_one' := eval₂_one _ _ }
-
-@[simp] lemma coe_map_ring_hom (f : R →+* S) : ⇑(map_ring_hom f) = map f := rfl
+(map_ring_hom f).is_semiring_hom
 
 @[simp] lemma map_ring_hom_id : map_ring_hom (ring_hom.id R) = ring_hom.id (polynomial R) :=
 ring_hom.ext $ λ x, map_id

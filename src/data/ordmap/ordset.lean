@@ -468,6 +468,12 @@ theorem equiv_iff {t₁ t₂ : ordnode α} (h₁ : sized t₁) (h₂ : sized t�
   equiv t₁ t₂ ↔ to_list t₁ = to_list t₂ :=
 and_iff_right_of_imp $ λ h, by rw [← length_to_list h₁, h, length_to_list h₂]
 
+/-! ### `mem` -/
+
+theorem pos_size_of_mem [has_le α] [@decidable_rel α (≤)]
+  {x : α} {t : ordnode α} (h : sized t) (h_mem : x ∈ t) : 0 < size t :=
+by { cases t, { contradiction }, { simp [h.1] } }
+
 /-! ### `(find/erase/split)_(min/max)` -/
 
 theorem find_min'_dual : ∀ t (x : α), find_min' (dual t) x = find_max' x t
@@ -1426,6 +1432,112 @@ theorem insert'.valid [is_total α (≤)] [@decidable_rel α (≤)]
   (x : α) {t} (h : valid t) : valid (insert' x t) :=
 by rw insert'_eq_insert_with; exact insert_with.valid _ _ (λ _, id) h
 
+theorem valid'.map_aux {β} [preorder β] {f : α → β} (f_strict_mono : strict_mono f)
+  {t a₁ a₂} (h : valid' a₁ t a₂) :
+  valid' (option.map f a₁) (map f t) (option.map f a₂) ∧ (map f t).size = t.size :=
+begin
+  induction t generalizing a₁ a₂,
+  { simp [map], apply valid'_nil,
+    cases a₁, { trivial },
+    cases a₂, { trivial },
+    simp [bounded],
+    exact f_strict_mono h.ord },
+  { have t_ih_l' := t_ih_l h.left,
+    have t_ih_r' := t_ih_r h.right,
+    clear t_ih_l t_ih_r,
+    cases t_ih_l' with t_l_valid t_l_size,
+    cases t_ih_r' with t_r_valid t_r_size,
+    simp [map],
+    split,
+    { exact and.intro t_l_valid.ord t_r_valid.ord },
+    { repeat { split },
+      { rw [t_l_size, t_r_size], exact h.sz.1 },
+      { exact t_l_valid.sz },
+      { exact t_r_valid.sz } },
+    { repeat { split },
+      { rw [t_l_size, t_r_size], exact h.bal.1 },
+      { exact t_l_valid.bal },
+      { exact t_r_valid.bal } } },
+end
+
+theorem map.valid {β} [preorder β] {f : α → β} (f_strict_mono : strict_mono f)
+  {t} (h : valid t) : valid (map f t) :=
+(valid'.map_aux f_strict_mono h).1
+
+theorem valid'.erase_aux [@decidable_rel α (≤)] (x : α) {t a₁ a₂} (h : valid' a₁ t a₂) :
+  valid' a₁ (erase x t) a₂ ∧ raised (erase x t).size t.size :=
+begin
+  induction t generalizing a₁ a₂,
+  { simp [erase, raised], exact h },
+  { simp [erase],
+    have t_ih_l' := t_ih_l h.left,
+    have t_ih_r' := t_ih_r h.right,
+    clear t_ih_l t_ih_r,
+    cases t_ih_l' with t_l_valid t_l_size,
+    cases t_ih_r' with t_r_valid t_r_size,
+    cases (cmp_le x t_x);
+      simp [erase._match_1]; rw h.sz.1,
+    { suffices h_balanceable,
+      split,
+      { exact valid'.balance_r t_l_valid h.right h_balanceable },
+      { rw size_balance_r t_l_valid.bal h.right.bal t_l_valid.sz h.right.sz h_balanceable,
+        repeat { apply raised.add_right },
+        exact t_l_size },
+      { left, existsi t_l.size, exact (and.intro t_l_size h.bal.1) } },
+    { have h_glue := valid'.glue h.left h.right h.bal.1,
+      cases h_glue with h_glue_valid h_glue_sized,
+      split,
+      { exact h_glue_valid },
+      { right, rw h_glue_sized } },
+    { suffices h_balanceable,
+      split,
+      { exact valid'.balance_l h.left t_r_valid h_balanceable },
+      { rw size_balance_l h.left.bal t_r_valid.bal h.left.sz t_r_valid.sz h_balanceable,
+        apply raised.add_right,
+        apply raised.add_left,
+        exact t_r_size },
+      { right, existsi t_r.size, exact (and.intro t_r_size h.bal.1) } } },
+end
+
+theorem erase.valid [@decidable_rel α (≤)] (x : α) {t} (h : valid t) : valid (erase x t) :=
+(valid'.erase_aux x h).1
+
+theorem size_erase_of_mem [@decidable_rel α (≤)]
+  {x : α} {t a₁ a₂} (h : valid' a₁ t a₂) (h_mem : x ∈ t) :
+  size (erase x t) = size t - 1 :=
+begin
+  induction t generalizing a₁ a₂ h h_mem,
+  { contradiction },
+  { have t_ih_l' := t_ih_l h.left,
+    have t_ih_r' := t_ih_r h.right,
+    clear t_ih_l t_ih_r,
+    unfold has_mem.mem mem at h_mem,
+    unfold erase,
+    cases (cmp_le x t_x);
+      simp [mem._match_1] at h_mem; simp [erase._match_1],
+    { have t_ih_l := t_ih_l' h_mem,
+      clear t_ih_l' t_ih_r',
+      have t_l_h := valid'.erase_aux x h.left,
+      cases t_l_h with t_l_valid t_l_size,
+      rw size_balance_r t_l_valid.bal h.right.bal t_l_valid.sz h.right.sz
+        (or.inl (exists.intro t_l.size (and.intro t_l_size h.bal.1))),
+      rw [t_ih_l, h.sz.1],
+      have h_pos_t_l_size := pos_size_of_mem h.left.sz h_mem,
+      cases t_l.size with t_l_size, { cases h_pos_t_l_size },
+      simp [nat.succ_add] },
+    { rw [(valid'.glue h.left h.right h.bal.1).2, h.sz.1], refl },
+    { have t_ih_r := t_ih_r' h_mem,
+      clear t_ih_l' t_ih_r',
+      have t_r_h := valid'.erase_aux x h.right,
+      cases t_r_h with t_r_valid t_r_size,
+      rw size_balance_l h.left.bal t_r_valid.bal h.left.sz t_r_valid.sz
+        (or.inr (exists.intro t_r.size (and.intro t_r_size h.bal.1))),
+      rw [t_ih_r, h.sz.1],
+      have h_pos_t_r_size := pos_size_of_mem h.right.sz h_mem,
+      cases t_r.size with t_r_size, { cases h_pos_t_r_size },
+      simp [nat.succ_add] } },
+end
+
 end
 
 end ordnode
@@ -1474,5 +1586,37 @@ instance [is_total α (≤)] [@decidable_rel α (≤)] : has_insert α (ordset �
   If an equivalent element is already in the set, the set is returned as is. -/
 def insert' [is_total α (≤)] [@decidable_rel α (≤)] (x : α) (s : ordset α) : ordset α :=
 ⟨insert' x s.1, insert'.valid _ s.2⟩
+
+section
+variables [@decidable_rel α (≤)]
+
+/-- O(log n). Does the set contain the element `x`? That is,
+  is there an element that is equivalent to `x` in the order? -/
+def mem (x : α) (s : ordset α) : bool := x ∈ s.val
+
+/-- O(log n). Retrieve an element in the set that is equivalent to `x` in the order,
+  if it exists. -/
+def find (x : α) (s : ordset α) : option α := ordnode.find x s.val
+
+instance : has_mem α (ordset α) := ⟨λ x s, mem x s⟩
+
+instance mem.decidable (x : α) (s : ordset α) : decidable (x ∈ s) := bool.decidable_eq _ _
+
+theorem pos_size_of_mem {x : α} {t : ordset α} (h_mem : x ∈ t) : 0 < size t :=
+begin
+  simp [has_mem.mem, mem] at h_mem,
+  apply ordnode.pos_size_of_mem t.property.sz h_mem,
+end
+
+end
+
+/-- O(log n). Remove an element from the set equivalent to `x`. Does nothing if there
+is no such element. -/
+def erase [@decidable_rel α (≤)] (x : α) (s : ordset α) : ordset α :=
+⟨ordnode.erase x s.val, ordnode.erase.valid x s.property⟩
+
+/-- O(n). Map a function across a tree, without changing the structure. -/
+def map {β} [preorder β] (f : α → β) (f_strict_mono : strict_mono f) (s : ordset α) : ordset β :=
+⟨ordnode.map f s.val, ordnode.map.valid f_strict_mono s.property⟩
 
 end ordset

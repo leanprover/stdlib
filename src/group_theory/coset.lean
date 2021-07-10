@@ -202,7 +202,7 @@ def left_rel [group α] (s : subgroup α) : setoid α :=
     by simpa [mul_assoc] using this⟩
 
 @[to_additive]
-instance left_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (λ a, a ∈ s)] :
+instance left_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (∈ s)] :
   decidable_rel (left_rel s).r := λ _ _, d _
 
 /-- `quotient s` is the quotient type representing the left cosets of `s`.
@@ -224,7 +224,7 @@ def right_rel [group α] (s : subgroup α) : setoid α :=
     by simpa [mul_assoc] using this⟩
 
 @[to_additive]
-instance right_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (λ a, a ∈ s)] :
+instance right_rel_decidable [group α] (s : subgroup α) [d : decidable_pred (∈ s)] :
   decidable_rel (left_rel s).r := λ _ _, d _
 
 end quotient_group
@@ -336,6 +336,7 @@ lemma card_eq_card_quotient_mul_card_subgroup [fintype α] (s : subgroup α) [fi
 by rw ← fintype.card_prod;
   exact fintype.card_congr (subgroup.group_equiv_quotient_times_subgroup)
 
+/-- **Order of a Subgroup** -/
 lemma card_subgroup_dvd_card [fintype α] (s : subgroup α) [fintype s] :
   fintype.card s ∣ fintype.card α :=
 by haveI := classical.prop_decidable; simp [card_eq_card_quotient_mul_card_subgroup s]

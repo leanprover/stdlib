@@ -4,14 +4,35 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
+/-!
+# Inductive type variant of `fin`
+
+`fin` is defined as a subtype of `ℕ`. This file defines an equivalent type, `fin2`, which is
+defined inductively. This is useful for its induction principle and different definitional
+equalities.
+
+## Main declarations
+
+* `fin2 n`: Inductive type variant of `fin n`. `fz` corresponds to `0` and `fs n` corresponds to
+  `n`.
+* `to_nat`, `opt_of_nat`, `of_nat'`: Conversions to and from `ℕ`. `of_nat' m` takes a proof that
+  `m < n` through the class `is_lt`.
+* `add k`: Takes `i : fin2 n` to `i + k : fin2 (n + k)`.
+* `left`: Embeds `fin2 n` into `fin2 (n + k)`.
+* `insert_perm a`: Permutation of `fin2 n` which cycles `0, ..., a - 1` and leaves `a, ..., n - 1`
+  unchanged.
+* `remap_left f`: Function `fin2 (m + k) → fin2 (n + k)` by applying `f : fin m → fin n` to
+  `0, ..., m - 1` and sending `m + i` to `n + i`.
+-/
+
 open nat
 universes u
 
-/-- An alternate definition of `fin n` defined as an inductive type
-  instead of a subtype of `nat`. This is useful for its induction
-  principle and different definitional equalities. -/
+/-- An alternate definition of `fin n` defined as an inductive type instead of a subtype of `ℕ`. -/
 inductive fin2 : ℕ → Type
+/-- `0` as a member of `fin (succ n)` (`fin 0` is empty) -/
 | fz {n} : fin2 (succ n)
+/-- `n` as a member of `fin (succ n)` -/
 | fs {n} : fin2 n → fin2 (succ n)
 
 namespace fin2
@@ -27,12 +48,12 @@ protected def cases' {n} {C : fin2 (succ n) → Sort u} (H1 : C fz) (H2 : Π n, 
 /-- Ex falso. The dependent eliminator for the empty `fin2 0` type. -/
 def elim0 {C : fin2 0 → Sort u} : Π (i : fin2 0), C i.
 
-/-- convert a `fin2` into a `nat` -/
+/-- Converts a `fin2` into a natural. -/
 def to_nat : Π {n}, fin2 n → ℕ
 | ._ (@fz n)   := 0
 | ._ (@fs n i) := succ (to_nat i)
 
-/-- convert a `nat` into a `fin2` if it is in range -/
+/-- Converts a natural into a `fin2` if it is in range -/
 def opt_of_nat : Π {n} (k : ℕ), option (fin2 n)
 | 0 _ := none
 | (succ n) 0 := some fz
@@ -72,9 +93,8 @@ class is_lt (m n : ℕ) := (h : m < n)
 instance is_lt.zero (n) : is_lt 0 (succ n) := ⟨succ_pos _⟩
 instance is_lt.succ (m n) [l : is_lt m n] : is_lt (succ m) (succ n) := ⟨succ_lt_succ l.h⟩
 
-/-- Use type class inference to infer the boundedness proof, so that we
-  can directly convert a `nat` into a `fin2 n`. This supports
-  notation like `&1 : fin 3`. -/
+/-- Use type class inference to infer the boundedness proof, so that we can directly convert a
+`nat` into a `fin2 n`. This supports notation like `&1 : fin 3`. -/
 def of_nat' : Π {n} m [is_lt m n], fin2 n
 | 0        m        ⟨h⟩ := absurd h (not_lt_zero _)
 | (succ n) 0        ⟨h⟩ := fz

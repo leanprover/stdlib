@@ -191,8 +191,15 @@ nonneg_of_mul_nonneg_left this zero_lt_two
 @[simp] theorem abs_dist {a b : α} : abs (dist a b) = dist a b :=
 abs_of_nonneg dist_nonneg
 
+/-- A version of `has_dist` that takes value in `ℝ≥0`. -/
+class has_nndist (α : Type*) := (nndist : α → α → ℝ≥0)
+
+export has_nndist (nndist)
+
+
 /-- Distance as a nonnegative real number. -/
-def nndist (a b : α) : ℝ≥0 := ⟨dist a b, dist_nonneg⟩
+@[priority 100] -- see Note [lower instance priority]
+instance pseudo_metric_space.to_has_nndist : has_nndist α := ⟨λ a b, ⟨dist a b, dist_nonneg⟩⟩
 
 /--Express `nndist` in terms of `edist`-/
 lemma nndist_edist (x y : α) : nndist x y = (edist x y).to_nnreal :=
@@ -200,7 +207,7 @@ by simp [nndist, edist_dist, real.to_nnreal, max_eq_left dist_nonneg, ennreal.of
 
 /--Express `edist` in terms of `nndist`-/
 lemma edist_nndist (x y : α) : edist x y = ↑(nndist x y) :=
-by { rw [edist_dist, nndist, ennreal.of_real_eq_coe_nnreal] }
+by { simpa only [edist_dist, ennreal.of_real_eq_coe_nnreal dist_nonneg] }
 
 @[simp, norm_cast] lemma coe_nnreal_ennreal_nndist (x y : α) : ↑(nndist x y) = edist x y :=
 (edist_nndist x y).symm

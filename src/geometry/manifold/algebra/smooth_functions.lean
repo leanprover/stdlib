@@ -163,6 +163,11 @@ def coe_fn_ring_hom {R : Type*} [comm_ring R] [topological_space R]
   ..(coe_fn_monoid_hom : C^∞⟮I, N; I', R⟯ →* _),
   ..(coe_fn_add_monoid_hom : C^∞⟮I, N; I', R⟯ →+ _) }
 
+/-- `function.eval` as a `ring_hom` on the ring of smooth functions. -/
+def eval_ring_hom {R : Type*} [comm_ring R] [topological_space R]
+  [charted_space H' R] [smooth_ring I' R] (n : N) : C^∞⟮I, N; I', R⟯ →+* R :=
+(pi.eval_ring_hom _ n : (N → R) →+* R).comp smooth_map.coe_fn_ring_hom
+
 end ring_structure
 
 section module_structure

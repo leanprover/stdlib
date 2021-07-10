@@ -71,12 +71,17 @@ See `matrix.to_linear_equiv'` for this result on `n → R`.
 noncomputable def to_linear_equiv [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
   M ≃ₗ[R] M :=
 begin
-  refine ⟨to_lin b b A, linear_map.map_add _, linear_map.map_smul _, to_lin b b A⁻¹,
-          λ x, _, λ x, _⟩;
+  refine {
+    to_fun := to_lin b b A,
+    inv_fun := to_lin b b A⁻¹,
+    left_inv := λ x, _,
+    right_inv := λ x, _,
+    .. to_lin b b A };
   simp only [← linear_map.comp_apply, ← matrix.to_lin_mul b b b,
              matrix.nonsing_inv_mul _ hA, matrix.mul_nonsing_inv _ hA,
              to_lin_one, linear_map.id_apply]
 end
+
 lemma ker_to_lin_eq_bot [decidable_eq n] (A : matrix n n R) (hA : is_unit A.det) :
   (to_lin b b A).ker = ⊥ :=
 ker_eq_bot.mpr (to_linear_equiv b A hA).injective

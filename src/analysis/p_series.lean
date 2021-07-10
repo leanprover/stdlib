@@ -211,7 +211,7 @@ by simpa
 lemma real.not_summable_one_div_nat_cast : ¬summable (λ n, 1 / n : ℕ → ℝ) :=
 by simpa only [inv_eq_one_div] using real.not_summable_nat_cast_inv
 
-/-- Harmonic series diverges. -/
+/-- **Divergence of the Harmonic Series** -/
 lemma real.tendsto_sum_range_one_div_nat_succ_at_top :
   tendsto (λ n, ∑ i in finset.range n, (1 / (i + 1) : ℝ)) at_top at_top :=
 begin

@@ -2,14 +2,19 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
-
-The (classical) real numbers ℝ. This is a direct construction
-from Cauchy sequences.
 -/
 import order.conditionally_complete_lattice
 import data.real.cau_seq_completion
 import algebra.archimedean
 import algebra.star.basic
+
+/-!
+# Real numbers from Cauchy sequences
+
+This file defines `ℝ` as the type of equivalence classes of Cauchy sequences of rational numbers.
+This choice is motivated by how easy it is to prove that `ℝ` is a commutative ring, by simply
+lifting everything to `ℚ`.
+-/
 
 /-- The type `ℝ` of real numbers constructed as equivalence classes of Cauchy sequences of rational
 numbers. -/
@@ -71,7 +76,11 @@ begin
     apply left_distrib <|> apply right_distrib <|> apply sub_eq_add_neg <|> skip
 end
 
-/- Extra instances to short-circuit type class resolution -/
+/-! Extra instances to short-circuit type class resolution.
+
+ These short-circuits have an additional property of ensuring that a computable path is found; if
+ `field ℝ` is found first, then decaying it to these typeclasses would result in a `noncomputable`
+ version of them. -/
 instance : ring ℝ               := by apply_instance
 instance : comm_semiring ℝ      := by apply_instance
 instance : semiring ℝ           := by apply_instance
@@ -88,6 +97,7 @@ instance : monoid ℝ             := by apply_instance
 instance : comm_semigroup ℝ     := by apply_instance
 instance : semigroup ℝ          := by apply_instance
 instance : has_sub ℝ            := by apply_instance
+instance : module ℝ ℝ           := by apply_instance
 instance : inhabited ℝ          := ⟨0⟩
 
 /-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/
@@ -246,16 +256,16 @@ noncomputable instance : linear_ordered_field ℝ :=
 
 /- Extra instances to short-circuit type class resolution -/
 
-noncomputable instance : linear_ordered_add_comm_group ℝ := by apply_instance
-noncomputable instance field : field ℝ := by apply_instance
-noncomputable instance : division_ring ℝ           := by apply_instance
-noncomputable instance : integral_domain ℝ         := by apply_instance
-noncomputable instance : distrib_lattice ℝ := by apply_instance
-noncomputable instance : lattice ℝ         := by apply_instance
-noncomputable instance : semilattice_inf ℝ := by apply_instance
-noncomputable instance : semilattice_sup ℝ := by apply_instance
-noncomputable instance : has_inf ℝ         := by apply_instance
-noncomputable instance : has_sup ℝ         := by apply_instance
+noncomputable instance : linear_ordered_add_comm_group ℝ          := by apply_instance
+noncomputable instance field : field ℝ                            := by apply_instance
+noncomputable instance : division_ring ℝ                          := by apply_instance
+noncomputable instance : integral_domain ℝ                        := by apply_instance
+noncomputable instance : distrib_lattice ℝ                        := by apply_instance
+noncomputable instance : lattice ℝ                                := by apply_instance
+noncomputable instance : semilattice_inf ℝ                        := by apply_instance
+noncomputable instance : semilattice_sup ℝ                        := by apply_instance
+noncomputable instance : has_inf ℝ                                := by apply_instance
+noncomputable instance : has_sup ℝ                                := by apply_instance
 noncomputable instance decidable_lt (a b : ℝ) : decidable (a < b) := by apply_instance
 noncomputable instance decidable_le (a b : ℝ) : decidable (a ≤ b) := by apply_instance
 noncomputable instance decidable_eq (a b : ℝ) : decidable (a = b) := by apply_instance

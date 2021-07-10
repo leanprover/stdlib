@@ -69,6 +69,8 @@ f.map_smul' m x
 theorem ext_iff {f g : X →[M'] Y} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ H x, by rw H, ext⟩
 
+protected lemma congr_fun {f g : X →[M'] Y} (h : f = g) (x : X) : f x = g x := h ▸ rfl
+
 variables (M M') {X}
 
 /-- The identity map as an equivariant map. -/
@@ -150,6 +152,16 @@ variables {M A B}
 theorem ext_iff {f g : A →+[M] B} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ H x, by rw H, ext⟩
 
+protected lemma congr_fun {f g : A →+[M] B} (h : f = g) (x : A) : f x = g x := h ▸ rfl
+
+lemma to_mul_action_hom_injective {f g : A →+[M] B}
+  (h : (f : A →[M] B) = (g : A →[M] B)) : f = g :=
+by { ext a, exact mul_action_hom.congr_fun h a, }
+
+lemma to_add_monoid_hom_injective {f g : A →+[M] B}
+  (h : (f : A →+ B) = (g : A →+ B)) : f = g :=
+by { ext a, exact add_monoid_hom.congr_fun h a, }
+
 @[simp] lemma map_zero (f : A →+[M] B) : f 0 = 0 :=
 f.map_zero'
 
@@ -211,6 +223,19 @@ ext $ λ x, by rw [comp_apply, id_apply]
 { to_fun := g,
   .. (f : A →+ B).inverse g h₁ h₂,
   .. (f : A →[M] B).inverse g h₁ h₂ }
+
+section semiring
+
+variables {R M'} [add_monoid M'] [distrib_mul_action R M']
+
+@[ext] lemma ext_ring
+  {f g : R →+[R] M'} (h : f 1 = g 1) : f = g :=
+by { ext x, rw [← mul_one x, ← smul_eq_mul R, f.map_smul, g.map_smul, h], }
+
+lemma ext_ring_iff {f g : R →+[R] M'} : f = g ↔ f 1 = g 1 :=
+⟨λ h, h ▸ rfl, ext_ring⟩
+
+end semiring
 
 end distrib_mul_action_hom
 

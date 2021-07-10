@@ -81,7 +81,7 @@ instance : topological_group circle :=
 { continuous_mul := let h : continuous (λ x : circle, (x : ℂ)) := continuous_subtype_coe in
     continuous_induced_rng (continuous_mul.comp (h.prod_map h)),
   continuous_inv := continuous_induced_rng $
-    complex.conj_clm.continuous.comp continuous_subtype_coe }
+    complex.conj_cle.continuous.comp continuous_subtype_coe }
 
 /-- The map `λ t, exp (t * I)` from `ℝ` to the unit circle in `ℂ`. -/
 def exp_map_circle (t : ℝ) : circle :=

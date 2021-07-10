@@ -383,6 +383,7 @@ begin
   linarith
 end
 
+/-- **Huang sensitivity theorem** also known as the **Huang degree theorem** -/
 theorem huang_degree_theorem (H : set (Q (m + 1))) (hH : Card H ≥ 2^m + 1) :
   ∃ q, q ∈ H ∧ √(m + 1) ≤ Card (H ∩ q.adjacent) :=
 begin

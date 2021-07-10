@@ -166,6 +166,7 @@ begin
     exact (mem_roots fR0).mpr (is_root.def.mpr hy) }
 end
 
+/-- **Liouville's Theorem** -/
 theorem transcendental {x : ℝ} (lx : liouville x) :
   transcendental ℤ x :=
 begin

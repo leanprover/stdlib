@@ -55,9 +55,9 @@ def mk₂' (f : M → N → P)
   (H2 : ∀ (c:R) m n, f (c • m) n = c • f m n)
   (H3 : ∀ m n₁ n₂, f m (n₁ + n₂) = f m n₁ + f m n₂)
   (H4 : ∀ (c:S) m n, f m (c • n) = c • f m n) : M →ₗ[R] N →ₗ[S] P :=
-⟨λ m, ⟨f m, H3 m, λ c, H4 c m⟩,
-λ m₁ m₂, linear_map.ext $ H1 m₁ m₂,
-λ c m, linear_map.ext $ H2 c m⟩
+{ to_fun := λ m, { to_fun := f m, map_add' := H3 m, map_smul' := λ c, H4 c m},
+  map_add' := λ m₁ m₂, linear_map.ext $ H1 m₁ m₂,
+  map_smul' := λ c m, linear_map.ext $ H2 c m }
 variables {R S}
 
 @[simp] theorem mk₂'_apply
@@ -140,7 +140,7 @@ variables (R M N P)
 /-- Given a linear map from `M` to linear maps from `N` to `P`, i.e., a bilinear map `M → N → P`,
 change the order of variables and get a linear map from `N` to linear maps from `M` to `P`. -/
 def lflip : (M →ₗ[R] N →ₗ[R] P) →ₗ[R] N →ₗ[R] M →ₗ[R] P :=
-⟨flip, λ _ _, rfl, λ _ _, rfl⟩
+{ to_fun := flip, map_add' := λ _ _, rfl, map_smul' := λ _ _, rfl }
 variables {R M N P}
 
 variables (f : M →ₗ[R] N →ₗ[R] P)
@@ -160,9 +160,9 @@ variables {R P}
 variables (R M N P)
 /-- Composing a linear map `M → N` and a linear map `N → P` to form a linear map `M → P`. -/
 def llcomp : (N →ₗ[R] P) →ₗ[R] (M →ₗ[R] N) →ₗ M →ₗ P :=
-flip ⟨lcomp R P,
-  λ f f', ext₂ $ λ g x, g.map_add _ _,
-  λ (c : R) f, ext₂ $ λ g x, g.map_smul _ _⟩
+flip { to_fun := lcomp R P,
+       map_add' := λ f f', ext₂ $ λ g x, g.map_add _ _,
+       map_smul' := λ (c : R) f, ext₂ $ λ g x, g.map_smul _ _ }
 variables {R M N P}
 
 section

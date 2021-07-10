@@ -118,6 +118,25 @@ lemma set.finite.is_closed_convex_hull [t2_space E] {s : set E} (hs : finite s) 
   is_closed (convex_hull s) :=
 hs.compact_convex_hull.is_closed
 
+/-- If `x ∈ s` and `y ∈ interior s`, then the segment `(x, y]` is included in `interior s`. -/
+lemma convex.add_smul_sub_mem_interior {s : set E} (hs : convex s)
+  {x y : E} (hx : x ∈ s) (hy : y ∈ interior s) {t : ℝ} (ht : t ∈ Ioc (0 : ℝ) 1) :
+  x + t • (y - x) ∈ interior s :=
+begin
+  let f := λ z, x + t • (z - x),
+  have : is_open_map f := (is_open_map_add_left _).comp
+    ((is_open_map_smul (units.mk0 _ ht.1.ne')).comp (is_open_map_sub_right _)),
+  apply mem_interior.2 ⟨f '' (interior s), _, this _ is_open_interior, mem_image_of_mem _ hy⟩,
+  refine image_subset_iff.2 (λ z hz, _),
+  exact hs.add_smul_sub_mem hx (interior_subset hz) ⟨ht.1.le, ht.2⟩,
+end
+
+/-- If `x ∈ s` and `x + y ∈ interior s`, then `x + t y ∈ interior s` for `t ∈ (0, 1]`. -/
+lemma convex.add_smul_mem_interior {s : set E} (hs : convex s)
+  {x y : E} (hx : x ∈ s) (hy : x + y ∈ interior s) {t : ℝ} (ht : t ∈ Ioc (0 : ℝ) 1) :
+  x + t • y ∈ interior s :=
+by { convert hs.add_smul_sub_mem_interior hx hy ht, abel }
+
 end has_continuous_smul
 
 /-! ### Normed vector space -/

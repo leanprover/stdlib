@@ -63,52 +63,6 @@ section normed_group
 variables [normed_group E] [measurable_space E] {f g : α → E} {s t : set α} {μ ν : measure α}
   {l l' : filter α} [borel_space E] [second_countable_topology E]
 
-/-- To prove something for an arbitrary integrable function in a second countable
-Borel normed group, it suffices to show that
-* the property holds for (multiples of) characteristic functions;
-* is closed under addition;
-* the set of functions in the `L¹` space for which the property holds is closed.
-* the property is closed under the almost-everywhere equal relation.
-
-It is possible to make the hypotheses in the induction steps a bit stronger, and such conditions
-can be added once we need them (for example in `h_add` it is only necessary to consider the sum of
-a simple function with a multiple of a characteristic function and that the intersection
-of their images is a subset of `{0}`).
--/
-@[elab_as_eliminator]
-lemma integrable.induction (P : (α → E) → Prop)
-  (h_ind : ∀ (c : E) ⦃s⦄, measurable_set s → μ s < ∞ → P (s.indicator (λ _, c)))
-  (h_add : ∀ ⦃f g : α → E⦄, disjoint (support f) (support g) → integrable f μ → integrable g μ →
-    P f → P g → P (f + g))
-  (h_closed : is_closed {f : α →₁[μ] E | P f} )
-  (h_ae : ∀ ⦃f g⦄, f =ᵐ[μ] g → integrable f μ → P f → P g) :
-  ∀ ⦃f : α → E⦄ (hf : integrable f μ), P f :=
-begin
-  have : ∀ (f : simple_func α E), integrable f μ → P f,
-  { refine simple_func.induction _ _,
-    { intros c s hs h, dsimp only [simple_func.coe_const, simple_func.const_zero,
-        piecewise_eq_indicator, simple_func.coe_zero, simple_func.coe_piecewise] at h ⊢,
-      by_cases hc : c = 0,
-      { subst hc, convert h_ind 0 measurable_set.empty (by simp) using 1, simp [const] },
-      apply h_ind c hs,
-      have : (nnnorm c : ℝ≥0∞) * μ s < ∞,
-      { have := @comp_indicator _ _ _ _ (λ x : E, (nnnorm x : ℝ≥0∞)) (const α c) s,
-        dsimp only at this,
-        have h' := h.has_finite_integral,
-        simpa [has_finite_integral, this, lintegral_indicator, hs] using h' },
-      exact ennreal.lt_top_of_mul_lt_top_right this (by simp [hc]) },
-    { intros f g hfg hf hg int_fg,
-      rw [simple_func.coe_add, integrable_add hfg f.measurable g.measurable] at int_fg,
-      refine h_add hfg int_fg.1 int_fg.2 (hf int_fg.1) (hg int_fg.2) } },
-  have : ∀ (f : α →₁ₛ[μ] E), P f,
-  { intro f,
-    exact h_ae (L1.simple_func.to_simple_func_eq_to_fun f) (L1.simple_func.integrable f)
-      (this (L1.simple_func.to_simple_func f) (L1.simple_func.integrable f)) },
-  have : ∀ (f : α →₁[μ] E), P f :=
-    λ f, L1.simple_func.dense_range.induction_on f h_closed this,
-  exact λ f hf, h_ae hf.coe_fn_to_L1 (L1.integrable_coe_fn _) (this (hf.to_L1 f)),
-end
-
 variables [complete_space E] [normed_space ℝ E]
 
 
@@ -288,6 +242,94 @@ begin
     (ne_of_lt $ (has_finite_integral_iff_of_real (ae_restrict_of_ae hf)).mp hfi.integrable_on.2),
   exact (lintegral_mono_set' hst),
 end
+
+
+section continuous_set_integral
+/-! ### Continuity of the set integral
+
+We prove that for any set `s`, the function `λ f : α →₁[μ] E, ∫ x in s, f x ∂μ` is continuous. -/
+
+variables [normed_group E] [measurable_space E] [second_countable_topology E] [borel_space E]
+  {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜]
+  [normed_group F] [measurable_space F] [second_countable_topology F] [borel_space F]
+  [normed_space 𝕜 F]
+  {p : ℝ≥0∞} {μ : measure α}
+
+/-- For `f : Lp E p μ`, we can define an element of `Lp E p (μ.restrict s)` by
+`(Lp.mem_ℒp f).restrict s).to_Lp f`. This map is additive. -/
+lemma Lp_to_Lp_restrict_add (f g : Lp E p μ) (s : set α) :
+  ((Lp.mem_ℒp (f + g)).restrict s).to_Lp ⇑(f + g)
+    = ((Lp.mem_ℒp f).restrict s).to_Lp f + ((Lp.mem_ℒp g).restrict s).to_Lp g :=
+begin
+  ext1,
+  refine (ae_restrict_of_ae (Lp.coe_fn_add f g)).mp _,
+  refine (Lp.coe_fn_add (mem_ℒp.to_Lp f ((Lp.mem_ℒp f).restrict s))
+    (mem_ℒp.to_Lp g ((Lp.mem_ℒp g).restrict s))).mp _,
+  refine (mem_ℒp.coe_fn_to_Lp ((Lp.mem_ℒp f).restrict s)).mp _,
+  refine (mem_ℒp.coe_fn_to_Lp ((Lp.mem_ℒp g).restrict s)).mp _,
+  refine (mem_ℒp.coe_fn_to_Lp ((Lp.mem_ℒp (f+g)).restrict s)).mono (λ x hx1 hx2 hx3 hx4 hx5, _),
+  rw [hx4, hx1, pi.add_apply, hx2, hx3, hx5, pi.add_apply],
+end
+
+/-- For `f : Lp E p μ`, we can define an element of `Lp E p (μ.restrict s)` by
+`(Lp.mem_ℒp f).restrict s).to_Lp f`. This map commutes with scalar multiplication. -/
+lemma Lp_to_Lp_restrict_smul [opens_measurable_space 𝕜] (c : 𝕜) (f : Lp F p μ) (s : set α) :
+  ((Lp.mem_ℒp (c • f)).restrict s).to_Lp ⇑(c • f) = c • (((Lp.mem_ℒp f).restrict s).to_Lp f) :=
+begin
+  ext1,
+  refine (ae_restrict_of_ae (Lp.coe_fn_smul c f)).mp _,
+  refine (mem_ℒp.coe_fn_to_Lp ((Lp.mem_ℒp f).restrict s)).mp _,
+  refine (mem_ℒp.coe_fn_to_Lp ((Lp.mem_ℒp (c • f)).restrict s)).mp _,
+  refine (Lp.coe_fn_smul c (mem_ℒp.to_Lp f ((Lp.mem_ℒp f).restrict s))).mono
+    (λ x hx1 hx2 hx3 hx4, _),
+  rw [hx2, hx1, pi.smul_apply, hx3, hx4, pi.smul_apply],
+end
+
+/-- For `f : Lp E p μ`, we can define an element of `Lp E p (μ.restrict s)` by
+`(Lp.mem_ℒp f).restrict s).to_Lp f`. This map is non-expansive. -/
+lemma norm_Lp_to_Lp_restrict_le (s : set α) (f : Lp E p μ) :
+  ∥((Lp.mem_ℒp f).restrict s).to_Lp f∥ ≤ ∥f∥ :=
+begin
+  rw [Lp.norm_def, Lp.norm_def, ennreal.to_real_le_to_real (Lp.snorm_ne_top _) (Lp.snorm_ne_top _)],
+  refine (le_of_eq _).trans (snorm_mono_measure _ measure.restrict_le_self),
+  { exact s, },
+  exact snorm_congr_ae (mem_ℒp.coe_fn_to_Lp _),
+end
+
+variables (α F 𝕜)
+/-- Continuous linear map sending a function of `Lp F p μ` to the same function in
+`Lp F p (μ.restrict s)`. -/
+def Lp_to_Lp_restrict_clm [borel_space 𝕜] (μ : measure α) (p : ℝ≥0∞) [hp : fact (1 ≤ p)]
+  (s : set α) :
+  Lp F p μ →L[𝕜] Lp F p (μ.restrict s) :=
+@linear_map.mk_continuous 𝕜 (Lp F p μ) (Lp F p (μ.restrict s)) _ _ _ _ _
+  ⟨λ f, mem_ℒp.to_Lp f ((Lp.mem_ℒp f).restrict s), λ f g, Lp_to_Lp_restrict_add f g s,
+    λ c f, Lp_to_Lp_restrict_smul c f s⟩
+  1 (by { intro f, rw one_mul, exact norm_Lp_to_Lp_restrict_le s f, })
+
+variables {α F 𝕜}
+
+variables (𝕜)
+lemma Lp_to_Lp_restrict_clm_coe_fn [borel_space 𝕜] [hp : fact (1 ≤ p)] (s : set α) (f : Lp F p μ) :
+  Lp_to_Lp_restrict_clm α F 𝕜 μ p s f =ᵐ[μ.restrict s] f :=
+mem_ℒp.coe_fn_to_Lp ((Lp.mem_ℒp f).restrict s)
+variables {𝕜}
+
+@[continuity]
+lemma continuous_set_integral [normed_space ℝ E] [complete_space E] (s : set α) :
+  continuous (λ f : α →₁[μ] E, ∫ x in s, f x ∂μ) :=
+begin
+  haveI : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_rfl⟩,
+  have h_comp : (λ f : α →₁[μ] E, ∫ x in s, f x ∂μ)
+    = (integral (μ.restrict s)) ∘ (λ f, Lp_to_Lp_restrict_clm α E ℝ μ 1 s f),
+  { ext1 f,
+    rw [function.comp_apply, integral_congr_ae (Lp_to_Lp_restrict_clm_coe_fn ℝ s f)], },
+  rw h_comp,
+  exact continuous_integral.comp (Lp_to_Lp_restrict_clm α E ℝ μ 1 s).continuous,
+end
+
+end continuous_set_integral
+
 
 end measure_theory
 
@@ -503,7 +545,7 @@ linear_isometry.integral_comp_comm (@is_R_or_C.of_real_li 𝕜 _) f
 
 lemma integral_conj {𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space 𝕜] [borel_space 𝕜] {f : α → 𝕜} :
   ∫ a, is_R_or_C.conj (f a) ∂μ = is_R_or_C.conj ∫ a, f a ∂μ :=
-linear_isometry.integral_comp_comm (@is_R_or_C.conj_li 𝕜 _) f
+(@is_R_or_C.conj_lie 𝕜 _).to_linear_isometry.integral_comp_comm f
 
 lemma fst_integral {f : α → E × F} (hf : integrable f μ) :
   (∫ x, f x ∂μ).1 = ∫ x, (f x).1 ∂μ :=

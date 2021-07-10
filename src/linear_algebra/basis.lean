@@ -236,7 +236,7 @@ section map
 variables (f : M ≃ₗ[R] M')
 
 /-- Apply the linear equivalence `f` to the basis vectors. -/
-protected def map : basis ι R M' :=
+@[simps] protected def map : basis ι R M' :=
 of_repr (f.symm.trans b.repr)
 
 @[simp] lemma map_apply (i) : b.map f i = f (b i) := rfl

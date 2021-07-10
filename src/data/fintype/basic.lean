@@ -692,6 +692,8 @@ instance : fintype bool := ⟨⟨tt ::ₘ ff ::ₘ 0, by simp⟩, λ x, by cases
 instance units_int.fintype : fintype (units ℤ) :=
 ⟨{1, -1}, λ x, by cases int.units_eq_one_or x; simp *⟩
 
+@[simp] lemma units_int.univ : (finset.univ : finset (units ℤ)) = {1, -1} := rfl
+
 instance additive.fintype : Π [fintype α], fintype (additive α) := id
 
 instance multiplicative.fintype : Π [fintype α], fintype (multiplicative α) := id
@@ -1062,7 +1064,10 @@ fintype.of_surjective quotient.mk (λ x, quotient.induction_on x (λ x, ⟨x, rf
 instance finset.fintype [fintype α] : fintype (finset α) :=
 ⟨univ.powerset, λ x, finset.mem_powerset.2 (finset.subset_univ _)⟩
 
-instance function.embedding.fintype {α β} [fintype α] [fintype β]
+-- irreducible due to this conversation on Zulip:
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/
+-- topic/.60simp.60.20ignoring.20lemmas.3F/near/241824115
+@[irreducible] instance function.embedding.fintype {α β} [fintype α] [fintype β]
   [decidable_eq α] [decidable_eq β] : fintype (α ↪ β) :=
 fintype.of_equiv _ (equiv.subtype_injective_equiv_embedding α β)
 
@@ -1539,8 +1544,13 @@ begin
   intros x y, contrapose, apply hf,
 end
 
+-- irreducible due to this conversation on Zulip:
+-- https://leanprover.zulipchat.com/#narrow/stream/113488-general/
+-- topic/.60simp.60.20ignoring.20lemmas.3F/near/241824115
+
+@[irreducible]
 instance function.embedding.is_empty {α β} [infinite α] [fintype β] : is_empty (α ↪ β) :=
-⟨λ f, let ⟨x, y, ne, feq⟩ := fintype.exists_ne_map_eq_of_infinite f in ne $ f.injective feq⟩
+  ⟨λ f, let ⟨x, y, ne, feq⟩ := fintype.exists_ne_map_eq_of_infinite f in ne $ f.injective feq⟩
 
 @[priority 100]
 noncomputable instance function.embedding.fintype' {α β : Type*} [fintype β] : fintype (α ↪ β) :=

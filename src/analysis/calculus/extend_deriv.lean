@@ -85,11 +85,11 @@ begin
     apply continuous_within_at.mono _ this,
     simp only [continuous_within_at] },
   rw nhds_within_prod_eq,
-  { have : f v - f u - (f' v - f' u) = f v - f' v - (f u - f' u) := by abel,
-    rw this,
-    convert tendsto.comp continuous_norm.continuous_at
-      ((tendsto.comp (f_cont' v v_in) tendsto_snd).sub $ tendsto.comp (f_cont' u u_in) tendsto_fst),
-    intros, simp, abel },
+  { have : ∀ u v, f v - f u - (f' v - f' u) = f v - f' v - (f u - f' u) := by { intros, abel },
+    simp only [this],
+    exact tendsto.comp continuous_norm.continuous_at
+      ((tendsto.comp (f_cont' v v_in) tendsto_snd).sub $
+        tendsto.comp (f_cont' u u_in) tendsto_fst) },
   { apply tendsto_nhds_within_of_tendsto_nhds,
     rw nhds_prod_eq,
     exact tendsto_const_nhds.mul

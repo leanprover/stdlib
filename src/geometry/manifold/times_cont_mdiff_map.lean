@@ -52,6 +52,8 @@ instance : has_coe_to_fun C^n⟮I, M; I', M'⟯ := ⟨_, times_cont_mdiff_map.to
 instance : has_coe C^n⟮I, M; I', M'⟯ C(M, M') :=
 ⟨λ f, ⟨f.to_fun, f.times_cont_mdiff_to_fun.continuous⟩⟩
 
+attribute [to_additive_ignore_args 21] times_cont_mdiff_map
+  times_cont_mdiff_map.has_coe_to_fun times_cont_mdiff_map.continuous_map.has_coe
 variables {f g : C^n⟮I, M; I', M'⟯}
 
 @[simp] lemma coe_fn_mk (f : M → M') (hf : times_cont_mdiff I I' n f) :

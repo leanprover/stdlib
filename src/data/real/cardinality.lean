@@ -158,7 +158,7 @@ end
 lemma mk_univ_real : #(set.univ : set ℝ) = 2 ^ omega.{0} :=
 by rw [mk_univ, mk_real]
 
-/-- The reals are not countable. -/
+/-- **Non-Denumerability of the Continuum**: The reals are not countable. -/
 lemma not_countable_real : ¬ countable (set.univ : set ℝ) :=
 by { rw [countable_iff, not_le, mk_univ_real], apply cantor }
 

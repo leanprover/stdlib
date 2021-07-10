@@ -244,7 +244,7 @@ by classical;
 calc ∏ x in s, f x = (∏ x in s.filter (λ x, f x = 1), f x) * ∏ x in s.filter (λ x, f x ≠ 1), f x :
     by rw [← prod_union, filter_union_filter_neg_eq];
        exact disjoint_filter.2 (assume _ _ h n_h, n_h h)
-  ... ≤ (∏ x in t, f x) : mul_le_of_le_one_of_le'
+  ... ≤ (∏ x in t, f x) : mul_le_of_le_one_of_le
       (prod_le_one' $ by simp only [mem_filter, and_imp]; exact λ _ _, le_of_eq)
       (prod_le_prod_of_subset' $ by simpa only [subset_iff, mem_filter, and_imp])
 

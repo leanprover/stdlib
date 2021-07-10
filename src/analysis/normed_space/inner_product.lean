@@ -233,7 +233,7 @@ lemma inner_sub_sub_self {x y : F} : ⟪x - y, x - y⟫ = ⟪x, x⟫ - ⟪x, y�
 by simp only [inner_sub_left, inner_sub_right]; ring
 
 /--
-Cauchy–Schwarz inequality. This proof follows "Proof 2" on Wikipedia.
+**Cauchy–Schwarz inequality**. This proof follows "Proof 2" on Wikipedia.
 We need this for the `core` structure to prove the triangle inequality below when
 showing the core is a normed group.
 -/
@@ -2465,6 +2465,20 @@ lemma id_eq_sum_orthogonal_projection_self_orthogonal_complement
   = K.subtypeL.comp (orthogonal_projection K)
   + Kᗮ.subtypeL.comp (orthogonal_projection Kᗮ) :=
 by { ext w, exact eq_sum_orthogonal_projection_self_orthogonal_complement K w }
+
+/-- The orthogonal projection is self-adjoint. -/
+lemma inner_orthogonal_projection_left_eq_right [complete_space E]
+  [complete_space K] (u v : E) :
+  ⟪↑(orthogonal_projection K u), v⟫ = ⟪u, orthogonal_projection K v⟫ :=
+begin
+  nth_rewrite 0 eq_sum_orthogonal_projection_self_orthogonal_complement K v,
+  nth_rewrite 1 eq_sum_orthogonal_projection_self_orthogonal_complement K u,
+  rw [inner_add_left, inner_add_right,
+    submodule.inner_right_of_mem_orthogonal (submodule.coe_mem (orthogonal_projection K u))
+      (submodule.coe_mem (orthogonal_projection Kᗮ v)),
+    submodule.inner_left_of_mem_orthogonal (submodule.coe_mem (orthogonal_projection K v))
+      (submodule.coe_mem (orthogonal_projection Kᗮ u))],
+end
 
 open finite_dimensional
 

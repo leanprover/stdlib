@@ -104,11 +104,13 @@ lemma map_sub [∀ i j, add_group (α i j)] {β : m → n → Type w} [∀ i j, 
   (M - N).map (λ i j, @f i j) = M.map (λ i j, @f i j) - N.map (λ i j, @f i j) :=
 by { ext, simp }
 
-lemma subsingleton_of_empty_left (hm : ¬ nonempty m) : subsingleton (dmatrix m n α) :=
-⟨λ M N, by { ext, contrapose! hm, use i }⟩
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma subsingleton_of_empty_left [is_empty m] : subsingleton (dmatrix m n α) :=
+⟨λ M N, by { ext, exact is_empty_elim i }⟩
 
-lemma subsingleton_of_empty_right (hn : ¬ nonempty n) : subsingleton (dmatrix m n α) :=
-⟨λ M N, by { ext, contrapose! hn, use j }⟩
+-- TODO[gh-6025]: make this an instance once safe to do so
+lemma subsingleton_of_empty_right [is_empty n] : subsingleton (dmatrix m n α) :=
+⟨λ M N, by { ext, exact is_empty_elim j }⟩
 
 end dmatrix
 

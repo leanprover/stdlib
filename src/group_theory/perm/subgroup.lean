@@ -26,7 +26,7 @@ universes u
 
 instance sum_congr_hom.decidable_mem_range {α β : Type*}
   [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
-  decidable_pred (λ x, x ∈ (sum_congr_hom α β).range) :=
+  decidable_pred (∈ (sum_congr_hom α β).range) :=
 λ x, infer_instance
 
 @[simp]
@@ -37,7 +37,7 @@ fintype.card_eq.mpr ⟨(of_injective (sum_congr_hom α β) sum_congr_hom_injecti
 
 instance sigma_congr_right_hom.decidable_mem_range {α : Type*} {β : α → Type*}
   [decidable_eq α] [∀ a, decidable_eq (β a)] [fintype α] [∀ a, fintype (β a)] :
-  decidable_pred (λ x, x ∈ (sigma_congr_right_hom β).range) :=
+  decidable_pred (∈ (sigma_congr_right_hom β).range) :=
 λ x, infer_instance
 
 @[simp]
@@ -48,7 +48,7 @@ fintype.card_eq.mpr ⟨(of_injective (sigma_congr_right_hom β) sigma_congr_righ
 
 instance subtype_congr_hom.decidable_mem_range {α : Type*} (p : α → Prop) [decidable_pred p]
   [fintype (perm {a // p a} × perm {a // ¬ p a})] [decidable_eq (perm α)] :
-  decidable_pred (λ x, x ∈ (subtype_congr_hom p).range) :=
+  decidable_pred (∈ (subtype_congr_hom p).range) :=
 λ x, infer_instance
 
 @[simp]

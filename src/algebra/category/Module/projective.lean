@@ -43,7 +43,7 @@ variables {R : Type u} [ring R] {M : Module.{(max u v)} R}
 -- We transport the corresponding result from `module.projective`.
 lemma projective_of_free {ι : Type*} (b : basis ι R M) : projective M :=
 projective.of_iso (Module.of_self_iso _)
-  ((is_projective.iff_projective).mp (module.projective_of_free b))
+  ((is_projective.iff_projective).mp (module.projective_of_basis b))
 
 /-- The category of modules has enough projectives, since every module is a quotient of a free
     module. -/

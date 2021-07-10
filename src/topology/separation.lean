@@ -2,15 +2,93 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
-
-Separation properties of topological spaces.
 -/
 import topology.subset_properties
 import topology.connected
 
+/-!
+# Separation properties of topological spaces.
+
+This file defines the predicate `separated`, and common separation axioms
+(under the Kolmogorov classification).
+
+## Main definitions
+
+* `separated`: Two `set`s are separated if they are contained in disjoint open sets.
+* `t0_space`: A T₀/Kolmogorov space is a space where, for every two points `x ≠ y`,
+  there is an open set that contains one, but not the other.
+* `t1_space`: A T₁/Fréchet space is a space where every singleton set is closed.
+  This is equivalent to, for every pair `x ≠ y`, there existing an open set containing `x`
+  but not `y` (`t1_iff_exists_open` shows that these conditions are equivalent.)
+* `t2_space`: A T₂/Hausdorff space is a space where, for every two points `x ≠ y`,
+  there is two disjoint open sets, one containing `x`, and the other `y`.
+* `t2_5_space`: A T₂.₅/Urysohn space is a space where, for every two points `x ≠ y`,
+  there is two open sets, one containing `x`, and the other `y`, whose closures are disjoint.
+* `regular_space`: A T₃ space (sometimes referred to as regular, but authors vary on
+  whether this includes T₂; `mathlib` does), is one where given any closed `C` and `x ∉ C`,
+  there is disjoint open sets containing `x` and `C` respectively. In `mathlib`, T₃ implies T₂.₅.
+* `normal_space`: A T₄ space (sometimes referred to as normal, but authors vary on
+  whether this includes T₂; `mathlib` does), is one where given two disjoint closed sets,
+  we can find two open sets that separate them. In `mathlib`, T₄ implies T₃.
+
+## Main results
+
+### T₀ spaces
+
+* `is_closed.exists_closed_singleton` Given a closed set `S` in a compact T₀ space,
+  there is some `x ∈ S` such that `{x}` is closed.
+* `exists_open_singleton_of_open_finset` Given an open `finset` `S` in a T₀ space,
+  there is some `x ∈ S` such that `{x}` is open.
+
+### T₁ spaces
+
+* `is_closed_map_const`: The constant map is a closed map.
+* `discrete_of_t1_of_finite`: A finite T₁ space must have the discrete topology.
+
+### T₂ spaces
+
+* `t2_iff_nhds`: A space is T₂ iff the neighbourhoods of distinct points generate the bottom filter.
+* `t2_iff_is_closed_diagonal`: A space is T₂ iff the `diagonal` of `α` (that is, the set of all
+  points of the form `(a, a) : α × α`) is closed under the product topology.
+* `finset_disjoing_finset_opens_of_t2`: Any two disjoint finsets are `separated`.
+* Most topological constructions preserve Hausdorffness;
+  these results are part of the typeclass inference system (e.g. `embedding.t2_space`)
+* `set.eq_on.closure`: If two functions are equal on some set `s`, they are equal on its closure.
+* `is_compact.is_closed`: All compact sets are closed.
+* `locally_compact_of_compact_nhds`: If every point has a compact neighbourhood,
+  then the space is locally compact.
+* `tot_sep_of_zero_dim`: If `α` has a clopen basis, it is a `totally_separated_space`.
+* `loc_compact_t2_tot_disc_iff_tot_sep`: A locally compact T₂ space is totally disconnected iff
+  it is totally separated.
+
+If the space is also compact:
+
+* `normal_of_compact_t2`: A compact T₂ space is a `normal_space`.
+* `connected_components_eq_Inter_clopen`: The connected component of a point
+  is the intersection of all its clopen neighbourhoods.
+* `compact_t2_tot_disc_iff_tot_sep`: Being a `totally_disconnected_space`
+  is equivalent to being a `totally_separated_space`.
+* `connected_components.t2`: `connected_components α` is T₂ for `α` T₂ and compact.
+
+### T₃ spaces
+
+* `disjoint_nested_nhds`: Given two points `x ≠ y`, we can find neighbourhoods `x ∈ V₁ ⊆ U₁` and
+  `y ∈ V₂ ⊆ U₂`, with the `Vₖ` closed and the `Uₖ` open, such that the `Uₖ` are disjoint.
+
+### Discrete spaces
+
+* `discrete_topology_iff_nhds`: Discrete topological spaces are those whose neighbourhood
+  filters are the `pure` filter (which is the principal filter at a singleton).
+* `induced_bot`/`discrete_topology_induced`: The pullback of the discrete topology
+  under an inclusion is the discrete topology.
+
+## References
+
+https://en.wikipedia.org/wiki/Separation_axiom
+-/
+
 open set filter
-open_locale topological_space filter
-local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
+open_locale topological_space filter classical
 
 universes u v
 variables {α : Type u} {β : Type v} [topological_space α]
@@ -59,6 +137,8 @@ end separated
 class t0_space (α : Type u) [topological_space α] : Prop :=
 (t0 : ∀ x y, x ≠ y → ∃ U:set α, is_open U ∧ (xor (x ∈ U) (y ∈ U)))
 
+/-- Given a closed set `S` in a compact T₀ space,
+there is some `x ∈ S` such that `{x}` is closed. -/
 theorem is_closed.exists_closed_singleton {α : Type*} [topological_space α]
   [t0_space α] [compact_space α] {S : set α} (hS : is_closed S) (hne : S.nonempty) :
   ∃ (x : α), x ∈ S ∧ is_closed ({x} : set α) :=
@@ -91,6 +171,7 @@ begin
     { exact λ hx, hnt x z hx hz, }, },
 end
 
+/-- Given an open `finset` `S` in a T₀ space, there is some `x ∈ S` such that `{x}` is open. -/
 theorem exists_open_singleton_of_open_finset [t0_space α] (s : finset α) (sne : s.nonempty)
   (hso : is_open (s : set α)) :
   ∃ x ∈ s, is_open ({x} : set α):=
@@ -213,6 +294,8 @@ begin
     using @image_mem_map _ _ _ (coe : s → α) _ this
 end
 
+/-- The neighbourhoods filter of `x` within `s`, under the discrete topology, is equal to
+the pure `x` filter (which is the principal filter at the singleton `{x}`.) -/
 lemma nhds_within_of_mem_discrete {s : set α} [discrete_topology s] {x : α} (hx : x ∈ s) :
   𝓝[s] x = pure x :=
 le_antisymm (le_pure_iff.2 $ singleton_mem_nhds_within_of_mem_discrete hx) (pure_le_nhds_within hx)
@@ -322,6 +405,7 @@ classical.by_contradiction $ assume : x ≠ y,
 let ⟨u, v, hu, hv, hx, hy, huv⟩ := t2_space.t2 x y this in
 absurd huv $ (inf_ne_bot_iff.1 h (is_open.mem_nhds hu hx) (is_open.mem_nhds hv hy)).ne_empty
 
+/-- A space is T₂ iff the neighbourhoods of distinct points generate the bottom filter. -/
 lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, ne_bot (𝓝 x ⊓ 𝓝 y) → x = y :=
 ⟨assume h, by exactI λ x y, eq_of_nhds_ne_bot,
  assume h, ⟨assume x y xy,
@@ -415,7 +499,7 @@ lemma tendsto_const_nhds_iff [t2_space α] {l : filter α} [ne_bot l] {c d : α}
   tendsto (λ x, c) l (𝓝 d) ↔ c = d :=
 ⟨λ h, tendsto_nhds_unique (tendsto_const_nhds) h, λ h, h ▸ tendsto_const_nhds⟩
 
-/-- A T2,5 space, also known as a Urysohn space, is a topological space
+/-- A T₂.₅ space, also known as a Urysohn space, is a topological space
   where for every pair `x ≠ y`, there are two open sets, with the intersection of clousures
   empty, one containing `x` and the other `y` . -/
 class t2_5_space (α : Type u) [topological_space α]: Prop :=
@@ -490,13 +574,13 @@ Lim_nhds_within h
 end lim
 
 /-!
-### Instances of `t2_space` typeclass
+### `t2_space` constructions
 
 We use two lemmas to prove that various standard constructions generate Hausdorff spaces from
 Hausdorff spaces:
 
 * `separated_by_continuous` says that two points `x y : α` can be separated by open neighborhoods
-  provided that there exists a continuous map `f`: α → β` with a Hausdorff codomain such that
+  provided that there exists a continuous map `f : α → β` with a Hausdorff codomain such that
   `f x ≠ f y`. We use this lemma to prove that topological spaces defined using `induced` are
   Hausdorff spaces.
 
@@ -633,7 +717,7 @@ is_open_compl_iff.1 $ is_open_iff_forall_mem_open.mpr $ assume x hx,
 ⟨v, this, vo, by simpa using xv⟩
 
 /-- If `V : ι → set α` is a decreasing family of compact sets then any neighborhood of
-`⋂ i, V i` contains some `V i`. This is a version of `exists_subset_nhd_of_compact` where we
+`⋂ i, V i` contains some `V i`. This is a version of `exists_subset_nhd_of_compact'` where we
 don't need to assume each `V i` closed because it follows from compactness since `α` is
 assumed to be Hausdorff. -/
 lemma exists_subset_nhd_of_compact [t2_space α] {ι : Type*} [nonempty ι] {V : ι → set α}
@@ -811,6 +895,8 @@ let ⟨U, V, hU, hV, hh_1, hh_2, hUV⟩ := t2_space.t2 x y hxy,
 
 variable {α}
 
+/-- Given two points `x ≠ y`, we can find neighbourhoods `x ∈ V₁ ⊆ U₁` and `y ∈ V₂ ⊆ U₂`,
+with the `Vₖ` closed and the `Uₖ` open, such that the `Uₖ` are disjoint. -/
 lemma disjoint_nested_nhds [regular_space α] {x y : α} (h : x ≠ y) :
   ∃ (U₁ V₁ ∈ 𝓝 x) (U₂ V₂ ∈ 𝓝 y), is_closed V₁ ∧ is_closed V₂ ∧ is_open U₁ ∧ is_open U₂ ∧
   V₁ ⊆ U₁ ∧ V₂ ⊆ U₂ ∧ U₁ ∩ U₂ = ∅ :=
@@ -966,8 +1052,8 @@ variables [compact_space α]
 
 /-- A compact Hausdorff space is totally disconnected if and only if it is totally separated, this
   is also true for locally compact spaces. -/
-theorem compact_t2_tot_disc_iff_tot_sep (H : Type*) [topological_space H] [compact_space H]
-  [t2_space H] : totally_disconnected_space H ↔ totally_separated_space H :=
+theorem compact_t2_tot_disc_iff_tot_sep :
+totally_disconnected_space α ↔ totally_separated_space α :=
 begin
   split,
   { intro h, constructor,
@@ -978,7 +1064,7 @@ begin
       by simpa [totally_disconnected_space_iff_connected_component_singleton.1 h y,
                 mem_singleton_iff],
     rw [connected_component_eq_Inter_clopen, mem_Inter],
-    rintro ⟨w : set H, hw : is_clopen w, hy : y ∈ w⟩,
+    rintro ⟨w : set α, hw : is_clopen w, hy : y ∈ w⟩,
     by_contra hx,
     simpa using hyp wᶜ w (is_open_compl_iff.mpr hw.2) hw.1 hx hy },
   apply totally_separated_space.totally_disconnected_space,

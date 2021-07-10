@@ -403,7 +403,7 @@ set.ext (mem_dom f)
 def fn (f : α →. β) (x) (h : dom f x) : β := (f x).get h
 
 /-- Evaluate a partial function to return an `option` -/
-def eval_opt (f : α →. β) [D : decidable_pred (dom f)] (x : α) : option β :=
+def eval_opt (f : α →. β) [D : decidable_pred (∈ dom f)] (x : α) : option β :=
 @roption.to_option _ _ (D x)
 
 /-- Partial function extensionality -/

@@ -177,6 +177,11 @@ lemma bind_map {g : α → list β} {f : β → γ} :
 | [] := rfl
 | (a::l) := by simp only [cons_bind, map_append, bind_map l]
 
+lemma map_bind (g : β → list γ) (f : α → β) :
+  ∀ l : list α, (list.map f l).bind g = l.bind (λ a, g (f a))
+| [] := rfl
+| (a::l) := by simp only [cons_bind, map_cons, map_bind l]
+
 /-! ### length -/
 
 theorem length_eq_zero {l : list α} : length l = 0 ↔ l = [] :=
@@ -941,6 +946,9 @@ let ⟨s, t, e⟩ := mem_split h in e.symm ▸
 
 theorem eq_nil_of_sublist_nil {l : list α} (s : l <+ []) : l = [] :=
 eq_nil_of_subset_nil $ s.subset
+
+@[simp] theorem sublist_nil_iff_eq_nil {l : list α} : l <+ [] ↔ l = [] :=
+⟨eq_nil_of_sublist_nil, λ H, H ▸ sublist.refl _⟩
 
 theorem repeat_sublist_repeat (a : α) {m n} : repeat a m <+ repeat a n ↔ m ≤ n :=
 ⟨λ h, by simpa only [length_repeat] using length_le_of_sublist h,
@@ -2250,18 +2258,13 @@ theorem prod_cons : (a::l).prod = a * l.prod :=
 calc (a::l).prod = foldl (*) (a * 1) l : by simp only [list.prod, foldl_cons, one_mul, mul_one]
   ... = _ : foldl_assoc
 
-@[simp, priority 500]
+@[simp, priority 500, to_additive]
 theorem prod_repeat (a : α) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
 begin
   induction n with n ih,
   { rw pow_zero, refl },
   { rw [list.repeat_succ, list.prod_cons, ih, pow_succ] }
 end
-
-@[simp, priority 500]
-theorem sum_repeat {α : Type*} [add_monoid α] :
-  ∀ (a : α) (n : ℕ), (list.repeat a n).sum = n • a :=
-@list.prod_repeat (multiplicative α) _
 
 @[simp, to_additive]
 theorem prod_append : (l₁ ++ l₂).prod = l₁.prod * l₂.prod :=
@@ -3780,6 +3783,88 @@ instance decidable_infix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidabl
 
 section permutations
 
+theorem permutations_aux2_fst (t : α) (ts : list α) (r : list β) : ∀ (ys : list α) (f : list α → β),
+  (permutations_aux2 t ts r ys f).1 = ys ++ ts
+| []      f := rfl
+| (y::ys) f := match _, permutations_aux2_fst ys _ : ∀ o : list α × list β, o.1 = ys ++ ts →
+      (permutations_aux2._match_1 t y f o).1 = y :: ys ++ ts with
+  | ⟨_, zs⟩, rfl := rfl
+  end
+
+@[simp] theorem permutations_aux2_snd_nil (t : α) (ts : list α) (r : list β) (f : list α → β) :
+  (permutations_aux2 t ts r [] f).2 = r := rfl
+
+@[simp] theorem permutations_aux2_snd_cons (t : α) (ts : list α) (r : list β) (y : α) (ys : list α)
+  (f : list α → β) :
+  (permutations_aux2 t ts r (y::ys) f).2 = f (t :: y :: ys ++ ts) ::
+    (permutations_aux2 t ts r ys (λx : list α, f (y::x))).2 :=
+match _, permutations_aux2_fst t ts r _ _ : ∀ o : list α × list β, o.1 = ys ++ ts →
+   (permutations_aux2._match_1 t y f o).2 = f (t :: y :: ys ++ ts) :: o.2 with
+| ⟨_, zs⟩, rfl := rfl
+end
+
+theorem permutations_aux2_append (t : α) (ts : list α) (r : list β) (ys : list α) (f : list α → β) :
+  (permutations_aux2 t ts nil ys f).2 ++ r = (permutations_aux2 t ts r ys f).2 :=
+by induction ys generalizing f; simp *
+
+theorem mem_permutations_aux2 {t : α} {ts : list α} {ys : list α} {l l' : list α} :
+    l' ∈ (permutations_aux2 t ts [] ys (append l)).2 ↔
+    ∃ l₁ l₂, l₂ ≠ [] ∧ ys = l₁ ++ l₂ ∧ l' = l ++ l₁ ++ t :: l₂ ++ ts :=
+begin
+  induction ys with y ys ih generalizing l,
+  { simp {contextual := tt} },
+  { rw [permutations_aux2_snd_cons, show (λ (x : list α), l ++ y :: x) = append (l ++ [y]),
+        by funext; simp, mem_cons_iff, ih], split; intro h,
+    { rcases h with e | ⟨l₁, l₂, l0, ye, _⟩,
+      { subst l', exact ⟨[], y::ys, by simp⟩ },
+      { substs l' ys, exact ⟨y::l₁, l₂, l0, by simp⟩ } },
+    { rcases h with ⟨_ | ⟨y', l₁⟩, l₂, l0, ye, rfl⟩,
+      { simp [ye] },
+      { simp at ye, rcases ye with ⟨rfl, rfl⟩,
+        exact or.inr ⟨l₁, l₂, l0, by simp⟩ } } }
+end
+
+theorem mem_permutations_aux2' {t : α} {ts : list α} {ys : list α} {l : list α} :
+    l ∈ (permutations_aux2 t ts [] ys id).2 ↔
+    ∃ l₁ l₂, l₂ ≠ [] ∧ ys = l₁ ++ l₂ ∧ l = l₁ ++ t :: l₂ ++ ts :=
+by rw [show @id (list α) = append nil, by funext; refl]; apply mem_permutations_aux2
+
+theorem length_permutations_aux2 (t : α) (ts : list α) (ys : list α) (f : list α → β) :
+  length (permutations_aux2 t ts [] ys f).2 = length ys :=
+by induction ys generalizing f; simp *
+
+theorem foldr_permutations_aux2 (t : α) (ts : list α) (r L : list (list α)) :
+  foldr (λy r, (permutations_aux2 t ts r y id).2) r L =
+    L.bind (λ y, (permutations_aux2 t ts [] y id).2) ++ r :=
+by induction L with l L ih; [refl, {simp [ih], rw ← permutations_aux2_append}]
+
+theorem mem_foldr_permutations_aux2 {t : α} {ts : list α} {r L : list (list α)} {l' : list α} :
+  l' ∈ foldr (λy r, (permutations_aux2 t ts r y id).2) r L ↔ l' ∈ r ∨
+  ∃ l₁ l₂, l₁ ++ l₂ ∈ L ∧ l₂ ≠ [] ∧ l' = l₁ ++ t :: l₂ ++ ts :=
+have (∃ (a : list α), a ∈ L ∧
+    ∃ (l₁ l₂ : list α), ¬l₂ = nil ∧ a = l₁ ++ l₂ ∧ l' = l₁ ++ t :: (l₂ ++ ts)) ↔
+    ∃ (l₁ l₂ : list α), ¬l₂ = nil ∧ l₁ ++ l₂ ∈ L ∧ l' = l₁ ++ t :: (l₂ ++ ts),
+from ⟨λ ⟨a, aL, l₁, l₂, l0, e, h⟩, ⟨l₁, l₂, l0, e ▸ aL, h⟩,
+      λ ⟨l₁, l₂, l0, aL, h⟩, ⟨_, aL, l₁, l₂, l0, rfl, h⟩⟩,
+by rw foldr_permutations_aux2; simp [mem_permutations_aux2', this,
+  or.comm, or.left_comm, or.assoc, and.comm, and.left_comm, and.assoc]
+
+theorem length_foldr_permutations_aux2 (t : α) (ts : list α) (r L : list (list α)) :
+  length (foldr (λy r, (permutations_aux2 t ts r y id).2) r L) = sum (map length L) + length r :=
+by simp [foldr_permutations_aux2, (∘), length_permutations_aux2]
+
+theorem length_foldr_permutations_aux2' (t : α) (ts : list α) (r L : list (list α))
+  (n) (H : ∀ l ∈ L, length l = n) :
+  length (foldr (λy r, (permutations_aux2 t ts r y id).2) r L) = n * length L + length r :=
+begin
+  rw [length_foldr_permutations_aux2, (_ : sum (map length L) = n * length L)],
+  induction L with l L ih, {simp},
+  have sum_map : sum (map length L) = n * length L :=
+    ih (λ l m, H l (mem_cons_of_mem _ m)),
+  have length_l : length l = n := H _ (mem_cons_self _ _),
+  simp [sum_map, length_l, mul_add, add_comm]
+end
+
 @[simp] theorem permutations_aux_nil (is : list α) : permutations_aux [] is = [] :=
 by rw [permutations_aux, permutations_aux.rec]
 
@@ -3787,6 +3872,34 @@ by rw [permutations_aux, permutations_aux.rec]
   permutations_aux (t :: ts) is = foldr (λy r, (permutations_aux2 t ts r y id).2)
     (permutations_aux ts (t::is)) (permutations is) :=
 by rw [permutations_aux, permutations_aux.rec]; refl
+
+theorem map_permutations_aux2' {α β α' β'} (g : α → α') (g' : β → β')
+  (t : α) (ts ys : list α) (r : list β) (f : list α → β) (f' : list α' → β')
+  (H : ∀ a, g' (f a) = f' (map g a)) :
+  map g' (permutations_aux2 t ts r ys f).2 =
+  (permutations_aux2 (g t) (map g ts) (map g' r) (map g ys) f').2 :=
+begin
+  induction ys generalizing f f'; simp *,
+  apply ys_ih, simp [H],
+end
+
+theorem map_permutations_aux2 {α α'} (g : α → α') (t : α) (ts ys : list α) :
+  map (map g) (permutations_aux2 t ts [] ys id).2 =
+  (permutations_aux2 (g t) (map g ts) [] (map g ys) id).2 :=
+map_permutations_aux2' _ _ _ _ _ _ _ _ (λ _, rfl)
+
+theorem map_permutations_aux (f : α → β) : ∀ (ts is : list α),
+  map (map f) (permutations_aux ts is) = permutations_aux (map f ts) (map f is) :=
+begin
+  refine permutations_aux.rec (by simp) _,
+  introv IH1 IH2, rw map at IH2,
+  simp only [foldr_permutations_aux2, map_append, map, map_permutations_aux2, permutations,
+    bind_map, IH1, append_assoc, permutations_aux_cons, cons_bind, ← IH2, map_bind],
+end
+
+theorem map_permutations (f : α → β) (ts : list α) :
+  map (map f) (permutations ts) = permutations (map f ts) :=
+by rw [permutations, permutations, map, map_permutations_aux, map]
 
 end permutations
 

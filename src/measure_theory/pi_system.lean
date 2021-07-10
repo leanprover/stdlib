@@ -349,6 +349,7 @@ have generate s ≤ (generate s).restrict_on ht₂,
 this _ ht₁
 
 /--
+  **Dynkin's π-λ theorem**:
   Given a collection of sets closed under binary intersections, then the Dynkin system it
   generates is equal to the σ-algebra it generates.
   This result is known as the π-λ theorem.

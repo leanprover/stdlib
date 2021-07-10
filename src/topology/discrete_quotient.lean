@@ -326,3 +326,30 @@ begin
 end
 
 end discrete_quotient
+
+namespace locally_constant
+
+variables {X} {α : Type*} (f : locally_constant X α)
+
+/-- Any locally constant function induces a discrete quotient. -/
+def discrete_quotient : discrete_quotient X :=
+{ rel := λ a b, f b = f a,
+  equiv := ⟨by tauto, by tauto, λ a b c h1 h2, by rw [h2, h1]⟩,
+  clopen := λ x, f.is_locally_constant.is_clopen_fiber _ }
+
+/-- The function from the discrete quotient associated to a locally constant function. -/
+def lift : f.discrete_quotient → α := λ a, quotient.lift_on' a f (λ a b h, h.symm)
+
+lemma lift_is_locally_constant : _root_.is_locally_constant f.lift := λ A, trivial
+
+/-- A locally constant version of `locally_constant.lift`. -/
+def locally_constant_lift : locally_constant f.discrete_quotient α :=
+⟨f.lift, f.lift_is_locally_constant⟩
+
+@[simp]
+lemma lift_eq_coe : f.lift = f.locally_constant_lift := rfl
+
+@[simp]
+lemma factors : f.locally_constant_lift ∘ f.discrete_quotient.proj = f := by { ext, refl }
+
+end locally_constant

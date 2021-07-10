@@ -29,7 +29,8 @@ instance has_limits_of_shape_discrete
 by { haveI := @has_finite_products.out C _ _ J (classical.dec_eq _), apply_instance }
 
 /-- If `C` has finite limits then it has finite products. -/
-lemma has_finite_products_of_has_finite_limits [has_finite_limits C] : has_finite_products C :=
+@[priority 10]
+instance has_finite_products_of_has_finite_limits [has_finite_limits C] : has_finite_products C :=
 ⟨λ J 𝒥₁ 𝒥₂, by { resetI, apply_instance }⟩
 
 /--
@@ -53,7 +54,8 @@ instance has_colimits_of_shape_discrete
 by { haveI := @has_finite_coproducts.out C _ _ J (classical.dec_eq _), apply_instance }
 
 /-- If `C` has finite colimits then it has finite coproducts. -/
-lemma has_finite_coproducts_of_has_finite_colimits [has_finite_colimits C] :
+@[priority 10]
+instance has_finite_coproducts_of_has_finite_colimits [has_finite_colimits C] :
   has_finite_coproducts C :=
 ⟨λ J 𝒥₁ 𝒥₂, by { resetI, apply_instance }⟩
 
