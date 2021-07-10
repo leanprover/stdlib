@@ -166,7 +166,7 @@ begin
     λ i x, (hf01 i x).1, λ i x, (hf01 i x).2, λ x hx, _⟩, hfp,
     λ i, subset.trans (closure_mono (hsupp i)) (hVU i)⟩,
   rcases mem_Union.1 (hsW hx) with ⟨i, hi⟩,
-  exact ⟨i, ((hf1 i).mono subset_closure).eventually_eq_of_mem (mem_nhds_sets (hWo i) hi)⟩
+  exact ⟨i, ((hf1 i).mono subset_closure).eventually_eq_of_mem ((hWo i).mem_nhds hi)⟩
 end
 
 /-- If `X` is a normal topological space and `U i`, `i : ι`, is a locally finite open covering of a

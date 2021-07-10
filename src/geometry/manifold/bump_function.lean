@@ -761,7 +761,7 @@ lemma exists_smooth_zero_one_of_closed [t2_space M] [sigma_compact_space M] {s t
   (hs : is_closed s) (ht : is_closed t) (hd : disjoint s t) :
   ∃ f : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯, eq_on f 0 s ∧ eq_on f 1 t ∧ ∀ x, f x ∈ Icc (0 : ℝ) 1 :=
 begin
-  have : ∀ x ∈ t, sᶜ ∈ 𝓝 x, from λ x hx, mem_nhds_sets hs.is_open_compl (disjoint_right.1 hd hx),
+  have : ∀ x ∈ t, sᶜ ∈ 𝓝 x, from λ x hx, hs.is_open_compl.mem_nhds (disjoint_right.1 hd hx),
   rcases smooth_bump_covering.exists_is_subordinate I ht this with ⟨f, hf⟩,
   set g := f.to_smooth_partition_of_unity,
   refine ⟨⟨_, g.smooth_sum⟩, λ x hx, _, λ x, g.sum_eq_one, λ x, ⟨g.sum_nonneg x, g.sum_le_one x⟩⟩,
