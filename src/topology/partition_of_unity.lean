@@ -11,9 +11,55 @@ import topology.continuous_function.algebra
 /-!
 # Continuous partition of unity
 
-In this file we define `partition_of_unity X (s : set X := univ)` to be a continuous partition of
-unity on a topological space `X`.
+In this file we define `partition_of_unity (ι X : Type*) [topological_space X] (s : set X := univ)`
+to be a continuous partition of unity on `s` indexed by `ι`. More precisely, `f : partition_of_unity
+ι X s` is a collection of continuous functions `f i : C(X, ℝ)`, `i : ι`, such that
 
+* supports of `f i` is a locally finite family of sets;
+* each `f i` is nonnegative;
+* `∑ᶠ i, f i x = 1` for all `x ∈ s`;
+* `∑ᶠ i, f i x ≤ 1` for all `x : X`.
+
+In the case `s = univ` the last assumption follows from the previous one but it is convenient to
+have this assumption in the case `s ≠ univ`.
+
+We also define a bump function covering,
+`bump_covering (ι X : Type*) [topological_space X] (s : set X := univ)`, to be a collection of
+functions `f i : C(X, ℝ)`, `i : ι`, such that
+
+* supports of `f i` is a locally finite family of sets;
+* each `f i` is nonnegative;
+* for each `x ∈ s` there exists `i : ι` such that `f i y = 1` in a neighborhood of `x`.
+
+The term is motivated by the smooth case.
+
+If `f` is a bump function covering indexed by a linearly ordered type, then
+`g i x = f i x * ∏ᶠ j < i, (1 - f j x)` is a partition of unity, see
+`bump_covering.to_partition_of_unity`. We use `well_ordering_rel j i` instead of `j < i` in the
+actual definition to avoid a `[linear_order ι]` assumption.
+
+We say that a partition of unity or a bump function covering `f` is *subordinate* to a family of
+sets `U i`, `i : ι`, if the closure of the support of each `f i` is included by `U i`. We use
+Urysohn's Lemma to prove that a locally finite open covering of a normal topological space admits a
+subordinate bump function covering (hence, a subordinate partition of unity), see
+`bump_covering.exists_is_subordinate_of_locally_finite`. If `X` is a paracompact space, then any
+open covering admits a locally finite refinement, hence it admits a subordinate bump function
+covering and a subordinate partition of unity, see `bump_covering.exists_is_subordinate`.
+
+We also provide two slightly more general versions of these lemmas,
+`bump_covering.exists_is_subordinate_of_locally_finite_of_prop` and
+`bump_covering.exists_is_subordinate_of_prop`, to be used later in the construction of a smooth
+partition of unity.
+
+** Implementation notes
+
+Most (if not all) books only define a partition of unity of the whole space. However, quite a few
+proofs only deal with `f i` such that `closure (support (f i))` meets a specific closed subset, and
+it is easier to formalize these proofs if we don't have other functions right away.
+
+** Tags
+
+partition of unity, bump function, Urysohn's lemma, normal space, paracompact space
 -/
 
 universes u v
