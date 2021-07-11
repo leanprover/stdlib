@@ -991,6 +991,24 @@ by { convert tendsto_rpow_div_mul_add (1:ℝ) _ (0:ℝ) zero_ne_one, ring_nf }
 lemma tendsto_rpow_neg_div : tendsto (λ x, x ^ (-(1:ℝ) / x)) at_top (𝓝 1) :=
 by { convert tendsto_rpow_div_mul_add (-(1:ℝ)) _ (0:ℝ) zero_ne_one, ring_nf }
 
+/-- The function `(1 + t/x) ^ x` tends to `exp t` at `+∞`. -/
+lemma tendsto_one_plus_div_rpow_exp (t : ℝ) :
+  tendsto (λ (x : ℝ), (1 + t / x) ^ x) at_top (𝓝 (exp t)) :=
+begin
+  apply ((real.continuous_exp.tendsto _).comp (tendsto_mul_log_one_plus_div_at_top t)).congr' _,
+  have h₁ : (1:ℝ)/2 < 1 := by linarith,
+  have h₂ : tendsto (λ x : ℝ, 1 + t / x) at_top (𝓝 1) :=
+    by simpa using (tendsto_inv_at_top_zero.const_mul t).const_add 1,
+  refine (eventually_ge_of_tendsto_gt h₁ h₂).mono (λ x hx, _),
+  have hx' : 0 < 1 + t / x := by linarith,
+  simp [mul_comm x, exp_mul, exp_log hx'],
+end
+
+/-- The function `(1 + t/x) ^ x` tends to `exp t` at `+∞` for naturals `x`. -/
+lemma tendsto_one_plus_div_pow_exp (t : ℝ) :
+  tendsto (λ (x : ℕ), (1 + t / (x:ℝ)) ^ x) at_top (𝓝 (real.exp t)) :=
+((tendsto_one_plus_div_rpow_exp t).comp tendsto_coe_nat_at_top_at_top).congr (by simp)
+
 end limits
 
 namespace nnreal

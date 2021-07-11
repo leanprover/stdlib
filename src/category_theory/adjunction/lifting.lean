@@ -213,9 +213,7 @@ begin
       (iso_whisker_left R (monad.comparison_forget (adjunction.of_right_adjoint U)).symm : _),
   letI : Π X, regular_epi ((monad.adj (adjunction.of_right_adjoint U).to_monad).counit.app X),
   { intro X,
-    dsimp only [monad.adj_counit, functor.comp_map, monad.forget_obj, functor.id_obj,
-                functor.comp_obj, monad.free_obj_A],
-    simp only [functor.map_id, id_comp],
+    simp only [monad.adj_counit],
     exact ⟨_, _, _, _, monad.beck_algebra_coequalizer X⟩ },
   exact adjoint_triangle_lift R' (monad.adj _),
 end

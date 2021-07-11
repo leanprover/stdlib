@@ -35,6 +35,6 @@ instance forget₂_AddCommGroup_ess_surj : ess_surj (forget₂ (Module ℤ) AddC
 
 noncomputable instance forget₂_AddCommGroup_is_equivalence :
   is_equivalence (forget₂ (Module ℤ) AddCommGroup.{u}) :=
-equivalence_of_fully_faithfully_ess_surj (forget₂ (Module ℤ) AddCommGroup)
+equivalence.of_fully_faithfully_ess_surj (forget₂ (Module ℤ) AddCommGroup)
 
 end Module

@@ -75,7 +75,7 @@ instance : ess_surj (from_skeleton C) :=
 { mem_ess_image := λ X, ⟨quotient.mk X, quotient.mk_out X⟩ }
 
 noncomputable instance : is_equivalence (from_skeleton C) :=
-equivalence.equivalence_of_fully_faithfully_ess_surj (from_skeleton C)
+equivalence.of_fully_faithfully_ess_surj (from_skeleton C)
 
 lemma skeleton_skeletal : skeletal (skeleton C) :=
 begin

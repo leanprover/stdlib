@@ -144,7 +144,7 @@ instance : ess_surj (decomposed_to J) :=
 { mem_ess_image := λ j, ⟨⟨_, j, rfl⟩, ⟨iso.refl _⟩⟩ }
 
 instance : is_equivalence (decomposed_to J) :=
-equivalence.equivalence_of_fully_faithfully_ess_surj _
+equivalence.of_fully_faithfully_ess_surj _
 
 /-- This gives that any category is equivalent to a disjoint union of connected categories. -/
 @[simps functor {rhs_md := semireducible}]

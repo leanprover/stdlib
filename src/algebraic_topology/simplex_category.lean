@@ -365,7 +365,7 @@ instance : ess_surj skeletal_functor :=
   end⟩⟩, }
 
 noncomputable instance is_equivalence : is_equivalence skeletal_functor :=
-equivalence.equivalence_of_fully_faithfully_ess_surj skeletal_functor
+equivalence.of_fully_faithfully_ess_surj skeletal_functor
 
 end skeletal_functor
 

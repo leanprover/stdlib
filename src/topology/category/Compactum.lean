@@ -439,7 +439,7 @@ lemma ess_surj : ess_surj Compactum_to_CompHaus :=
 /-- The functor Compactum_to_CompHaus is an equivalence of categories. -/
 noncomputable def is_equivalence : is_equivalence Compactum_to_CompHaus :=
 begin
-  apply equivalence.equivalence_of_fully_faithfully_ess_surj _,
+  apply equivalence.of_fully_faithfully_ess_surj _,
   exact Compactum_to_CompHaus.full,
   exact Compactum_to_CompHaus.faithful,
   exact Compactum_to_CompHaus.ess_surj,

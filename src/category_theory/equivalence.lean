@@ -44,7 +44,7 @@ if it is full, faithful and essentially surjective.
 ## Main results
 
 * `equivalence.mk`: upgrade an equivalence to a (half-)adjoint equivalence
-* `equivalence_of_fully_faithfully_ess_surj`: a fully faithful essentially surjective functor is an
+* `equivalence.of_fully_faithfully_ess_surj`: a fully faithful essentially surjective functor is an
   equivalence.
 
 ## Notations
@@ -526,7 +526,7 @@ A functor which is full, faithful, and essentially surjective is an equivalence.
 
 See https://stacks.math.columbia.edu/tag/02C3.
 -/
-noncomputable def equivalence_of_fully_faithfully_ess_surj
+noncomputable def of_fully_faithfully_ess_surj
   (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : is_equivalence F :=
 is_equivalence.mk (equivalence_inverse F)
   (nat_iso.of_components
@@ -547,7 +547,7 @@ instance ess_surj_induced_functor {C' : Type*} (e : C' ≃ D) : ess_surj (induce
 
 noncomputable
 instance induced_functor_of_equiv {C' : Type*} (e : C' ≃ D) : is_equivalence (induced_functor e) :=
-equivalence_of_fully_faithfully_ess_surj _
+equivalence.of_fully_faithfully_ess_surj _
 
 end equivalence
 
