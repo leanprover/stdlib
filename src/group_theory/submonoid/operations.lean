@@ -610,7 +610,7 @@ lemma mrestrict_apply {N : Type*} [mul_one_class N] (f : M →* N) (x : S) : f.m
 rfl
 
 /-- Restriction of a monoid hom to a submonoid of the codomain. -/
-@[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain."]
+@[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain.", simps]
 def cod_mrestrict (f : M →* N) (S : submonoid N) (h : ∀ x, f x ∈ S) : M →* S :=
 { to_fun := λ n, ⟨f n, h n⟩,
   map_one' := subtype.eq f.map_one,
@@ -728,6 +728,25 @@ variables {S} {T : submonoid M}
 submonoids of an additive monoid are equal."]
 def submonoid_congr (h : S = T) : S ≃* T :=
 { map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ congr_arg _ h }
+
+-- this name is primed so that the version to `f.range` instead of `f.mrange` can be unprimed.
+/-- A monoid homomorphism `f : M →* N` with a left-inverse `g : N → M` defines a multiplicative
+equivalence between `M` and `f.mrange`.
+
+This is a bidirectional version of `monoid_hom.mrange_restrict`. -/
+@[to_additive /-"
+A additive monoid homomorphism `f : M →+ N` with a left-inverse `g : N → M` defines an additive
+equivalence between `M` and `f.mrange`.
+
+This is a bidirectional version of `add_monoid_hom.mrange_restrict`. "-/, simps {simp_rhs := tt}]
+def of_left_inverse' (f : M →* N) {g : N → M} (h : function.left_inverse g f) : M ≃* f.mrange :=
+{ to_fun := f.mrange_restrict,
+  inv_fun := g ∘ f.mrange.subtype,
+  left_inv := h,
+  right_inv := λ x, subtype.ext $
+    let ⟨x', hx'⟩ := monoid_hom.mem_mrange.mp x.prop in
+    show f (g x) = x, by rw [←hx', h x'],
+  .. f.mrange_restrict }
 
 end mul_equiv
 
