@@ -126,6 +126,10 @@ limits.has_finite_biproducts.of_has_finite_products
 instance has_binary_biproducts : has_binary_biproducts C :=
 limits.has_binary_biproducts_of_finite_biproducts _
 
+@[priority 100]
+instance has_zero_object : has_zero_object C :=
+has_zero_object_of_has_initial_object
+
 section to_non_preadditive_abelian
 
 /-- Every abelian category is, in particular, `non_preadditive_abelian`. -/

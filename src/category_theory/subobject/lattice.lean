@@ -68,25 +68,38 @@ end
 end has_top
 
 section has_bot
-variables [has_zero_morphisms C] [has_zero_object C]
-open_locale zero_object
+
+variables [has_initial C] [zero_le_category C]
 
 instance {X : C} : has_bot (mono_over X) :=
-{ bot := mk' (0 : 0 ⟶ X) }
+{ bot := mk' (initial.to X) }
 
-@[simp] lemma bot_left (X : C) : ((⊥ : mono_over X) : C) = 0 := rfl
-@[simp] lemma bot_arrow {X : C} : (⊥ : mono_over X).arrow = 0 :=
-by ext
+@[simp] lemma bot_left (X : C) : ((⊥ : mono_over X) : C) = ⊥_ C := rfl
+@[simp] lemma bot_arrow {X : C} : (⊥ : mono_over X).arrow = initial.to X := rfl
 
 /-- The (unique) morphism from `⊥ : mono_over X` to any other `f : mono_over X`. -/
 def bot_le {X : C} (f : mono_over X) : ⊥ ⟶ f :=
-hom_mk 0 (by simp)
+hom_mk (initial.to _) (by simp)
 
 /-- `map f` sends `⊥ : mono_over X` to `⊥ : mono_over Y`. -/
 def map_bot (f : X ⟶ Y) [mono f] : (map f).obj ⊥ ≅ ⊥ :=
-iso_of_both_ways (hom_mk 0 (by simp)) (hom_mk (𝟙 _) (by simp [id_comp f]))
+iso_of_both_ways (hom_mk (initial.to _) (by simp)) (hom_mk (𝟙 _) (by simp))
 
 end has_bot
+
+section zero_order_bot
+
+variables [has_zero_object C]
+open_locale zero_object
+
+/-- The object underlying `⊥ : subobject B` is (up to isomorphism) the zero object. -/
+def bot_coe_iso_zero {B : C} : ((⊥ : mono_over B) : C) ≅ 0 :=
+initial_is_initial.unique_up_to_iso has_zero_object.zero_is_initial
+
+@[simp] lemma bot_arrow_eq_zero [has_zero_morphisms C] {B : C} : (⊥ : mono_over B).arrow = 0 :=
+zero_of_source_iso_zero _ bot_coe_iso_zero
+
+end zero_order_bot
 
 section inf
 variables [has_pullbacks C]
@@ -245,8 +258,7 @@ end
 end order_top
 
 section order_bot
-variables [has_zero_morphisms C] [has_zero_object C]
-open_locale zero_object
+variables [has_initial C] [zero_le_category C]
 
 instance order_bot {X : C} : order_bot (subobject X) :=
 { bot := quotient.mk' ⊥,
@@ -257,21 +269,37 @@ instance order_bot {X : C} : order_bot (subobject X) :=
   end,
   ..subobject.partial_order X }
 
-lemma bot_eq_zero {B : C} : (⊥ : subobject B) = subobject.mk (0 : 0 ⟶ B) := rfl
+lemma bot_eq_initial_to {B : C} : (⊥ : subobject B) = subobject.mk (initial.to B) := rfl
 
-/-- The object underlying `⊥ : subobject B` is (up to isomorphism) the zero object. -/
-def bot_coe_iso_zero {B : C} : ((⊥ : subobject B) : C) ≅ 0 := underlying_iso _
-
-@[simp] lemma bot_arrow {B : C} : (⊥ : subobject B).arrow = 0 :=
-zero_of_source_iso_zero _ bot_coe_iso_zero
+/-- The object underlying `⊥ : subobject B` is (up to isomorphism) the initial object. -/
+def bot_coe_iso_initial {B : C} : ((⊥ : subobject B) : C) ≅ ⊥_ C := underlying_iso _
 
 lemma map_bot (f : X ⟶ Y) [mono f] : (map f).obj ⊥ = ⊥ :=
 quotient.sound' ⟨mono_over.map_bot f⟩
 
-lemma bot_factors_iff_zero {A B : C} (f : A ⟶ B) : (⊥ : subobject B).factors f ↔ f = 0 :=
-⟨by { rintro ⟨h, w⟩, simp at w, exact w.symm, }, by { rintro rfl, exact ⟨0, by simp⟩, }⟩
-
 end order_bot
+
+section zero_order_bot
+
+variables [has_zero_object C]
+open_locale zero_object
+
+/-- The object underlying `⊥ : subobject B` is (up to isomorphism) the zero object. -/
+def bot_coe_iso_zero {B : C} : ((⊥ : subobject B) : C) ≅ 0 :=
+bot_coe_iso_initial ≪≫ initial_is_initial.unique_up_to_iso has_zero_object.zero_is_initial
+
+variables [has_zero_morphisms C]
+
+lemma bot_eq_zero {B : C} : (⊥ : subobject B) = subobject.mk (0 : 0 ⟶ B) :=
+mk_eq_mk_of_comm _ _ (initial_is_initial.unique_up_to_iso has_zero_object.zero_is_initial) (by simp)
+
+@[simp] lemma bot_arrow {B : C} : (⊥ : subobject B).arrow = 0 :=
+zero_of_source_iso_zero _ bot_coe_iso_zero
+
+lemma bot_factors_iff_zero {A B : C} (f : A ⟶ B) : (⊥ : subobject B).factors f ↔ f = 0 :=
+⟨by { rintro ⟨h, rfl⟩, simp }, by { rintro rfl, exact ⟨0, by simp⟩, }⟩
+
+end zero_order_bot
 
 section functor
 variable (C)
@@ -442,16 +470,7 @@ lemma sup_factors_of_factors_right {A B : C} {X Y : subobject B} {f : A ⟶ B} (
   (X ⊔ Y).factors f :=
 factors_of_le f le_sup_right P
 
-/-!
-Unfortunately, there are two different ways we may obtain a `semilattice_sup_bot (subobject B)`,
-either as here, by assuming `[has_zero_morphisms C] [has_zero_object C]`,
-or if `C` is cartesian closed.
-
-These will be definitionally different, and at the very least we will need two different versions
-of `finset_sup_factors`. So far I don't see how to handle this through generalization.
--/
-section
-variables [has_zero_morphisms C] [has_zero_object C]
+variables [has_initial C] [zero_le_category C]
 
 instance {B : C} : semilattice_sup_bot (subobject B) :=
 { ..subobject.order_bot,
@@ -472,8 +491,6 @@ begin
     { exact sup_factors_of_factors_right (ih ⟨j, ⟨m, h⟩⟩), }, },
 end
 
-end
-
 end semilattice_sup
 
 section lattice
@@ -483,7 +500,7 @@ instance {B : C} : lattice (subobject B) :=
 { ..subobject.semilattice_inf_top,
   ..subobject.semilattice_sup }
 
-variables [has_zero_morphisms C] [has_zero_object C]
+variables [has_initial C] [zero_le_category C]
 
 instance {B : C} : bounded_lattice (subobject B) :=
 { ..subobject.semilattice_inf_top,
@@ -648,7 +665,7 @@ end Sup
 
 section complete_lattice
 variables [well_powered C] [has_wide_pullbacks C] [has_images C] [has_coproducts C]
-  [has_zero_morphisms C] [has_zero_object C]
+  [zero_le_category C]
 
 instance {B : C} : complete_lattice (subobject B) :=
 { ..subobject.semilattice_inf_top,

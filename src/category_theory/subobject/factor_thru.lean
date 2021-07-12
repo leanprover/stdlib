@@ -30,7 +30,7 @@ namespace mono_over
 `P.factors f` expresses that there exists a factorisation of `f` through `P`.
 Given `h : P.factors f`, you can recover the morphism as `P.factor_thru f h`.
 -/
-def factors {X Y : C} (P : mono_over Y) (f : X ⟶ Y) : Prop := ∃ g : X ⟶ P.val.left, g ≫ P.arrow = f
+def factors {X Y : C} (P : mono_over Y) (f : X ⟶ Y) : Prop := ∃ g : X ⟶ (P : C), g ≫ P.arrow = f
 
 lemma factors_congr {X : C} {f g : mono_over X} {Y : C} (h : Y ⟶ X) (e : f ≅ g) :
   f.factors h ↔ g.factors h :=
@@ -39,7 +39,7 @@ lemma factors_congr {X : C} {f g : mono_over X} {Y : C} (h : Y ⟶ X) (e : f ≅
 
 /-- `P.factor_thru f h` provides a factorisation of `f : X ⟶ Y` through some `P : mono_over Y`,
 given the evidence `h : P.factors f` that such a factorisation exists. -/
-def factor_thru {X Y : C} (P : mono_over Y) (f : X ⟶ Y) (h : factors P f) : X ⟶ P.val.left :=
+def factor_thru {X Y : C} (P : mono_over Y) (f : X ⟶ Y) (h : factors P f) : X ⟶ (P : C) :=
 classical.some h
 
 end mono_over

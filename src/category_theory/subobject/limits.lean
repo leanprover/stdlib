@@ -254,23 +254,28 @@ lemma factor_thru_image_subobject_comp_self_assoc {W W' : C} (k : W ⟶ W') (k' 
   (image_subobject f).factor_thru (k ≫ k' ≫ f) h = k ≫ k' ≫ factor_thru_image_subobject f :=
 by { ext, simp, }
 
-@[simp]
-lemma image_subobject_zero_arrow [has_zero_morphisms C] [has_zero_object C] :
-  (image_subobject (0 : X ⟶ Y)).arrow = 0 :=
-by { rw ←image_subobject_arrow, simp, }
-
-@[simp]
-lemma image_subobject_zero [has_zero_morphisms C] [has_zero_object C]{A B : C} :
-  image_subobject (0 : A ⟶ B) = ⊥ :=
-subobject.eq_of_comm
-  (image_subobject_iso _ ≪≫ image_zero ≪≫ subobject.bot_coe_iso_zero.symm) (by simp)
-
 /-- The image of `h ≫ f` is always a smaller subobject than the image of `f`. -/
 lemma image_subobject_comp_le
   {X' : C} (h : X' ⟶ X) (f : X ⟶ Y) [has_image f] [has_image (h ≫ f)] :
   image_subobject (h ≫ f) ≤ image_subobject f :=
 subobject.mk_le_mk_of_comm (image.pre_comp h f) (by simp)
 
+section
+open_locale zero_object
+variables [has_zero_morphisms C] [has_zero_object C]
+
+@[simp]
+lemma image_subobject_zero_arrow :
+  (image_subobject (0 : X ⟶ Y)).arrow = 0 :=
+by { rw ←image_subobject_arrow, simp, }
+
+@[simp]
+lemma image_subobject_zero {A B : C} :
+  image_subobject (0 : A ⟶ B) = ⊥ :=
+subobject.eq_of_comm
+  (image_subobject_iso _ ≪≫ image_zero ≪≫ subobject.bot_coe_iso_zero.symm) (by simp)
+
+end
 
 section
 variables [has_equalizers C]

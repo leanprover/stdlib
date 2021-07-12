@@ -28,7 +28,7 @@ variables {ι : Type*}
 variables {V : Type u} [category.{v} V] [has_zero_morphisms V]
 variables {c : complex_shape ι} (C : homological_complex V c)
 
-open_locale classical
+open_locale classical zero_object
 noncomputable theory
 
 namespace homological_complex
