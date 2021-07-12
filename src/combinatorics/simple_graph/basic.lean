@@ -6,6 +6,7 @@ Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Alena Gusakov
 import data.fintype.basic
 import data.sym2
 import data.set.finite
+
 /-!
 # Simple graphs
 

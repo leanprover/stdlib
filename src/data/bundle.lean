@@ -4,20 +4,29 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nicolò Cavalleri
 -/
 
-import tactic.basic
 import algebra.module.basic
+import data.right_inv
+import data.pi
 
 /-!
 # Bundle
+
 Basic data structure to implement fiber bundles, vector bundles (maybe fibrations?), etc. This file
 should contain all possible results that do not involve any topology.
+
 We provide a type synonym of `Σ x, E x` as `bundle.total_space E`, to be able to endow it with
-a topology which is not the disjoint union topology `sigma.topological_space`. In general, the
-constructions of fiber bundles we will make will be of this form.
+a topology which is not the disjoint union topology. In general, the constructions of fiber bundles
+we will make will be of this form.
 
 ## References
+
 - https://en.wikipedia.org/wiki/Bundle_(mathematics)
+
 -/
+
+/-- TEMPORARY: to be removed when Lean will be updated. -/
+instance lift_fn_range' {α : Sort*} {A : α → Sort*} {B : α → Sort*} [Π i, has_lift_t (A i) (B i)] :
+  has_lift (Π i, A i) (Π i, B i) := ⟨λ f i, ↑(f i)⟩
 
 namespace bundle
 
@@ -79,3 +88,38 @@ instance [add_comm_monoid F] [module R F] : module R (bundle.trivial B F b) := �
 end trivial_instances
 
 end bundle
+
+section bundle_sections
+
+/-! ## Section of bundles -/
+
+open bundle
+
+variables {B : Type*} {E : B → Type*}
+
+/-- Type synonim for name clarity. -/
+@[reducible, nolint has_coe_to_fun] def bundle_section (E : B → Type*) := Π x, E x
+
+@[simp] lemma right_inv.fst_eq_id (f : right_inv (proj E)) (b : B) : (f b).fst = b :=
+congr_fun f.right_inv_def b
+
+/-- Equivalence between Pi functions and righ inverses. -/
+def bundle_section_right_inv : equiv (bundle_section E) (right_inv (proj E)) :=
+{ to_fun := λ g, ⟨λ x, ⟨x, g x⟩, λ x, rfl⟩,
+  inv_fun := λ g, (λ x, cast (congr_arg E (g.right_inverse x)) (g x).2),
+  left_inv := λ g, rfl,
+  right_inv := λ g, by { ext a, exacts [(g.right_inv' a).symm, cast_heq _ _] }, }
+
+variables (x : B) (g : bundle_section E)
+
+@[simp] lemma right_inv.bundle_section_right_inv_symm_apply (g : right_inv (proj E)) :
+  bundle_section_right_inv.symm g x == (g x).2 := cast_heq _ (g x).snd
+
+@[simp] lemma bundle_section.bundle_section_right_inv_apply (g : bundle_section E) :
+(bundle_section_right_inv g) x = ⟨x, g x⟩ := rfl
+
+@[simp] lemma right_inv.snd_eq_to_bundle_section_fst (g : right_inv (proj E)) :
+  bundle_section_right_inv.symm g (g x).fst = (g x).snd :=
+eq_of_heq ((cast_heq _ _).trans (congr_arg_heq sigma.snd (congr_arg g (g.fst_eq_id x))))
+
+end bundle_sections
