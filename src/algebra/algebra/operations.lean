@@ -42,19 +42,19 @@ variables (S T : set A) {M N P Q : submodule R A} {m n : A}
 
 /-- `1 : submodule R A` is the submodule R of A. -/
 instance : has_one (submodule R A) :=
-⟨submodule.map (of_id R A).to_linear_map (⊤ : submodule R R)⟩
+⟨submodule.map (algebra.linear_map R A) (⊤ : submodule R R)⟩
 
 theorem one_eq_map_top :
-  (1 : submodule R A) = submodule.map (of_id R A).to_linear_map (⊤ : submodule R R) := rfl
+  (1 : submodule R A) = submodule.map (algebra.linear_map R A) (⊤ : submodule R R) := rfl
+
+@[simp] lemma mem_one {x : A} : x ∈ (1 : submodule R A) ↔ ∃ y, algebra_map R A y = x :=
+by simp only [one_eq_map_top, mem_map, mem_top, true_and, algebra.linear_map_apply]
 
 theorem one_eq_span : (1 : submodule R A) = R ∙ 1 :=
 begin
   apply submodule.ext,
   intro a,
-  erw [mem_map, mem_span_singleton],
-  apply exists_congr,
-  intro r,
-  simpa [smul_def],
+  simp only [mem_one, mem_span_singleton, algebra.smul_def, mul_one]
 end
 
 theorem one_le : (1 : submodule R A) ≤ P ↔ (1 : A) ∈ P :=
