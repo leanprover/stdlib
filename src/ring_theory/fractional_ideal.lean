@@ -221,7 +221,7 @@ instance : has_one (fractional_ideal S P) :=
 variables (S)
 
 lemma mem_one_iff {x : P} : x ∈ (1 : fractional_ideal S P) ↔ ∃ x' : R, algebra_map R P x' = x :=
-iff.intro (λ ⟨x', _, h⟩, ⟨x', h⟩) (λ ⟨x', h⟩, ⟨x', ⟨x', set.mem_univ _, rfl⟩, h⟩)
+iff.intro (λ ⟨x', _, h⟩, ⟨x', h⟩) (λ ⟨x', h⟩, ⟨x', ⟨x', rfl⟩, h⟩)
 
 lemma coe_mem_one (x : R) : algebra_map R P x ∈ (1 : fractional_ideal S P) :=
 (mem_one_iff S).mpr ⟨x, rfl⟩
@@ -241,10 +241,7 @@ rfl
 
 @[simp, norm_cast] lemma coe_one :
   (↑(1 : fractional_ideal S P) : submodule R P) = 1 :=
-begin
-  simp only [coe_one_eq_coe_submodule_one, ideal.one_eq_top],
-  convert (submodule.one_eq_map_top).symm,
-end
+by rw [coe_one_eq_coe_submodule_one, ideal.one_eq_top, coe_submodule_top]
 
 section lattice
 

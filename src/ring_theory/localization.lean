@@ -1006,7 +1006,7 @@ lemma mem_coe_submodule (I : ideal R) {x : S} :
 iff.rfl
 
 @[simp] lemma coe_submodule_top : coe_submodule S (⊤ : ideal R) = 1 :=
-by rw [coe_submodule, submodule.one_eq_map_top]
+by rw [coe_submodule, submodule.map_top, submodule.one_eq_range]
 
 lemma coe_submodule_mono {I J : ideal R} (h : I ≤ J) :
   coe_submodule S I ≤ coe_submodule S J :=
