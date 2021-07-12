@@ -58,7 +58,7 @@ General algebra:
     maximal ideal: 'ideal.is_maximal'
     Chinese remainder theorem: 'ideal.quotient_inf_ring_equiv_pi_quotient'
     localization: 'localization'
-    fractional ideal: 'ring.fractional_ideal'
+    fractional ideal: 'fractional_ideal'
     first isomorphism theorem for commutative rings: 'ring_hom.quotient_ker_equiv_of_surjective'
 
   Divisibility in integral domains:

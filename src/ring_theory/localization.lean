@@ -1005,6 +1005,13 @@ lemma mem_coe_submodule (I : ideal R) {x : S} :
   x ∈ coe_submodule S I ↔ ∃ y : R, y ∈ I ∧ algebra_map R S y = x :=
 iff.rfl
 
+@[simp] lemma coe_submodule_top : coe_submodule S (⊤ : ideal R) = 1 :=
+by rw [coe_submodule, submodule.map_top, submodule.one_eq_range]
+
+lemma coe_submodule_mono {I J : ideal R} (h : I ≤ J) :
+  coe_submodule S I ≤ coe_submodule S J :=
+submodule.map_mono h
+
 variables {g : R →+* P}
 variables {T : submonoid P} (hy : M ≤ T.comap g) {Q : Type*} [comm_ring Q]
 variables [algebra P Q] [is_localization T Q]
@@ -1145,6 +1152,13 @@ begin
   refine mk'_eq_iff_eq.2 (congr_arg (algebra_map _ _) (hg _)),
   convert is_localization.injective _ hM hxy; simp,
 end
+
+variables {S Q M}
+
+lemma coe_submodule_le_coe_submodule (h : M ≤ non_zero_divisors R)
+  {I J : ideal R} :
+  coe_submodule S I ≤ coe_submodule S J ↔ I ≤ J :=
+submodule.map_le_map_iff_of_injective (is_localization.injective _ h) _ _
 
 variables (S) {Q M}
 
@@ -1368,6 +1382,11 @@ protected theorem injective : function.injective (algebra_map R K) :=
 is_localization.injective _ (le_of_eq rfl)
 
 variables {R K}
+
+@[simp]
+lemma coe_submodule_le_coe_submodule
+  {I J : ideal R} : coe_submodule K I ≤ coe_submodule K J ↔ I ≤ J :=
+is_localization.coe_submodule_le_coe_submodule (le_refl _)
 
 protected lemma to_map_ne_zero_of_mem_non_zero_divisors [nontrivial R]
   {x : R} (hx : x ∈ non_zero_divisors R) : algebra_map R K x ≠ 0 :=
