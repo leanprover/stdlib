@@ -59,9 +59,12 @@ has codomain `↥s` instead of `subtype s`. -/
 def cod_restrict (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) : α → s :=
 λ x, ⟨f x, h x⟩
 
-@[simp] lemma coe_cod_restrict_apply (f : α → β) (s : set β) (h : ∀ x, f x ∈ s) (x : α) :
+@[simp] lemma coe_cod_restrict_apply {f : α → β} {s : set β} (h : ∀ x, f x ∈ s) (x : α) :
   (cod_restrict f s h x : β) = f x :=
 rfl
+
+lemma factor_comp_cod_restrict {f : α → β} {g : β → γ} {b : set β}
+  (h : ∀ x, f x ∈ b) : g ∘ f = (b.restrict g) ∘ (b.cod_restrict f h) := rfl
 
 variables {s s₁ s₂ : set α} {t t₁ t₂ : set β} {p : set γ} {f f₁ f₂ f₃ : α → β} {g : β → γ}
   {f' f₁' f₂' : β → α} {g' : γ → β}

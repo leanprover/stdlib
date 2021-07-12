@@ -1028,6 +1028,7 @@ by { rw [local_triv_at, ←base_set_at], exact Z.mem_base_set_at b, }
 open bundle
 
 /-- The inclusion of a fiber into the total space is a continuous map. -/
+@[continuity]
 lemma continuous_total_space_mk (b : B) : continuous (λ a, total_space_mk Z.fiber b a) :=
 begin
   rw [continuous_iff_le_induced, topological_fiber_bundle_core.to_topological_space],

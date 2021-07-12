@@ -870,6 +870,15 @@ lemma continuous_on_iff_continuous_on_comp_left {f : γ → α} {s : set γ} (h 
 forall_congr $ λ x, forall_congr $ λ hx, e.continuous_within_at_iff_continuous_within_at_comp_left
   (h hx) (mem_sets_of_superset self_mem_nhds_within h)
 
+/-- A function is continuous if and only if its composition with a local homeomorphism
+on the left is continuous and its image is contained in the source. -/
+lemma continuous_iff_continuous_comp_left {f : γ → α} (h : univ ⊆ f ⁻¹' e.source) :
+  continuous f ↔ continuous (e ∘ f) :=
+begin
+  simp only [continuous_iff_continuous_on_univ],
+  exact e.continuous_on_iff_continuous_on_comp_left h,
+end
+
 end continuity
 
 /-- A local homeomrphism defines a homeomorphism between its source and target. -/

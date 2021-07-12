@@ -33,7 +33,7 @@ instance [inhabited B] [inhabited (E (default B))] :
   inhabited (total_space E) := ⟨⟨default B, default (E (default B))⟩⟩
 
 /-- `bundle.proj E` is the canonical projection `total_space E → B` on the base space. -/
-@[simp] def proj : total_space E → B := sigma.fst
+@[simp, reducible] def proj : total_space E → B := sigma.fst
 
 /-- Constructor for the total space of a `topological_fiber_bundle_core`. -/
 @[simp, reducible] def total_space_mk (E : B → Type*) (b : B) (a : E b) :
