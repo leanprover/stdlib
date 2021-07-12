@@ -364,3 +364,11 @@ rfl
 lemma units.coe_op_equiv_symm {R} [monoid R] (u : (units R)ᵒᵖ) :
   (units.op_equiv.symm u : Rᵒᵖ) = op (u.unop : R) :=
 rfl
+
+/-- A hom `α →* β` can equivalently be viewed as a hom `αᵒᵖ → βᵒᵖ`. This is the action
+of the `ᵒᵖ`-functor on morphisms. -/
+@[simps]
+def monoid_hom.op {α β} [monoid α] [monoid β] (f : α →* β) : αᵒᵖ →* βᵒᵖ :=
+{ to_fun := op ∘ f ∘ unop,
+  map_one' := by simp only [unop_one, function.comp_app, op_one, monoid_hom.map_one],
+  map_mul' := λ x y, by simp only [monoid_hom.map_mul, function.comp_app, op_mul, unop_mul] }
