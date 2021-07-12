@@ -35,7 +35,8 @@ depends on `x`.
 
 We prove that on a smooth finitely dimensional real manifold with `σ`-compact Hausdorff topology,
 for any `U : M → set M` such that `∀ x ∈ s, U x ∈ 𝓝 x` there exists a `smooth_bump_covering I M s`
-subordinate to `U`. Then we use this fact to prove a similar statement about smooth partitions of unity.
+subordinate to `U`. Then we use this fact to prove a similar statement about smooth partitions of
+unity.
 
 ## TODO
 
