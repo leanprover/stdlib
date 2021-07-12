@@ -1,6 +1,28 @@
+/-
+Copyright (c) 2021 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury Kudryashov
+-/
 import geometry.manifold.partition_of_unity
 
-universes uι uE uF uH uM
+/-!
+# Whitney embedding theorem
+
+In this file we prove a “baby” version of the Whitney weak embedding theorem: for any compact real
+manifold `M`, for sufficiently large `n` there exists a smooth embedding `M → ℝ^n`. The actual
+theorem does not assume that `M` is a compact space and provides an explicit `n`.
+
+## TODO
+
+* Drop unneeded assumptions.
+* Formalize the strong embedding theorem.
+
+## Tags
+
+manifold, embedding, immersion
+-/
+
+universes uι uE uH uM
 variables {ι : Type uι}
 {E : Type uE} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
 {H : Type uH} [topological_space H] {I : model_with_corners ℝ E H}

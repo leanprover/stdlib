@@ -1,5 +1,51 @@
+/-
+Copyright (c) 2021 Yury Kudryashov. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury Kudryashov
+-/
 import geometry.manifold.bump_function
 import topology.partition_of_unity
+
+/-!
+# Smooth partition of unity
+
+In this file we define two structures, `smooth_bump_covering` and `smooth_partition_of_unity`. Both
+structures describe coverings of a set by a locally finite family of supports of smooth functions
+with some additional properties. The former structure is mostly useful as an intermediate step in
+the construction of a smooth partition of unity but some proofs that traditionally deal with a
+partition of unity can use a `smooth_bump_covering` as well.
+
+Given a real manifold `M` and its subset `s`, a `smooth_bump_covering I M s` is a collection of
+`smooth_bump_function`s `f i` indexed by `i : f.ι` such that
+
+* center of each `f i` belongs to `s`;
+* the family of sets `support (f i)` is locally finite;
+* for each `x ∈ s`, there exists `i : f.ι` such that `f i =ᶠ[𝓝 x] 1`.
+In the same settings, a `smooth_partition_of_unity ι I M s` is a collection of smooth nonnegative
+functions `f i : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯`, `i : ι`, such that
+
+* the family of sets `support (f i)` is locally finite;
+* for each `x ∈ s`, the sum `∑ᶠ i, f i x` equals one;
+* for each `x`, the sum `∑ᶠ i, f i x` is less than or equal to one.
+
+We say that `f : smooth_bump_covering I M s` is *subordinate* to a map `U : M → set M` if for each
+index `i`, we have `closure (support (f i)) ⊆ U (f i).c`. This notion is a bit more general than
+being subordinate to an open covering of `M`, because we make no assumption about the way `U x`
+depends on `x`.
+
+We prove that on a smooth finitely dimensional real manifold with `σ`-compact Hausdorff topology,
+for any `U : M → set M` such that `∀ x ∈ s, U x ∈ 𝓝 x` there exists a `smooth_bump_covering I M s`
+subordinate to `U`. Then we use this fact to prove a similar statement about smooth partitions of unity.
+
+## TODO
+
+* Build a framework for to transfer local definitions to global using partition of unity and use it
+  to define, e.g., the integral of a differential form over a manifold.
+
+## Tags
+
+smooth bump function, partition of unity
+-/
 
 universes uι uE uH uM
 
@@ -66,7 +112,7 @@ structure smooth_partition_of_unity (s : set M := univ) :=
 (sum_eq_one' : ∀ x ∈ s, ∑ᶠ i, to_fun i x = 1)
 (sum_le_one' : ∀ x, ∑ᶠ i, to_fun i x ≤ 1)
 
-variables {ι M I}
+variables {ι I M}
 
 namespace smooth_partition_of_unity
 
@@ -333,10 +379,12 @@ variable {I}
 
 namespace smooth_partition_of_unity
 
+variables [t2_space M] [sigma_compact_space M]
+
 /-- If `X` is a paracompact normal topological space and `U` is an open covering of a closed set
 `s`, then there exists a `bump_covering ι X s` that is subordinate to `U`. -/
-lemma exists_is_subordinate [t2_space M] [sigma_compact_space M] {s : set M}
-  (hs : is_closed s) (U : ι → set M) (ho : ∀ i, is_open (U i)) (hU : s ⊆ ⋃ i, U i) :
+lemma exists_is_subordinate {s : set M} (hs : is_closed s) (U : ι → set M) (ho : ∀ i, is_open (U i))
+  (hU : s ⊆ ⋃ i, U i) :
   ∃ f : smooth_partition_of_unity ι I M s, f.is_subordinate U :=
 begin
   haveI : locally_compact_space H := I.locally_compact,
@@ -349,5 +397,10 @@ begin
     rcases exists_smooth_zero_one_of_closed I hs ht hd with ⟨f, hf⟩,
     exact ⟨f, f.smooth, hf⟩ }
 end
+
+instance {s : set M} [is_closed s] :
+  inhabited (smooth_partition_of_unity s I M s) :=
+⟨(exists_is_subordinate ‹_› (λ _ : s, univ) (λ _, is_open_univ)
+  (λ x hx, mem_Union.2 ⟨⟨x, hx⟩, mem_univ x⟩)).some⟩
 
 end smooth_partition_of_unity

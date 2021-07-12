@@ -13,52 +13,21 @@ import geometry.manifold.instances.real
 In this file we define `smooth_bump_function I c` to be a bundled smooth "bump" function centered at
 `c`. It is a structure that consists of two real numbers `0 < r < R` with small enough `R`. We
 define a coercion to function for this type, and for `f : smooth_bump_function I c`, the function
-`⇑f` written in the extended chart at `f.c` has the following properties:
+`⇑f` written in the extended chart at `c` has the following properties:
 
-* `f x = 1` in the closed euclidean ball of radius `f.r` centered at `f.c`;
-* `f x = 0` outside of the euclidean ball of radius `f.R` centered at `f.c`;
+* `f x = 1` in the closed euclidean ball of radius `f.r` centered at `c`;
+* `f x = 0` outside of the euclidean ball of radius `f.R` centered at `c`;
 * `0 ≤ f x ≤ 1` for all `x`.
 
-The actual statements involve (pre)images under `ext_chart_at I f.c` and are given as lemmas in the
+The actual statements involve (pre)images under `ext_chart_at I f` and are given as lemmas in the
 `smooth_bump_function` namespace.
-
-We also define `smooth_bump_covering` of a set `s : set M` to be a collection of
-`smooth_bump_function`s such that their supports is a locally finite family of sets, and for each
-point `x ∈ s` there exists a bump function `f i` in the collection such that `f i =ᶠ[𝓝 x] 1`. This
-structure is the main building block in the construction of a smooth partition of unity (see TODO),
-and can be used instead of a partition of unity in some proofs.
-
-We say that `f : smooth_bump_covering I M s` is *subordinate* to a map `U : M → set M` if for each
-index `i`, we have `closure (support (f i)) ⊆ U (f i).c`. This notion is a bit more general than
-being subordinate to an open covering of `M`, because we make no assumption about the way `U x`
-depends on `x`.
-
-We prove that on a smooth finitely dimensional real manifold with `σ`-compact Hausdorff topology,
-for any `U : M → set M` such that `∀ x ∈ s, U x ∈ 𝓝 x` there exists a `smooth_bump_covering I M s`
-subordinate to `U`. Then we use this fact to prove a version of the Whitney embedding theorem: any
-compact real manifold can be embedded into `ℝ^n` for large enough `n`.
-
-## TODO
-
-* Prove the weak Whitney embedding theorem: any `σ`-compact smooth `m`-dimensional manifold can be
-  embedded into `ℝ^(2m+1)`. This requires a version of Sard's theorem: for a locally Lipschitz
-  continuous map `f : ℝ^m → ℝ^n`, `m < n`, the range has Hausdorff dimension at most `m`, hence it
-  has measure zero.
-
-* Deduce some corollaries from existence of a smooth partition of unity.
-
-  - Prove that for any disjoint closed sets `s`, `t` there exists a smooth function `f` suth that
-  `f` equals zero on `s` and `f` equals one on `t`.
-
-  - Build a framework for to transfer local definitions to global using partition of unity and use
-    it to define, e.g., the integral of a differential form over a manifold.
 
 ## Tags
 
-manifold, smooth bump function, partition of unity, Whitney theorem
+manifold, smooth bump function
 -/
 
-universes uι uE uF uH uM
+universes uι uE uH uM
 variables {ι : Type uι}
 {E : Type uE} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
 {H : Type uH} [topological_space H] (I : model_with_corners ℝ E H)
