@@ -542,6 +542,19 @@ begin
   { exact hc₂ }
 end
 
+@[simp] lemma emb_domain_single (f : α ↪ β) (a : α) (m : M) :
+  emb_domain f (single a m) = single (f a) m :=
+begin
+  ext b,
+  by_cases h : b ∈ set.range f,
+  { rcases h with ⟨a', rfl⟩,
+    simp [single_apply], },
+  { simp only [emb_domain_notin_range, h, single_apply, not_false_iff],
+    rw if_neg,
+    rintro rfl,
+    simpa using h, },
+end
+
 end emb_domain
 
 /-! ### Declarations about `zip_with` -/
@@ -861,6 +874,16 @@ lemma map_range_add [add_zero_class N]
   map_range f hf (v₁ + v₂) = map_range f hf v₁ + map_range f hf v₂ :=
 ext $ λ a, by simp only [hf', add_apply, map_range_apply]
 
+@[simp] lemma emb_domain_add [add_zero_class M] (f : α ↪ β) (v w : α →₀ M) :
+  emb_domain f (v + w) = emb_domain f v + emb_domain f w :=
+begin
+  ext b,
+  by_cases h : b ∈ set.range f,
+  { rcases h with ⟨a, rfl⟩,
+    simp, },
+  { simp [emb_domain_notin_range, h], },
+end
+
 end add_zero_class
 
 section add_monoid
@@ -1068,6 +1091,19 @@ lemma prod_add_index' [add_comm_monoid M] [comm_monoid N] {f g : α →₀ M}
   (f + g).prod (λ a b, h a (multiplicative.of_add b)) =
     f.prod (λ a b, h a (multiplicative.of_add b)) * g.prod (λ a b, h a (multiplicative.of_add b)) :=
 prod_add_index (λ a, (h a).map_one) (λ a, (h a).map_mul)
+
+lemma sum_emb_domain_index [add_comm_monoid M] [add_comm_monoid N]
+  (f : α ↪ β) (v : α →₀ M) (g : β → M →+ N) :
+  (v.emb_domain f).sum (λ b m, g b m) = v.sum (λ a m, g (f a) m) :=
+begin
+  apply induction_linear v,
+  { simp, },
+  { intros v₁ v₂ h₁ h₂,
+    rw [emb_domain_add, sum_add_index, sum_add_index],
+    { simp [h₁, h₂], },
+    all_goals { simp, }, },
+  { intros, simp, },
+end
 
 /-- The canonical isomorphism between families of additive monoid homomorphisms `α → (M →+ N)`
 and monoid homomorphisms `(α →₀ M) →+ N`. -/
