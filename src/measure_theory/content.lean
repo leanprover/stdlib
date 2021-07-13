@@ -164,7 +164,7 @@ begin
     with ⟨K', h1K', h2K', h3K'⟩,
   let L : ℕ → compacts G := λ n, ⟨K' n, h1K' n⟩,
   convert le_trans (h3 t L) _,
-  { ext1, rw [h3K', compacts.finset_sup_val, finset.sup_eq_supr] },
+  { ext1, simp only [h3K', compacts.finset_sup_val, finset.sup_eq_supr, set.supr_eq_Union] },
   refine le_trans (finset.sum_le_sum _) (ennreal.sum_le_tsum t),
   intros i hi, refine le_trans _ (le_supr _ (L i)),
   refine le_trans _ (le_supr _ (h2K' i)), refl'

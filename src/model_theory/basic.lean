@@ -342,7 +342,12 @@ variables {n : ℕ} (f : L.functions n) (s : set M)
 def closed_under : Prop :=
 ∀ (x : fin n → M), (∀ i : fin n, x i ∈ s) → fun_map f x ∈ s
 
-variables {f} {s} {t : set M}
+variable (L)
+
+@[simp] lemma closed_under_univ : closed_under f (univ : set M) :=
+λ _ _, mem_univ _
+
+variables {L f s} {t : set M}
 
 namespace closed_under
 
@@ -431,12 +436,9 @@ instance : has_Inf (L.substructure M) :=
 ⟨λ s, { carrier := ⋂ t ∈ s, ↑t,
         fun_mem := λ n f, closed_under.Inf begin
           rintro _ ⟨t, rfl⟩,
-          simp only,
           by_cases h : t ∈ s,
-          { rw [set.Inter_pos h],
-            exact t.fun_mem f },
-          { rw [set.Inter_neg h],
-            exact λ _ _, set.mem_univ _ }
+          { simpa [h] using t.fun_mem f },
+          { simp [h] }
         end }⟩
 
 @[simp, norm_cast]

@@ -155,7 +155,7 @@ protected lemma filter.has_basis.separation_rel {ι : Type*} {p : ι → Prop} {
 by { unfold separation_rel, rw h.sInter_sets }
 
 lemma separation_rel_eq_inter_closure : 𝓢 α = ⋂₀ (closure '' (𝓤 α).sets) :=
-by simpa [uniformity_has_basis_closure.separation_rel]
+by simp [uniformity_has_basis_closure.separation_rel]
 
 lemma is_closed_separation_rel : is_closed (𝓢 α) :=
 begin

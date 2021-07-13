@@ -315,7 +315,9 @@ end
 lemma Inf_glb (S : set (lie_subalgebra R L)) : is_glb S (Inf S) :=
 begin
   have h : ∀ (K K' : lie_subalgebra R L), (K : set L) ≤ K' ↔ K ≤ K', { intros, exact iff.rfl, },
-  simp only [is_glb.of_image h, Inf_coe, is_glb_binfi],
+  apply is_glb.of_image h,
+  simp only [Inf_coe],
+  exact is_glb_binfi
 end
 
 /-- The set of Lie subalgebras of a Lie algebra form a complete lattice.

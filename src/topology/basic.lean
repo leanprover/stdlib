@@ -1030,21 +1030,18 @@ end
 
 lemma locally_finite.is_closed_Union {f : β → set α}
   (h₁ : locally_finite f) (h₂ : ∀i, is_closed (f i)) : is_closed (⋃i, f i) :=
-is_open_compl_iff.1 $ is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
-  have ∀i, a ∈ (f i)ᶜ,
-    from assume i hi, h $ mem_Union.2 ⟨i, hi⟩,
-  have ∀i, (f i)ᶜ ∈ (𝓝 a),
-    by simp only [mem_nhds_iff]; exact assume i,
-      ⟨(f i)ᶜ, subset.refl _, (h₂ i).is_open_compl, this i⟩,
-  let ⟨t, h_sets, (h_fin : finite {i | (f i ∩ t).nonempty })⟩ := h₁ a in
-  calc 𝓝 a ≤ 𝓟 (t ∩ (⋂ i∈{i | (f i ∩ t).nonempty }, (f i)ᶜ)) : by simp *
-  ... ≤ 𝓟 (⋃i, f i)ᶜ :
-  begin
-    simp only [principal_mono, subset_def, mem_compl_eq, mem_inter_eq,
-      mem_Inter, mem_set_of_eq, mem_Union, and_imp, not_exists,
-      exists_imp_distrib, ne_empty_iff_nonempty, set.nonempty],
-    exact assume x xt ht i xfi, ht i x xfi xt xfi
-  end
+begin
+  simp only [← is_open_compl_iff, compl_Union, is_open_iff_mem_nhds, mem_Inter],
+  intros a ha,
+  replace ha : ∀ i, (f i)ᶜ ∈ 𝓝 a := λ i, (h₂ i).is_open_compl.mem_nhds (ha i),
+  rcases h₁ a with ⟨t, h_nhds, h_fin⟩,
+  have : t ∩ (⋂ i ∈ {i | (f i ∩ t).nonempty}, (f i)ᶜ) ∈ 𝓝 a,
+    from inter_mem_sets h_nhds ((bInter_mem_sets h_fin).2 (λ i _, ha i)),
+  filter_upwards [this],
+  simp only [mem_inter_eq, mem_Inter],
+  rintros b ⟨hbt, hn⟩ i hfb,
+  exact hn i ⟨b, hfb, hbt⟩ hfb
+end
 
 lemma locally_finite.closure_Union {f : β → set α} (h : locally_finite f) :
   closure (⋃ i, f i) = ⋃ i, closure (f i) :=

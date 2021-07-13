@@ -771,8 +771,8 @@ lemma is_compact.finite_compact_cover [t2_space α] {s : set α} (hs : is_compac
 begin
   classical,
   induction t using finset.induction with x t hx ih generalizing U hU s hs hsC,
-  { refine ⟨λ _, ∅, λ i, is_compact_empty, λ i, empty_subset _, _⟩, simpa only [subset_empty_iff,
-      finset.not_mem_empty, Union_neg, Union_empty, not_false_iff] using hsC },
+  { refine ⟨λ _, ∅, λ i, is_compact_empty, λ i, empty_subset _, _⟩,
+    simpa only [subset_empty_iff, Union_false, Union_empty] using hsC },
   simp only [finset.set_bUnion_insert] at hsC,
   simp only [finset.mem_insert] at hU,
   have hU' : ∀ i ∈ t, is_open (U i) := λ i hi, hU i (or.inr hi),
