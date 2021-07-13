@@ -219,6 +219,24 @@ by rw [smul_mul_assoc, mul_smul_comm, ← smul_assoc, smul_eq_mul]
 
 end
 
+variable (α)
+
+/-- The monoid of endomorphisms.
+
+Note that this is generalized by `category_theory.End` to categories other than `Type u`. -/
+def function.End  := α → α
+
+instance : monoid (function.End α) :=
+{ one := id,
+  mul := (∘),
+  mul_assoc := λ f g h, rfl,
+  mul_one := λ f, rfl,
+  one_mul := λ f, rfl, }
+
+instance : inhabited (function.End α) := ⟨1⟩
+
+variable {α}
+
 namespace mul_action
 
 variables (M α)
@@ -248,6 +266,23 @@ a multiplicative action of `N` on `α`. -/
 /-- An additive action of `M` on `α` and an additive monoid homomorphism `N → M` induce
 an additive action of `N` on `α`. -/
 add_decl_doc add_action.comp_hom
+
+variable {α}
+
+/-- The tautological action by `function.End α` on `α`. -/
+instance function_End : mul_action (function.End α) α :=
+{ smul := ($),
+  one_smul := λ _, rfl,
+  mul_smul := λ _ _ _, rfl }
+
+/-- The monoid hom representing a monoid action. -/
+def to_End_hom : M →* function.End α :=
+{ to_fun := (•),
+  map_one' := funext (one_smul M),
+  map_mul' := λ x y, funext (mul_smul x y) }
+
+/-- The monoid action induced by a monoid hom to `function.End α`-/
+def of_End_hom [monoid N] (f : N →* function.End α) : mul_action N α := comp_hom α f
 
 end mul_action
 
