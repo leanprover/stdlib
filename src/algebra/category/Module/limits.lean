@@ -94,7 +94,7 @@ def limit_cone_is_limit (F : J ⥤ Module R) : is_limit (limit_cone F) :=
 begin
   refine is_limit.of_faithful
     (forget (Module R)) (types.limit_cone_is_limit _)
-    (λ s, ⟨_, _, _⟩) (λ s, rfl); tidy
+    (λ s, { map_zero' := _, .. }) (λ s, rfl); tidy
 end
 
 end has_limits

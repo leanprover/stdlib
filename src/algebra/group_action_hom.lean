@@ -118,7 +118,7 @@ def to_quotient : G →[G] quotient_group.quotient H :=
 end mul_action_hom
 
 /-- Equivariant additive monoid homomorphisms. -/
-structure distrib_mul_action_hom extends A →[M] B, A →+ B.
+structure distrib_mul_action_hom extends A →+ B, A →[M] B.
 
 /-- Reinterpret an equivariant additive monoid homomorphism as an additive monoid homomorphism. -/
 add_decl_doc distrib_mul_action_hom.to_add_monoid_hom
@@ -181,7 +181,7 @@ variables (M) {A}
 
 /-- The identity map as an equivariant additive monoid homomorphism. -/
 protected def id : A →+[M] A :=
-⟨id, λ _ _, rfl, rfl, λ _ _, rfl⟩
+{ to_fun := id, .. add_monoid_hom.id _, .. mul_action_hom.id _ }
 
 @[simp] lemma id_apply (x : A) : distrib_mul_action_hom.id M x = x := rfl
 
@@ -298,7 +298,7 @@ variables (M) {R}
 
 /-- The identity map as an equivariant ring homomorphism. -/
 protected def id : R →+*[M] R :=
-⟨id, λ _ _, rfl, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
+{ to_fun := id, .. distrib_mul_action_hom.id _, .. ring_hom.id _ }
 
 @[simp] lemma id_apply (x : R) : mul_semiring_action_hom.id M x = x := rfl
 

@@ -61,8 +61,8 @@ instance has_coe_to_linear_map : has_coe (derivation R A M) (A →ₗ[R] M) :=
 
 @[simp] lemma to_linear_map_eq_coe : D.to_linear_map = D := rfl
 
-@[simp] lemma mk_coe (f : A →ₗ[R] M) (h₁ h₂ h₃) :
-  ((⟨f, h₁, h₂, h₃⟩ : derivation R A M) : A → M) = f := rfl
+@[simp] lemma mk_coe (f : A →ₗ[R] M) (h₁ h₂ h₃ h₄) :
+  ((⟨f, h₁, h₂, h₃, h₄⟩ : derivation R A M) : A → M) = f := rfl
 
 @[simp, norm_cast]
 lemma coe_fn_coe (f : derivation R A M) : ⇑(f : A →ₗ[R] M) = f := rfl

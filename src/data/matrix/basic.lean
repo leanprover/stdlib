@@ -142,7 +142,7 @@ def linear_map.map_matrix [semiring R] [add_comm_monoid α] [add_comm_monoid β]
   [module R α] [module R β] (f : α →ₗ[R] β) : matrix m n α →ₗ[R] matrix m n β :=
 { to_fun := λ M, M.map f,
   map_add' := matrix.map_add f.to_add_monoid_hom,
-  map_smul' := matrix.map_smul f.to_mul_action_hom, }
+  map_smul' := matrix.map_smul f.to_distrib_mul_action_hom.to_mul_action_hom, }
 
 open_locale matrix
 

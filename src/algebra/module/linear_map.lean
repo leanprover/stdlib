@@ -50,15 +50,13 @@ the notation `M →ₗ[R] M₂`) are bundled versions of such maps. An unbundled
 the predicate `is_linear_map`, but it should be avoided most of the time. -/
 structure linear_map (R : Type u) (M : Type v) (M₂ : Type w)
   [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module R M₂]
-  extends add_hom M M₂, M →[R] M₂
+  extends M →+[R] M₂ :=
+(map_zero' := zero_smul R (0 : M) ▸ zero_smul R (to_fun 0) ▸ map_smul' 0 0)
 
 end
 
-/-- The `add_hom` underlying a `linear_map`. -/
-add_decl_doc linear_map.to_add_hom
-
-/-- The `mul_action_hom` underlying a `linear_map`. -/
-add_decl_doc linear_map.to_mul_action_hom
+/-- The `distrib_mul_action_hom` underlying a `linear_map`. -/
+add_decl_doc linear_map.to_distrib_mul_action_hom
 
 infixr ` →ₗ `:25 := linear_map _
 notation M ` →ₗ[`:25 R:25 `] `:0 M₂:0 := linear_map R M M₂
@@ -72,16 +70,12 @@ variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_mono
 section
 variables [module R M] [module R M₂]
 
-/-- The `distrib_mul_action_hom` underlying a `linear_map`. -/
-def to_distrib_mul_action_hom (f : M →ₗ[R] M₂) : distrib_mul_action_hom R M M₂ :=
-{ map_zero' := zero_smul R (0 : M) ▸ zero_smul R (f.to_fun 0) ▸ f.map_smul' 0 0, ..f }
-
 instance : has_coe_to_fun (M →ₗ[R] M₂) := ⟨_, to_fun⟩
 
 initialize_simps_projections linear_map (to_fun → apply)
 
-@[simp] lemma coe_mk (f : M → M₂) (h₁ h₂) :
-  ((linear_map.mk f h₁ h₂ : M →ₗ[R] M₂) : M → M₂) = f := rfl
+@[simp] lemma coe_mk (f : M → M₂) (h₁ h₂ h₃) :
+  ((linear_map.mk f h₁ h₂ h₃ : M →ₗ[R] M₂) : M → M₂) = f := rfl
 
 
 /-- Identity map as a `linear_map` -/
@@ -121,8 +115,8 @@ protected lemma congr_fun (h : f = g) (x : M) : f x = g x := h ▸ rfl
 theorem ext_iff : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl }, ext⟩
 
-@[simp] lemma mk_coe (f : M →ₗ[R] M₂) (h₁ h₂) :
-  (linear_map.mk f h₁ h₂ : M →ₗ[R] M₂) = f := ext $ λ _, rfl
+@[simp] lemma mk_coe (f : M →ₗ[R] M₂) (h₁ h₂ h₄) :
+  (linear_map.mk f h₁ h₂ h₄ : M →ₗ[R] M₂) = f := ext $ λ _, rfl
 
 variables (f g)
 
@@ -439,8 +433,8 @@ instance : has_coe (M ≃ₗ[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 -- see Note [function coercion]
 instance : has_coe_to_fun (M ≃ₗ[R] M₂) := ⟨_, λ f, f.to_fun⟩
 
-@[simp] lemma coe_mk {to_fun inv_fun map_add map_smul left_inv right_inv } :
-  ⇑(⟨to_fun, map_add, map_smul, inv_fun, left_inv, right_inv⟩ : M ≃ₗ[R] M₂) = to_fun :=
+@[simp] lemma coe_mk {to_fun inv_fun map_zero map_add map_smul left_inv right_inv } :
+  ⇑(⟨to_fun, map_smul, map_zero, map_add, inv_fun, left_inv, right_inv⟩ : M ≃ₗ[R] M₂) = to_fun :=
 rfl
 
 -- This exists for compatibility, previously `≃ₗ[R]` extended `≃` instead of `≃+`.
@@ -448,7 +442,7 @@ rfl
 def to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂ := λ f, f.to_add_equiv.to_equiv
 
 lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
-λ ⟨_, _, _, _, _, _⟩ ⟨_, _, _, _, _, _⟩ h, linear_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
+λ ⟨_, _, _, _, _, _, _⟩ ⟨_, _, _, _, _, _, _⟩ h, linear_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
 
 @[simp] lemma to_equiv_inj {e₁ e₂ : M ≃ₗ[R] M₂} : e₁.to_equiv = e₂.to_equiv ↔ e₁ = e₂ :=
 to_equiv_injective.eq_iff
@@ -561,8 +555,8 @@ lemma comp_coe [module R M] [module R M₂] [module R M₃] (f :  M ≃ₗ[R] M�
   (f' :  M₂ ≃ₗ[R] M₃) : (f' : M₂ →ₗ[R] M₃).comp (f : M →ₗ[R] M₂) = (f.trans f' : M →ₗ[R] M₃) :=
 rfl
 
-@[simp] lemma mk_coe (h₁ h₂ f h₃ h₄) :
-  (linear_equiv.mk e h₁ h₂ f h₃ h₄ : M ≃ₗ[R] M₂) = e := ext $ λ _, rfl
+@[simp] lemma mk_coe (h₁ h₂ h₃ f h₄ h₅) :
+  (linear_equiv.mk e h₁ h₂ h₃ f h₄ h₅ : M ≃ₗ[R] M₂) = e := ext $ λ _, rfl
 
 @[simp] theorem map_add (a b : M) : e (a + b) = e a + e b := e.map_add' a b
 @[simp] theorem map_zero : e 0 = 0 := e.to_linear_map.map_zero
@@ -582,14 +576,14 @@ lemma symm_bijective [module R M] [module R M₂] :
   function.bijective (symm : (M ≃ₗ[R] M₂) → (M₂ ≃ₗ[R] M)) :=
 equiv.bijective ⟨symm, symm, symm_symm, symm_symm⟩
 
-@[simp] lemma mk_coe' (f h₁ h₂ h₃ h₄) :
-  (linear_equiv.mk f h₁ h₂ ⇑e h₃ h₄ : M₂ ≃ₗ[R] M) = e.symm :=
+@[simp] lemma mk_coe' (f h₁ h₂ h₃ h₄ h₅) :
+  (linear_equiv.mk f h₁ h₂ h₃ ⇑e h₄ h₅ : M₂ ≃ₗ[R] M) = e.symm :=
 symm_bijective.injective $ ext $ λ x, rfl
 
-@[simp] theorem symm_mk (f h₁ h₂ h₃ h₄) :
-  (⟨e, h₁, h₂, f, h₃, h₄⟩ : M ≃ₗ[R] M₂).symm =
+@[simp] theorem symm_mk (f h₁ h₂ h₃ h₄ h₅) :
+  (⟨e, h₁, h₂, h₃, f, h₄, h₅⟩ : M ≃ₗ[R] M₂).symm =
   { to_fun := f, inv_fun := e,
-    ..(⟨e, h₁, h₂, f, h₃, h₄⟩ : M ≃ₗ[R] M₂).symm } := rfl
+    ..(⟨e, h₁, h₂, h₃, f, h₄, h₅⟩ : M ≃ₗ[R] M₂).symm } := rfl
 
 protected lemma bijective : function.bijective e := e.to_equiv.bijective
 protected lemma injective : function.injective e := e.to_equiv.injective

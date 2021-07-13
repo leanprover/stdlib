@@ -257,15 +257,15 @@ lemma ext_iff {f g : L₁ →ₗ⁅R⁆ L₂} : f = g ↔ ∀ x, f x = g x :=
 
 lemma congr_fun {f g : L₁ →ₗ⁅R⁆ L₂} (h : f = g) (x : L₁) : f x = g x := h ▸ rfl
 
-@[simp] lemma mk_coe (f : L₁ →ₗ⁅R⁆ L₂) (h₁ h₂ h₃) :
-  (⟨f, h₁, h₂, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) = f :=
+@[simp] lemma mk_coe (f : L₁ →ₗ⁅R⁆ L₂) (h₁ h₂ h₃ h₄) :
+  (⟨f, h₁, h₂, h₃, h₄⟩ : L₁ →ₗ⁅R⁆ L₂) = f :=
 by { ext, refl, }
 
-@[simp] lemma coe_mk (f : L₁ → L₂) (h₁ h₂ h₃) :
-  ((⟨f, h₁, h₂, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = f := rfl
+@[simp] lemma coe_mk (f : L₁ → L₂) (h₁ h₂ h₃ h₄) :
+  ((⟨f, h₁, h₂, h₃, h₄⟩ : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = f := rfl
 
-@[norm_cast, simp] lemma coe_linear_mk (f : L₁ →ₗ[R] L₂) (h₁ h₂ h₃) :
-  ((⟨f, h₁, h₂, h₃⟩ : L₁ →ₗ⁅R⁆ L₂) : L₁ →ₗ[R] L₂) = ⟨f, h₁, h₂⟩ :=
+@[norm_cast, simp] lemma coe_linear_mk (f : L₁ →ₗ[R] L₂) (h₁ h₂ h₃ h₄) :
+  ((⟨f, h₁, h₂, h₃, h₄⟩ : L₁ →ₗ⁅R⁆ L₂) : L₁ →ₗ[R] L₂) = ⟨f, h₁, h₂, h₃⟩ :=
 by { ext, refl, }
 
 /-- The composition of morphisms is a morphism. -/
@@ -461,15 +461,15 @@ coe_injective $ funext h
 lemma ext_iff {f g : M →ₗ⁅R,L⁆ N} : f = g ↔ ∀ m, f m = g m :=
 ⟨by { rintro rfl m, refl, }, ext⟩
 
-@[simp] lemma mk_coe (f : M →ₗ⁅R,L⁆ N) (h₁ h₂ h₃) :
-  (⟨f, h₁, h₂, h₃⟩ : M →ₗ⁅R,L⁆ N) = f :=
+@[simp] lemma mk_coe (f : M →ₗ⁅R,L⁆ N) (h₁ h₂ h₃ h₄) :
+  (⟨f, h₁, h₂, h₃, h₄⟩ : M →ₗ⁅R,L⁆ N) = f :=
 by { ext, refl, }
 
-@[simp] lemma coe_mk (f : M → N) (h₁ h₂ h₃) :
-  ((⟨f, h₁, h₂, h₃⟩ : M →ₗ⁅R,L⁆ N) : M → N) = f := rfl
+@[simp] lemma coe_mk (f : M → N) (h₁ h₂ h₃ h₄) :
+  ((⟨f, h₁, h₂, h₃, h₄⟩ : M →ₗ⁅R,L⁆ N) : M → N) = f := rfl
 
-@[norm_cast, simp] lemma coe_linear_mk (f : M →ₗ[R] N) (h₁ h₂ h₃) :
-  ((⟨f, h₁, h₂, h₃⟩ : M →ₗ⁅R,L⁆ N) : M →ₗ[R] N) = ⟨f, h₁, h₂⟩ :=
+@[norm_cast, simp] lemma coe_linear_mk (f : M →ₗ[R] N) (h₁ h₂ h₃ h₄) :
+  ((⟨f, h₁, h₂, h₃, h₄⟩ : M →ₗ⁅R,L⁆ N) : M →ₗ[R] N) = ⟨f, h₁, h₂, h₃⟩ :=
 by { ext, refl, }
 
 /-- The composition of Lie module morphisms is a morphism. -/
@@ -562,8 +562,8 @@ instance has_coe_to_linear_equiv : has_coe (M ≃ₗ⁅R,L⁆ N) (M ≃ₗ[R] N)
 /-- see Note [function coercion] -/
 instance : has_coe_to_fun (M ≃ₗ⁅R,L⁆ N) := ⟨_, to_fun⟩
 
-@[simp] lemma coe_mk (f : M → N) (h₁ h₂ F h₃ h₄ h₅) :
-  ((⟨f, h₁, h₂, F, h₃, h₄, h₅⟩ : M ≃ₗ⁅R,L⁆ N) : M → N) = f := rfl
+@[simp] lemma coe_mk (f : M → N) (h₁ h₂ h₃ F h₄ h₅ h₆) :
+  ((⟨f, h₁, h₂, h₃, F, h₄, h₅, h₆⟩ : M ≃ₗ⁅R,L⁆ N) : M → N) = f := rfl
 
 @[simp, norm_cast] lemma coe_to_lie_module_hom (e : M ≃ₗ⁅R,L⁆ N) :
   ((e : M →ₗ⁅R,L⁆ N) : M → N) = e := rfl
@@ -572,7 +572,8 @@ instance : has_coe_to_fun (M ≃ₗ⁅R,L⁆ N) := ⟨_, to_fun⟩
 rfl
 
 lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ⁅R,L⁆ N) → M ≃ N) :=
-λ ⟨_, _, _, _, _, _, _⟩ ⟨_, _, _, _, _, _, _⟩ h, lie_module_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
+λ ⟨_, _, _, _, _, _, _, _⟩ ⟨_, _, _, _, _, _, _, _⟩ h,
+  lie_module_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
 
 @[ext] lemma ext (e₁ e₂ : M ≃ₗ⁅R,L⁆ N) (h : ∀ m, e₁ m = e₂ m) : e₁ = e₂ :=
 to_equiv_injective (equiv.ext h)
