@@ -2543,7 +2543,7 @@ end
 @[to_additive]
 lemma head_mul_tail_prod' [monoid α] (L : list α) :
   (L.nth 0).get_or_else 1 * L.tail.prod = L.prod :=
-by { cases L, { simp, refl, }, { simp, }, }
+by cases L; simp
 
 lemma head_add_tail_sum (L : list ℕ) : L.head + L.tail.sum = L.sum :=
 by { cases L, { simp, refl, }, { simp, }, }
