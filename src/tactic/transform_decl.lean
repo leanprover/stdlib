@@ -62,9 +62,7 @@ do
     pp_decl ← pp decl,
     when trace $ trace!"[to_additive] > generating\n{pp_decl}",
     decorate_error (format!"@[to_additive] failed. Type mismatch in additive declaration.
-If you want to map all identifiers to its additive counterpart, try `@[to_additive!].`
-If you want to ignore arguments of a certain function,
-give it the attribute `@[to_additive_ignore_args]`.
+For help, see the docstring of `to_additive.attr`, section `Troubleshooting`.
 Failed to add declaration\n{pp_decl}
 
 Nested error message:\n").to_string $ -- empty line is intentional
