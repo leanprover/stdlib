@@ -279,6 +279,18 @@ lemma convex.add_smul_mem (h : convex s) {x y : E} (hx : x ∈ s) (hy : x + y �
   {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) : x + t • y ∈ s :=
 by { convert h.add_smul_sub_mem hx hy ht, abel }
 
+lemma convex.smul_mem_of_zero_mem (h : convex s) {x : E} (zero_mem : (0:E) ∈ s) (hx : x ∈ s)
+  {t : ℝ} (ht : t ∈ Icc (0 : ℝ) 1) : t • x ∈ s :=
+by simpa using h.add_smul_mem zero_mem (by simpa using hx) ht
+
+lemma convex.mem_smul_of_zero_mem (h : convex s) {x : E} (zero_mem : (0:E) ∈ s) (hx : x ∈ s)
+  {t : ℝ} (ht : t ∈ Ici (1 : ℝ)) : x ∈ t • s :=
+begin
+  rw mem_smul_set_iff_inv_smul_mem,
+  apply h.smul_mem_of_zero_mem zero_mem hx ⟨inv_nonneg.2 (zero_le_one.trans ht), inv_le_one ht⟩,
+  exact ne_of_gt (zero_lt_one.trans_le ht),
+end
+
 /-- Alternative definition of set convexity, in terms of pointwise set operations. -/
 lemma convex_iff_pointwise_add_subset:
   convex s ↔ ∀ ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b → a + b = 1 → a • s + b • s ⊆ s :=
