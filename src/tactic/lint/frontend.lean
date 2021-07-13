@@ -84,7 +84,7 @@ checks.mmap $ λ ⟨linter_name, linter⟩, do
   let test_decls := if linter.auto_decls then all_decls else non_auto_decls,
   test_decls ← test_decls.mfilter (λ decl, should_be_linted linter_name decl.to_name),
   s ← read,
-  let results := test_decls.map_async_chunked $ λ decl, prod.mk decl.to_name $
+  let results := test_decls.map_async $ λ decl, prod.mk decl.to_name $
       match linter.test decl s with
       | result.success w _ := w
       | result.exception msg _ _ :=

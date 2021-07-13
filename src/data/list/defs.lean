@@ -932,8 +932,8 @@ def to_chunks {α} : ℕ → list α → list (list α)
 /--
 Asynchronous version of `list.map`.
 -/
-meta def map_async_chunked {α β} (f : α → β) (xs : list α) (chunk_size := 1024) : list β :=
-((xs.to_chunks chunk_size).map (λ xs, task.delay (λ _, list.map f xs))).bind task.get
+meta def map_async {α β} (f : α → β) (xs : list α) : list β :=
+(xs.map (λ x, task.delay (λ _, f x))).map task.get
 
 /-!
 We add some n-ary versions of `list.zip_with` for functions with more than two arguments.
