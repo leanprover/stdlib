@@ -370,25 +370,39 @@ begin
   { apply_instance }
 end
 
-lemma measure_theory.integrable_on.mul_continuous_on
-  [topological_space α] [opens_measurable_space α] [t2_space α]
-  {μ : measure α} {s : set α} {f g : α → ℝ}
-  (hf : integrable_on f s μ) (hg : continuous_on g s) (hs : is_compact s) :
+section
+variables [topological_space α] [opens_measurable_space α]
+  {μ : measure α} {s t : set α} {f g : α → ℝ}
+
+lemma measure_theory.integrable_on.mul_continuous_on_of_subset
+  (hf : integrable_on f s μ) (hg : continuous_on g t)
+  (hs : measurable_set s) (ht : is_compact t) (hst : s ⊆ t) :
   integrable_on (λ x, f x * g x) s μ :=
 begin
-  rcases is_compact.exists_bound_of_continuous_on hs hg with ⟨C, hC⟩,
+  rcases is_compact.exists_bound_of_continuous_on ht hg with ⟨C, hC⟩,
   rw [integrable_on, ← mem_ℒp_one_iff_integrable] at hf ⊢,
   have : ∀ᵐ x ∂(μ.restrict s), ∥f x * g x∥ ≤ C * ∥f x∥,
-  { filter_upwards [ae_restrict_mem hs.measurable_set],
+  { filter_upwards [ae_restrict_mem hs],
     assume x hx,
     rw [real.norm_eq_abs, abs_mul, mul_comm, real.norm_eq_abs],
-    apply mul_le_mul_of_nonneg_right (hC x hx) (abs_nonneg _) },
-  exact mem_ℒp.of_le_mul hf (hf.ae_measurable.mul (hg.ae_measurable hs.measurable_set)) this
+    apply mul_le_mul_of_nonneg_right (hC x (hst hx)) (abs_nonneg _) },
+  exact mem_ℒp.of_le_mul hf (hf.ae_measurable.mul ((hg.mono hst).ae_measurable hs)) this,
 end
 
-lemma measure_theory.integrable_on.continuous_on_mul
-  [topological_space α] [opens_measurable_space α] [t2_space α]
-  {μ : measure α} {s : set α} {f g : α → ℝ}
+lemma measure_theory.integrable_on.mul_continuous_on [t2_space α]
+  (hf : integrable_on f s μ) (hg : continuous_on g s) (hs : is_compact s) :
+  integrable_on (λ x, f x * g x) s μ :=
+hf.mul_continuous_on_of_subset hg hs.measurable_set hs (subset.refl _)
+
+lemma measure_theory.integrable_on.continuous_on_mul_of_subset
+  (hf : integrable_on f s μ) (hg : continuous_on g t)
+  (hs : measurable_set s) (ht : is_compact t) (hst : s ⊆ t) :
+  integrable_on (λ x, g x * f x) s μ :=
+by simpa [mul_comm] using hf.mul_continuous_on_of_subset hg hs ht hst
+
+lemma measure_theory.integrable_on.continuous_on_mul [t2_space α]
   (hf : integrable_on f s μ) (hg : continuous_on g s) (hs : is_compact s) :
   integrable_on (λ x, g x * f x) s μ :=
-by simpa [mul_comm] using hf.mul_continuous_on hg hs
+hf.continuous_on_mul_of_subset hg hs.measurable_set hs (subset.refl _)
+
+end
