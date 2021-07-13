@@ -422,6 +422,15 @@ begin
       simpa using hx } }
 end
 
+lemma disjoint.mono {x y : perm α} (h : disjoint f g)
+  (hf : x.support ≤ f.support) (hg : y.support ≤ g.support) :
+  disjoint x y :=
+begin
+  rw disjoint_iff_disjoint_support at h ⊢,
+  intros a ha,
+  exact h (mem_inter_of_mem (hf (mem_of_mem_inter_left ha)) (hg (mem_of_mem_inter_right ha)))
+end
+
 lemma support_le_prod_of_mem {l : list (perm α)} (h : f ∈ l) (hl : l.pairwise disjoint) :
   f.support ≤ l.prod.support :=
 begin
