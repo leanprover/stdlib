@@ -2,8 +2,6 @@
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
-
-Finite types.
 -/
 import tactic.wlog
 import data.finset.powerset
@@ -13,11 +11,62 @@ import data.array.lemmas
 import order.well_founded
 import group_theory.perm.basic
 
+/-!
+# Finite types
+
+This file defines a typeclass to state that a type is finite.
+
+## Main declarations
+
+* `fintype α`:  Typeclass saying that a type is finite. It takes as fields a `finset` and a proof
+  that all terms of type `α` are in it.
+* `finset.univ`: The finset of all elements of a fintype.
+* `fintype.card α`: Cardinality of a fintype. Equal to `finset.univ.card`.
+* `perms_of_finset s`: The finset of permutations of the finset `s`.
+* `fintype.trunc_equiv_fin`: A fintype `α` is computably equivalent to `fin (card α)`. The
+  `trunc`-free, noncomputable version is `fintype.equiv_fin`.
+* `fintype.trunc_equiv_of_card_eq` `fintype.equiv_of_card_eq`: Two fintypes of same cardinality are
+  equivalent. See above.
+* `fin.equiv_iff_eq`: `fin m ≃ fin n` iff `m = n`.
+* `infinite α`: Typeclass saying that a type is infinite. Defined as `fintype α → false`.
+* `not_fintype`: No `fintype` is infinite.
+* `infinite.nat_embedding`: An embedding of `ℕ` into an infinite type.
+
+We also provide the following versions of the pigeonholes principle.
+* `fintype.exists_ne_map_eq_of_card_lt` and `is_empty_of_card_lt`: Finitely many pigeons and
+  pigeonholes. Weak formulation.
+* `fintype.exists_ne_map_eq_of_infinite`: Infinitely many pigeons in finitely many pigeonholes.
+  Weak formulation.
+* `fintype.exists_infinite_fiber`: Infinitely many pigeons in finitely many pigeonholes. Strong
+  formulation.
+
+Some more pigeonhole-like statements can be found in `data.fintype.card_embedding`.
+
+## Instances
+
+Among others, we provide `fintype` instances for
+* A `subtype` of a fintype. See `fintype.subtype`.
+* The `option` of a fintype.
+* The product of two fintypes.
+* The sum of two fintypes.
+* `Prop`.
+
+and `infinite` instances for
+* `ℕ`
+* `ℤ`
+
+along with some machinery
+* Types which have a surjection from/an injection to a `fintype` are themselves fintypes. See
+  `fintype.of_injective` and `fintype.of_surjective`.
+* Types which have an injection from/a surjection to an `infinite` type are themselves `infinite`.
+  See `infinite.of_injective` and `infinite.of_surjective`.
+-/
+
 open_locale nat
 
 universes u v
 
-variables {α : Type*} {β : Type*} {γ : Type*}
+variables {α β γ : Type*}
 
 /-- `fintype α` means that `α` is finite, i.e. there are only
   finitely many distinct elements of type `α`. The evidence of this
@@ -43,13 +92,13 @@ fintype.complete x
 by ext; simp
 
 lemma univ_nonempty_iff : (univ : finset α).nonempty ↔ nonempty α :=
-by rw [← coe_nonempty, coe_univ, set.nonempty_iff_univ_nonempty]
+by rw [←coe_nonempty, coe_univ, set.nonempty_iff_univ_nonempty]
 
 lemma univ_nonempty [nonempty α] : (univ : finset α).nonempty :=
 univ_nonempty_iff.2 ‹_›
 
 lemma univ_eq_empty : (univ : finset α) = ∅ ↔ ¬nonempty α :=
-by rw [← univ_nonempty_iff, nonempty_iff_ne_empty, ne.def, not_not]
+by rw [←univ_nonempty_iff, nonempty_iff_ne_empty, ne.def, not_not]
 
 lemma univ_eq_empty' : (univ : finset α) = ∅ ↔ is_empty α :=
 univ_eq_empty.trans (not_nonempty_iff)
@@ -98,8 +147,8 @@ by simp [eq_univ_iff_forall, finset.nonempty]
   s ∩ univ = s :=
 by rw [inter_comm, univ_inter]
 
-@[simp] lemma piecewise_univ [∀i : α, decidable (i ∈ (univ : finset α))]
-  {δ : α → Sort*} (f g : Πi, δ i) : univ.piecewise f g = f :=
+@[simp] lemma piecewise_univ [Π i : α, decidable (i ∈ (univ : finset α))]
+  {δ : α → Sort*} (f g : Π i, δ i) : univ.piecewise f g = f :=
 by { ext i, simp [piecewise] }
 
 lemma piecewise_compl [decidable_eq α] (s : finset α) [Π i : α, decidable (i ∈ s)]
@@ -109,13 +158,7 @@ by { ext i, simp [piecewise] }
 
 lemma univ_map_equiv_to_embedding {α β : Type*} [fintype α] [fintype β] (e : α ≃ β) :
   univ.map e.to_embedding = univ :=
-begin
-  apply eq_univ_iff_forall.mpr,
-  intro b,
-  rw [mem_map],
-  use e.symm b,
-  simp,
-end
+eq_univ_iff_forall.mpr (λ b, mem_map.mpr ⟨e.symm b, mem_univ _, by simp⟩)
 
 @[simp] lemma univ_filter_exists (f : α → β) [fintype β]
   [decidable_pred (λ y, ∃ x, f x = y)] [decidable_eq β] :
@@ -134,9 +177,9 @@ open finset function
 
 namespace fintype
 
-instance decidable_pi_fintype {α} {β : α → Type*} [∀a, decidable_eq (β a)] [fintype α] :
-  decidable_eq (Πa, β a) :=
-assume f g, decidable_of_iff (∀ a ∈ fintype.elems α, f a = g a)
+instance decidable_pi_fintype {α} {β : α → Type*} [∀ a, decidable_eq (β a)] [fintype α] :
+  decidable_eq (Π a, β a) :=
+λ f g, decidable_of_iff (∀ a ∈ fintype.elems α, f a = g a)
   (by simp [function.funext_iff, fintype.complete])
 
 instance decidable_forall_fintype {p : α → Prop} [decidable_pred p] [fintype α] :
@@ -206,8 +249,7 @@ instance decidable_left_inverse_fintype [decidable_eq β] [fintype β] (f : α �
   decidable (function.left_inverse f g) :=
 show decidable (∀ x, f (g x) = x), by apply_instance
 
-lemma exists_max [fintype α] [nonempty α]
-  {β : Type*} [linear_order β] (f : α → β) :
+lemma exists_max [fintype α] [nonempty α] {β : Type*} [linear_order β] (f : α → β) :
   ∃ x₀ : α, ∀ x, f x ≤ f x₀ :=
 by simpa using exists_max_image univ f univ_nonempty
 
@@ -217,27 +259,27 @@ lemma exists_min [fintype α] [nonempty α]
 by simpa using exists_min_image univ f univ_nonempty
 
 /-- Construct a proof of `fintype α` from a universal multiset -/
-def of_multiset [decidable_eq α] (s : multiset α)
-  (H : ∀ x : α, x ∈ s) : fintype α :=
+def of_multiset [decidable_eq α] (s : multiset α) (H : ∀ x : α, x ∈ s) :
+  fintype α :=
 ⟨s.to_finset, by simpa using H⟩
 
 /-- Construct a proof of `fintype α` from a universal list -/
-def of_list [decidable_eq α] (l : list α)
-  (H : ∀ x : α, x ∈ l) : fintype α :=
+def of_list [decidable_eq α] (l : list α) (H : ∀ x : α, x ∈ l) :
+  fintype α :=
 ⟨l.to_finset, by simpa using H⟩
 
 theorem exists_univ_list (α) [fintype α] :
   ∃ l : list α, l.nodup ∧ ∀ x : α, x ∈ l :=
 let ⟨l, e⟩ := quotient.exists_rep (@univ α _).1 in
 by have := and.intro univ.2 mem_univ_val;
-   exact ⟨_, by rwa ← e at this⟩
+   exact ⟨_, by rwa ←e at this⟩
 
 /-- `card α` is the number of elements in `α`, defined when `α` is a fintype. -/
 def card (α) [fintype α] : ℕ := (@univ α _).card
 
 /-- If `l` lists all the elements of `α` without duplicates, then `α ≃ fin (l.length)`. -/
 def equiv_fin_of_forall_mem_list {α} [decidable_eq α]
-  {l : list α} (h : ∀ x:α, x ∈ l) (nd : l.nodup) : α ≃ fin (l.length) :=
+  {l : list α} (h : ∀ x : α, x ∈ l) (nd : l.nodup) : α ≃ fin (l.length) :=
 ⟨λ a, ⟨_, list.index_of_lt_length.2 (h a)⟩,
  λ i, l.nth_le i.1 i.2,
  λ a, by simp,
@@ -257,7 +299,7 @@ for an equiv `α ≃ fin n` given `fintype.card α = n`.
 def trunc_equiv_fin (α) [decidable_eq α] [fintype α] : trunc (α ≃ fin (card α)) :=
 by unfold card finset.card; exact
 quot.rec_on_subsingleton (@univ α _).1
-  (λ l (h : ∀ x:α, x ∈ l) (nd : l.nodup), trunc.mk (equiv_fin_of_forall_mem_list h nd))
+  (λ l (h : ∀ x : α, x ∈ l) (nd : l.nodup), trunc.mk (equiv_fin_of_forall_mem_list h nd))
   mem_univ_val univ.2
 
 /-- There is a (noncomputable) bijection between `α` and `fin (card α)`.
@@ -274,21 +316,20 @@ instance (α : Type*) : subsingleton (fintype α) :=
 
 /-- Given a predicate that can be represented by a finset, the subtype
 associated to the predicate is a fintype. -/
-protected def subtype {p : α → Prop} (s : finset α)
-  (H : ∀ x : α, x ∈ s ↔ p x) : fintype {x // p x} :=
+protected def subtype {p : α → Prop} (s : finset α) (H : ∀ x : α, x ∈ s ↔ p x) :
+  fintype {x // p x} :=
 ⟨⟨multiset.pmap subtype.mk s.1 (λ x, (H x).1),
   multiset.nodup_pmap (λ a _ b _, congr_arg subtype.val) s.2⟩,
 λ ⟨x, px⟩, multiset.mem_pmap.2 ⟨x, (H x).2 px, rfl⟩⟩
 
-theorem subtype_card {p : α → Prop} (s : finset α)
-  (H : ∀ x : α, x ∈ s ↔ p x) :
+theorem subtype_card {p : α → Prop} (s : finset α) (H : ∀ x : α, x ∈ s ↔ p x) :
   @card {x // p x} (fintype.subtype s H) = s.card :=
 multiset.card_pmap _ _ _
 
-theorem card_of_subtype {p : α → Prop} (s : finset α)
-  (H : ∀ x : α, x ∈ s ↔ p x) [fintype {x // p x}] :
+theorem card_of_subtype {p : α → Prop} (s : finset α) (H : ∀ x : α, x ∈ s ↔ p x)
+  [fintype {x // p x}] :
   card {x // p x} = s.card :=
-by { rw ← subtype_card s H, congr }
+by { rw ←subtype_card s H, congr }
 
 /-- Construct a fintype from a finset with the same elements. -/
 def of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) : fintype p :=
@@ -300,7 +341,7 @@ fintype.subtype_card s H
 
 theorem card_of_finset' {p : set α} (s : finset α)
   (H : ∀ x, x ∈ s ↔ x ∈ p) [fintype p] : fintype.card p = s.card :=
-by rw ← card_of_finset s H; congr
+by rw ←card_of_finset s H; congr
 
 /-- If `f : α → β` is a bijection and `α` is a fintype, then `β` is also a fintype. -/
 def of_bijective [fintype α] (f : α → β) (H : function.bijective f) : fintype β :=
@@ -359,7 +400,6 @@ lemma inv_of_mem_range_surjective : function.surjective hf.inv_of_mem_range :=
 end injective
 
 namespace embedding
-
 variables (f : α ↪ β) (b : set.range f)
 
 /--
@@ -418,7 +458,7 @@ theorem of_equiv_card [fintype α] (f : α ≃ β) :
 multiset.card_map _ _
 
 theorem card_congr {α β} [fintype α] [fintype β] (f : α ≃ β) : card α = card β :=
-by rw ← of_equiv_card f; congr
+by rw ←of_equiv_card f; congr
 
 section
 
@@ -500,7 +540,7 @@ arbitrary `fintype` instances, use `fintype.card_eq_zero_iff`. -/
 open_locale classical
 variables (α)
 
-/-- Any subsingleton type is (noncomputably) a fintype (with zero or one terms). -/
+/-- Any subsingleton type is (noncomputably) a fintype (with zero or one term). -/
 @[priority 5] -- see Note [lower instance priority]
 noncomputable instance of_subsingleton' [subsingleton α] : fintype α :=
 if h : nonempty α then
@@ -535,7 +575,7 @@ set.ext $ λ _, mem_to_finset
 
 @[simp] theorem to_finset_inj {s t : set α} [fintype s] [fintype t] :
   s.to_finset = t.to_finset ↔ s = t :=
-⟨λ h, by rw [← s.coe_to_finset, h, t.coe_to_finset], λ h, by simp [h]; congr⟩
+⟨λ h, by rw [←s.coe_to_finset, h, t.coe_to_finset], λ h, by simp [h]; congr⟩
 
 @[simp, mono] theorem to_finset_mono {s t : set α} [fintype s] [fintype t] :
   s.to_finset ⊆ t.to_finset ↔ s ⊆ t :=
@@ -634,27 +674,26 @@ around a specified pivot `p : fin (n + 1)` into the `univ` -/
 lemma fin.univ_succ_above (n : ℕ) (p : fin (n + 1)) :
   (univ : finset (fin (n + 1))) = insert p (univ.image (fin.succ_above p)) :=
 begin
-  rcases lt_or_eq_of_le (fin.le_last p) with hl|rfl,
+  obtain hl | rfl := (fin.le_last p).lt_or_eq,
   { ext m,
     simp only [finset.mem_univ, finset.mem_insert, true_iff, finset.mem_image, exists_prop],
-    refine or_iff_not_imp_left.mpr _,
-    { intro h,
-      cases n,
-      { have : m = p := by simp,
-        exact absurd this h },
-      use p.cast_pred.pred_above m,
-      { rw fin.pred_above,
-        split_ifs with H,
-        { simp only [fin.coe_cast_succ, true_and, fin.coe_coe_eq_self, coe_coe],
-          rw fin.lt_last_iff_coe_cast_pred at hl,
-          rw fin.succ_above_above,
-          { simp },
-          { simp only [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ] at H,
-            simpa [fin.le_iff_coe_le_coe, ←hl] using nat.le_pred_of_lt H } },
-        { rw fin.succ_above_below,
-          { simp },
-          { simp only [fin.cast_succ_cast_pred hl, not_lt] at H,
-            simpa using lt_of_le_of_ne H h, } } } } },
+    refine or_iff_not_imp_left.mpr (λ h, _),
+    cases n,
+    { have : m = p := by simp,
+      exact absurd this h },
+    use p.cast_pred.pred_above m,
+    rw fin.pred_above,
+    split_ifs with H,
+    { simp only [fin.coe_cast_succ, true_and, fin.coe_coe_eq_self, coe_coe],
+      rw fin.lt_last_iff_coe_cast_pred at hl,
+      rw fin.succ_above_above,
+      { simp },
+      { simp only [fin.lt_iff_coe_lt_coe, fin.coe_cast_succ] at H,
+        simpa [fin.le_iff_coe_le_coe, ←hl] using nat.le_pred_of_lt H } },
+    { rw fin.succ_above_below,
+      { simp },
+      { simp only [fin.cast_succ_cast_pred hl, not_lt] at H,
+        simpa using lt_of_le_of_ne H h } } },
   { rw fin.succ_above_last,
     exact fin.univ_cast_succ n }
 end
@@ -747,12 +786,12 @@ card_product _ _
 /-- Given that `α × β` is a fintype, `α` is also a fintype. -/
 def fintype.prod_left {α β} [decidable_eq α] [fintype (α × β)] [nonempty β] : fintype α :=
 ⟨(fintype.elems (α × β)).image prod.fst,
-  assume a, let ⟨b⟩ := ‹nonempty β› in by simp; exact ⟨b, fintype.complete _⟩⟩
+  λ a, let ⟨b⟩ := ‹nonempty β› in by simp; exact ⟨b, fintype.complete _⟩⟩
 
 /-- Given that `α × β` is a fintype, `β` is also a fintype. -/
 def fintype.prod_right {α β} [decidable_eq β] [fintype (α × β)] [nonempty α] : fintype β :=
 ⟨(fintype.elems (α × β)).image prod.snd,
-  assume b, let ⟨a⟩ := ‹nonempty α› in by simp; exact ⟨a, fintype.complete _⟩⟩
+  λ b, let ⟨a⟩ := ‹nonempty α› in by simp; exact ⟨a, fintype.complete _⟩⟩
 
 instance (α : Type*) [fintype α] : fintype (ulift α) :=
 fintype.of_equiv _ equiv.ulift.symm
@@ -810,7 +849,7 @@ lemma card_lt_of_injective_of_not_mem (f : α → β) (h : function.injective f)
   {b : β} (w : b ∉ set.range f) : card α < card β :=
 calc card α = (univ.map ⟨f, h⟩).card : (card_map _).symm
 ... < card β : finset.card_lt_univ_of_not_mem $
-                 by rwa [← mem_coe, coe_map, coe_univ, set.image_univ]
+                 by rwa [←mem_coe, coe_map, coe_univ, set.image_univ]
 
 lemma card_lt_of_injective_not_surjective (f : α → β) (h : function.injective f)
   (h' : ¬function.surjective f) : card α < card β :=
@@ -829,7 +868,7 @@ let ⟨x, _, y, _, h⟩ := finset.exists_ne_map_eq_of_card_lt_of_maps_to h (λ x
 in ⟨x, y, h⟩
 
 lemma card_eq_one_iff : card α = 1 ↔ (∃ x : α, ∀ y, y = x) :=
-by rw [← card_unit, card_eq]; exact
+by rw [←card_unit, card_eq]; exact
 ⟨λ ⟨a⟩, ⟨a.symm (), λ y, a.injective (subsingleton.elim _ _)⟩,
   λ ⟨x, hx⟩, ⟨⟨λ _, (), λ _, x, λ _, (hx _).trans (hx _).symm,
     λ _, subsingleton.elim _ _⟩⟩⟩
@@ -849,11 +888,11 @@ lemma card_le_one_iff : card α ≤ 1 ↔ (∀ a b : α, a = b) :=
 let n := card α in
 have hn : n = card α := rfl,
 match n, hn with
-| 0 := λ ha, ⟨λ h, λ a, (card_eq_zero_iff.1 ha.symm).elim a, λ _, ha ▸ nat.le_succ _⟩
-| 1 := λ ha, ⟨λ h, λ a b, let ⟨x, hx⟩ := card_eq_one_iff.1 ha.symm in
+| 0     := λ ha, ⟨λ h, λ a, (card_eq_zero_iff.1 ha.symm).elim a, λ _, ha ▸ nat.le_succ _⟩
+| 1     := λ ha, ⟨λ h, λ a b, let ⟨x, hx⟩ := card_eq_one_iff.1 ha.symm in
   by rw [hx a, hx b],
     λ _, ha ▸ le_refl _⟩
-| (n+2) := λ ha, ⟨λ h, by rw ← ha at h; exact absurd h dec_trivial,
+| (n+2) := λ ha, ⟨λ h, by rw ←ha at h; exact absurd h dec_trivial,
   (λ h, card_unit ▸ card_le_of_injective (λ _, ())
     (λ _ _ _, h _ _))⟩
 end
@@ -864,7 +903,7 @@ card_le_one_iff.trans subsingleton_iff.symm
 lemma one_lt_card_iff_nontrivial : 1 < card α ↔ nontrivial α :=
 begin
   classical,
-  rw ← not_iff_not,
+  rw ←not_iff_not,
   push_neg,
   rw [not_nontrivial_iff_subsingleton, card_le_one_iff_subsingleton]
 end
@@ -912,7 +951,7 @@ begin
   { intro h, exact ⟨h.1, card_congr (equiv.of_bijective f h)⟩ },
   { rintro ⟨hf, h⟩,
     refine ⟨hf, _⟩,
-    rwa ← injective_iff_surjective_of_equiv (equiv_of_card_eq h) }
+    rwa ←injective_iff_surjective_of_equiv (equiv_of_card_eq h) }
 end
 
 lemma bijective_iff_surjective_and_card (f : α → β) :
@@ -990,7 +1029,7 @@ end function.embedding
 @[simp]
 lemma finset.univ_map_embedding {α : Type*} [fintype α] (e : α ↪ α) :
   univ.map e = univ :=
-by rw [← e.equiv_of_fintype_self_embedding_to_embedding, univ_map_equiv_to_embedding]
+by rw [←e.equiv_of_fintype_self_embedding_to_embedding, univ_map_equiv_to_embedding]
 
 namespace fintype
 
@@ -1006,29 +1045,28 @@ variables [decidable_eq α] [fintype α] {δ : α → Type*}
 finset `fintype.pi_finset t` of all functions taking values in `t a` for all `a`. This is the
 analogue of `finset.pi` where the base finset is `univ` (but formally they are not the same, as
 there is an additional condition `i ∈ finset.univ` in the `finset.pi` definition). -/
-def pi_finset (t : Πa, finset (δ a)) : finset (Πa, δ a) :=
+def pi_finset (t : Π a, finset (δ a)) : finset (Π a, δ a) :=
 (finset.univ.pi t).map ⟨λ f a, f a (mem_univ a), λ _ _, by simp [function.funext_iff]⟩
 
-@[simp] lemma mem_pi_finset {t : Πa, finset (δ a)} {f : Πa, δ a} :
-  f ∈ pi_finset t ↔ (∀a, f a ∈ t a) :=
+@[simp] lemma mem_pi_finset {t : Π a, finset (δ a)} {f : Π a, δ a} :
+  f ∈ pi_finset t ↔ (∀ a, f a ∈ t a) :=
 begin
   split,
   { simp only [pi_finset, mem_map, and_imp, forall_prop_of_true, exists_prop, mem_univ,
                exists_imp_distrib, mem_pi],
-    assume g hg hgf a,
-    rw ← hgf,
+    rintro g hg hgf a,
+    rw ←hgf,
     exact hg a },
   { simp only [pi_finset, mem_map, forall_prop_of_true, exists_prop, mem_univ, mem_pi],
-    assume hf,
-    exact ⟨λ a ha, f a, hf, rfl⟩ }
+    exact λ hf, ⟨λ a ha, f a, hf, rfl⟩ }
 end
 
-lemma pi_finset_subset (t₁ t₂ : Πa, finset (δ a)) (h : ∀ a, t₁ a ⊆ t₂ a) :
+lemma pi_finset_subset (t₁ t₂ : Π a, finset (δ a)) (h : ∀ a, t₁ a ⊆ t₂ a) :
   pi_finset t₁ ⊆ pi_finset t₂ :=
 λ g hg, mem_pi_finset.2 $ λ a, h a $ mem_pi_finset.1 hg a
 
 lemma pi_finset_disjoint_of_disjoint [∀ a, decidable_eq (δ a)]
-  (t₁ t₂ : Πa, finset (δ a)) {a : α} (h : disjoint (t₁ a) (t₂ a)) :
+  (t₁ t₂ : Π a, finset (δ a)) {a : α} (h : disjoint (t₁ a) (t₂ a)) :
   disjoint (pi_finset t₁) (pi_finset t₂) :=
 disjoint_iff_ne.2 $ λ f₁ hf₁ f₂ hf₂ eq₁₂,
 disjoint_iff_ne.1 h (f₁ a) (mem_pi_finset.1 hf₁ a) (f₂ a) (mem_pi_finset.1 hf₂ a) (congr_fun eq₁₂ a)
@@ -1039,16 +1077,16 @@ end fintype
 
 /-- A dependent product of fintypes, indexed by a fintype, is a fintype. -/
 instance pi.fintype {α : Type*} {β : α → Type*}
-  [decidable_eq α] [fintype α] [∀a, fintype (β a)] : fintype (Πa, β a) :=
+  [decidable_eq α] [fintype α] [∀ a, fintype (β a)] : fintype (Π a, β a) :=
 ⟨fintype.pi_finset (λ _, univ), by simp⟩
 
 @[simp] lemma fintype.pi_finset_univ {α : Type*} {β : α → Type*}
-  [decidable_eq α] [fintype α] [∀a, fintype (β a)] :
+  [decidable_eq α] [fintype α] [∀ a, fintype (β a)] :
   fintype.pi_finset (λ a : α, (finset.univ : finset (β a))) = (finset.univ : finset (Π a, β a)) :=
 rfl
 
 instance d_array.fintype {n : ℕ} {α : fin n → Type*}
-  [∀n, fintype (α n)] : fintype (d_array n α) :=
+  [∀ n, fintype (α n)] : fintype (d_array n α) :=
 fintype.of_equiv _ (equiv.d_array_equiv_fin _).symm
 
 instance array.fintype {n : ℕ} {α : Type*} [fintype α] : fintype (array n α) :=
@@ -1145,7 +1183,7 @@ if hp : p then fintype.of_equiv (α hp) ⟨λ a _, a, λ f, f hp, λ _, rfl, λ 
           else ⟨singleton (λ h, (hp h).elim), by simp [hp, function.funext_iff]⟩
 
 @[simp] lemma finset.univ_pi_univ {α : Type*} {β : α → Type*}
-  [decidable_eq α] [fintype α] [∀a, fintype (β a)] :
+  [decidable_eq α] [fintype α] [∀ a, fintype (β a)] :
   finset.univ.pi (λ a : α, (finset.univ : finset (β a))) = finset.univ :=
 by { ext, simp }
 
@@ -1162,8 +1200,8 @@ quotient of the product of the setoids indexed by `l`. -/
 def quotient.fin_choice_aux {ι : Type*} [decidable_eq ι]
   {α : ι → Type*} [S : ∀ i, setoid (α i)] :
   Π (l : list ι), (Π i ∈ l, quotient (S i)) → @quotient (Π i ∈ l, α i) (by apply_instance)
-| []     f := ⟦λ i, false.elim⟧
-| (i::l) f := begin
+| []       f := ⟦λ i, false.elim⟧
+| (i :: l) f := begin
   refine quotient.lift_on₂ (f i (list.mem_cons_self _ _))
     (quotient.fin_choice_aux l (λ j h, f j (list.mem_cons_of_mem _ h)))
     _ _,
@@ -1179,8 +1217,8 @@ end
 theorem quotient.fin_choice_aux_eq {ι : Type*} [decidable_eq ι]
   {α : ι → Type*} [S : ∀ i, setoid (α i)] :
   ∀ (l : list ι) (f : Π i ∈ l, α i), quotient.fin_choice_aux l (λ i h, ⟦f i h⟧) = ⟦f⟧
-| []     f := quotient.sound (λ i h, h.elim)
-| (i::l) f := begin
+| []       f := quotient.sound (λ i h, h.elim)
+| (i :: l) f := begin
   simp [quotient.fin_choice_aux, quotient.fin_choice_aux_eq l],
   refine quotient.sound (λ j h, _),
   by_cases e : j = i; simp [e],
@@ -1241,38 +1279,38 @@ begin
   cc
 end
 
-lemma mem_perms_of_list_of_mem {l : list α} {f : perm α}
-  (h : ∀ x, f x ≠ x → x ∈ l) : f ∈ perms_of_list l :=
+lemma mem_perms_of_list_of_mem {l : list α} {f : perm α} (h : ∀ x, f x ≠ x → x ∈ l) :
+  f ∈ perms_of_list l :=
 begin
   induction l with a l IH generalizing f h,
   { exact list.mem_singleton.2 (equiv.ext $ λ x, decidable.by_contradiction $ h _) },
   by_cases hfa : f a = a,
   { refine mem_append_left _ (IH (λ x hx, mem_of_ne_of_mem _ (h x hx))),
     rintro rfl, exact hx hfa },
-  { have hfa' : f (f a) ≠ f a := mt (λ h, f.injective h) hfa,
-    have : ∀ (x : α), (swap a (f a) * f) x ≠ x → x ∈ l,
-    { intros x hx,
-      have hxa : x ≠ a,
-      { rintro rfl, apply hx, simp only [mul_apply, swap_apply_right] },
-      refine list.mem_of_ne_of_mem hxa (h x (λ h, _)),
-      simp only [h, mul_apply, swap_apply_def, mul_apply, ne.def, apply_eq_iff_eq] at hx;
-      split_ifs at hx, exacts [hxa (h.symm.trans h_1), hx h] },
-    suffices : f ∈ perms_of_list l ∨ ∃ (b ∈ l) (g ∈ perms_of_list l), swap a b * g = f,
-    { simpa only [perms_of_list, exists_prop, list.mem_map, mem_append, list.mem_bind] },
-    refine or_iff_not_imp_left.2 (λ hfl, ⟨f a, _, swap a (f a) * f, IH this, _⟩),
-    { by_cases hffa : f (f a) = a,
-      { exact mem_of_ne_of_mem hfa (h _ (mt (λ h, f.injective h) hfa)) },
-      { apply this,
-        simp only [mul_apply, swap_apply_def, mul_apply, ne.def, apply_eq_iff_eq],
-        split_ifs; cc } },
-    { rw [← mul_assoc, mul_def (swap a (f a)) (swap a (f a)),
-          swap_swap, ← perm.one_def, one_mul] } }
+  have hfa' : f (f a) ≠ f a := mt (λ h, f.injective h) hfa,
+  have : ∀ (x : α), (swap a (f a) * f) x ≠ x → x ∈ l,
+  { intros x hx,
+    have hxa : x ≠ a,
+    { rintro rfl, apply hx, simp only [mul_apply, swap_apply_right] },
+    refine list.mem_of_ne_of_mem hxa (h x (λ h, _)),
+    simp only [h, mul_apply, swap_apply_def, mul_apply, ne.def, apply_eq_iff_eq] at hx;
+    split_ifs at hx, exacts [hxa (h.symm.trans h_1), hx h] },
+  suffices : f ∈ perms_of_list l ∨ ∃ (b ∈ l) (g ∈ perms_of_list l), swap a b * g = f,
+  { simpa only [perms_of_list, exists_prop, list.mem_map, mem_append, list.mem_bind] },
+  refine or_iff_not_imp_left.2 (λ hfl, ⟨f a, _, swap a (f a) * f, IH this, _⟩),
+  { by_cases hffa : f (f a) = a,
+    { exact mem_of_ne_of_mem hfa (h _ (mt (λ h, f.injective h) hfa)) },
+    { apply this,
+      simp only [mul_apply, swap_apply_def, mul_apply, ne.def, apply_eq_iff_eq],
+      split_ifs; cc } },
+  { rw [←mul_assoc, mul_def (swap a (f a)) (swap a (f a)),
+        swap_swap, ←perm.one_def, one_mul] }
 end
 
 lemma mem_of_mem_perms_of_list :
   ∀ {l : list α} {f : perm α}, f ∈ perms_of_list l → ∀ {x}, f x ≠ x → x ∈ l
-| []     f h := have f = 1 := by simpa [perms_of_list] using h, by rw this; simp
-| (a::l) f h :=
+| []       f h := have f = 1 := by simpa [perms_of_list] using h, by rw this; simp
+| (a :: l) f h :=
 (mem_append.1 h).elim
   (λ h x hx, mem_cons_of_mem _ (mem_of_mem_perms_of_list h hx))
   (λ h x hx,
@@ -1290,8 +1328,8 @@ lemma mem_perms_of_list_iff {l : list α} {f : perm α} :
 ⟨mem_of_mem_perms_of_list, mem_perms_of_list_of_mem⟩
 
 lemma nodup_perms_of_list : ∀ {l : list α} (hl : l.nodup), (perms_of_list l).nodup
-| []     hl := by simp [perms_of_list]
-| (a::l) hl :=
+| []       hl := by simp [perms_of_list]
+| (a :: l) hl :=
 have hl' : l.nodup, from nodup_of_nodup_cons hl,
 have hln' : (perms_of_list l).nodup, from nodup_perms_of_list hl',
 have hmeml : ∀ {f : perm α}, f ∈ perms_of_list l → f a = a,
@@ -1302,17 +1340,17 @@ by rw [perms_of_list, list.nodup_append, list.nodup_bind, pairwise_iff_nth_le]; 
     let ⟨f, hf⟩ := list.mem_map.1 hx₁ in
     let ⟨g, hg⟩ := list.mem_map.1 hx₂ in
     have hix : x a = nth_le l i (lt_trans hij hj),
-      by rw [← hf.2, mul_apply, hmeml hf.1, swap_apply_left],
+      by rw [←hf.2, mul_apply, hmeml hf.1, swap_apply_left],
     have hiy : x a = nth_le l j hj,
-      by rw [← hg.2, mul_apply, hmeml hg.1, swap_apply_left],
+      by rw [←hg.2, mul_apply, hmeml hg.1, swap_apply_left],
     absurd (hf.2.trans (hg.2.symm)) $
       λ h, ne_of_lt hij $ nodup_iff_nth_le_inj.1 hl' i j (lt_trans hij hj) hj $
-        by rw [← hix, hiy]⟩,
+        by rw [←hix, hiy]⟩,
   λ f hf₁ hf₂,
     let ⟨x, hx, hx'⟩ := list.mem_bind.1 hf₂ in
     let ⟨g, hg⟩ := list.mem_map.1 hx' in
     have hgxa : g⁻¹ x = a, from f.injective $
-      by rw [hmeml hf₁, ← hg.2]; simp,
+      by rw [hmeml hf₁, ←hg.2]; simp,
     have hxa : x ≠ a, from λ h, (list.nodup_cons.1 hl).1 (h ▸ hx),
     (list.nodup_cons.1 hl).1 $
       hgxa ▸ mem_of_mem_perms_of_list hg.1 (by rwa [apply_inv_self, hgxa])⟩
@@ -1367,8 +1405,7 @@ end equiv
 namespace fintype
 
 section choose
-open fintype
-open equiv
+open fintype equiv
 
 variables [fintype α] (p : α → Prop) [decidable_pred p]
 
@@ -1389,9 +1426,7 @@ end choose
 section bijection_inverse
 open function
 
-variables [fintype α]
-variables [decidable_eq β]
-variables {f : α → β}
+variables [fintype α] [decidable_eq β] {f : α → β}
 
 /--
 `bij_inv f` is the unique inverse to a bijection `f`. This acts
@@ -1400,7 +1435,7 @@ def bij_inv (f_bij : bijective f) (b : β) : α :=
 fintype.choose (λ a, f a = b)
 begin
   rcases f_bij.right b with ⟨a', fa_eq_b⟩,
-  rw ← fa_eq_b,
+  rw ←fa_eq_b,
   exact ⟨a', ⟨rfl, (λ a h, f_bij.left h)⟩⟩
 end
 
@@ -1499,7 +1534,7 @@ private noncomputable def nat_embedding_aux (α : Type*) [infinite α] : ℕ →
 private lemma nat_embedding_aux_injective (α : Type*) [infinite α] :
   function.injective (nat_embedding_aux α) :=
 begin
-  assume m n h,
+  rintro m n h,
   letI := classical.dec_eq α,
   wlog hmlen : m ≤ n using m n,
   by_contradiction hmn,
@@ -1524,15 +1559,12 @@ end infinite
 
 lemma not_injective_infinite_fintype [infinite α] [fintype β] (f : α → β) :
   ¬ injective f :=
-assume (hf : injective f),
-have H : fintype α := fintype.of_injective f hf,
-H.false
+λ hf, (fintype.of_injective f hf).false
 
 /--
-The pigeonhole principle for infinitely many pigeons in finitely many
-pigeonholes.  If there are infinitely many pigeons in finitely many
-pigeonholes, then there are at least two pigeons in the same
-pigeonhole.
+The pigeonhole principle for infinitely many pigeons in finitely many pigeonholes. If there are
+infinitely many pigeons in finitely many pigeonholes, then there are at least two pigeons in the
+same pigeonhole.
 
 See also: `fintype.exists_ne_map_eq_of_card_lt`, `fintype.exists_infinite_fiber`.
 -/
