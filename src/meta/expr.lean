@@ -273,6 +273,27 @@ meta instance : has_to_tactic_format binder :=
 
 end binder
 
+namespace expr
+meta def pi_binder : expr → option (binder × expr)
+| (pi n bi y b) := some (⟨n,bi,y⟩, b)
+| _ := none
+
+meta def lam_binder : expr → option (binder × expr)
+| (lam n bi y b) := some (⟨n,bi,y⟩, b)
+| _ := none
+
+meta def exists_binder : expr → option (binder × expr)
+| `(Exists %%(pi n bi y b)) := some (⟨n,bi,y⟩, b)
+| _ := none
+
+meta def exists_conj_binder : expr → tactic (binder × expr)
+| `(Exists %%e) := do
+  (lam n bi y b) ← tactic.whnf e,
+  pure (⟨n,bi,y⟩, b)
+| `(%%P ∧ %%Q) := pure (⟨name.anonymous, binder_info.default, P⟩, lift_vars Q 0 1)
+| _ := failure
+end expr
+
 /-!
 ### Converting between expressions and numerals
 
@@ -502,6 +523,48 @@ Replace any metavariables in the expression with underscores, in preparation for
 -/
 meta def replace_mvars (e : expr) : expr :=
 e.replace (λ e' _, if e'.is_mvar then some (unchecked_cast pexpr.mk_placeholder) else none)
+
+/-- Highly questionable maneouvre where an mvar is replaced with abstraction.
+Assuming the start expression has a free var level of `outer_depth`. -/
+meta def abstract_mvar (outer_depth: nat) : expr → name → expr
+| e n := replace e $ λ e depth,
+    if ¬ e.has_meta_var
+    then some $ lift_vars e (depth + outer_depth) 1
+    else match e with
+         | (mvar un _ _) :=
+            if n = un then some $ var $ depth + outer_depth else none
+         | _ := none
+         end
+
+private meta def alt_fold_aux {T} [monad T] [alternative T] {α} (f : ℕ → α → expr → T α) : ℕ → α → expr → T α
+| n a e :=
+    (do a ← f n a e,
+        match e with
+        |(app l r) := do a ← alt_fold_aux n a l, alt_fold_aux n a r
+        |(lam  _ _ y   b) := do a ← alt_fold_aux n a y, alt_fold_aux (n+1) a b
+        |(pi   _ _ y   b) := do a ← alt_fold_aux n a y, alt_fold_aux (n+1) a b
+        |(elet _   y v b) := do a ← alt_fold_aux n a y, a ← alt_fold_aux n a v, alt_fold_aux (n+1) a b
+        |_ := pure a
+        end
+    ) <|> pure a
+
+/-- Fold over the expression, if the folder function fails then that branch is skipped and the parent accumulator value is used.-/
+meta def alt_fold {T} [monad T] [alternative T] {α} (f : ℕ → α → expr → T α) : α → expr → T α
+:= alt_fold_aux f 0
+
+meta def mvar_uniq_name : expr → name
+| (mvar u _ _) := u
+| _ := default name
+
+meta def has_mvar (e l : expr) : bool :=
+ff <| alt_fold (λ _ acc e,
+    if acc then none else
+    if e.is_mvar ∧ e.mvar_uniq_name = l.mvar_uniq_name then
+        some tt
+    else if e.has_meta_var
+    then some acc
+    else none) ff e
+
 
 /-- If `e` is a local constant, `to_implicit_local_const e` changes the binder info of `e` to
  `implicit`. See also `to_implicit_binder`, which also changes lambdas and pis. -/
