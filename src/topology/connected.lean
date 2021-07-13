@@ -254,6 +254,9 @@ class connected_space (α : Type u) [topological_space α] extends preconnected_
 
 attribute [instance, priority 50] connected_space.to_nonempty -- see Note [lower instance priority]
 
+lemma connected_space.is_connected_univ [connected_space α] :
+  is_connected (univ : set α) := ⟨univ_nonempty, is_preconnected_univ⟩
+
 lemma is_connected_range [topological_space β] [connected_space α] {f : α → β} (h : continuous f) :
   is_connected (range f) :=
 begin
