@@ -1419,6 +1419,168 @@ def append {α : Type*} {o : ℕ} (ho : o = m + n) (u : fin m → α) (v : fin n
   then u ⟨i, h⟩
   else v ⟨(i : ℕ) - m, (nat.sub_lt_left_iff_lt_add (le_of_not_lt h)).2 (ho ▸ i.property)⟩
 
+variables {β : Type*} {o : ℕ} {u : fin m → β} {v : fin n → β}
+
+lemma append_apply_left (ho : o = m + n) (k : fin o) (h : (k : ℕ) < m) :
+  append ho u v k = u (k.cast_lt h) :=
+dif_pos h
+
+@[simp] lemma append_apply_left_cast (ho : o = m + n) (k : fin m) :
+  append ho u v (cast ho.symm (cast_add n k)) = u k :=
+(append_apply_left ho (cast ho.symm (cast_add n k)) k.2).trans $
+  congr_arg _ (fin.ext rfl)
+
+lemma append_apply_right (ho : o = m + n) (k : fin o) (h : ¬(k : ℕ) < m) :
+  append ho u v k = v ⟨(k : ℕ) - m, (nat.sub_lt_left_iff_lt_add $ le_of_not_lt h).2 (ho ▸ k.2)⟩ :=
+dif_neg h
+
+@[simp] lemma append_apply_right_cast (ho : o = m + n) (k : fin n) :
+  append ho u v (cast ho.symm (nat_add m k)) = v k :=
+(append_apply_right ho (cast ho.symm (nat_add m k)) (not_lt.2 $ le_add_right (le_refl _))).trans $
+  congr_arg _ (fin.ext $ nat.add_sub_cancel_left _ _)
+
+lemma append_nil {d : fin 0 → β} (ho : o = m) {x : fin o} :
+  @append 0 m _ o ho u d x = u (cast ho x) :=
+(@append_apply_left 0 m _ o _ _ ho x (ho ▸ x.2)).trans $ by congr
+
+@[simp] lemma append_nil' {d : fin 0 → β} :
+  append rfl u d = u :=
+funext $ λ x, (append_nil _).trans (congr_arg _ $ fin.ext rfl)
+
+lemma nil_append {d : fin 0 → β} (ho : o = m) {i : fin o} :
+  append (show o = 0 + m, by rwa zero_add) d u i = u (cast ho i) :=
+(append_apply_right _ _ (nat.not_lt_zero _)).trans $ by congr
+
+@[simp] lemma nil_append' {d : fin 0 → β} :
+  append (zero_add _).symm d u = u :=
+funext $ λ x, (nil_append rfl).trans (congr_arg _ $ fin.ext rfl)
+
+lemma append_one_eq_cons (ho : o = 1 + m) {x : β} (i : fin o) :
+  append ho (λ i : fin 1, x) u i = (fin.cons x u : fin m.succ → β)
+    (cast (ho.trans $ add_comm 1 m) i) :=
+begin
+  cases decidable.em (cast (ho.trans $ add_comm _ _) i = 0) with hy hy,
+  { rw [hy, cons_zero, append_apply_left _ i (show (i : ℕ) < 1, by
+          erw [(ext_iff _ _).1 hy, coe_zero]; exact succ_pos')] },
+  { rw [←fin.succ_pred (cast (ho.trans $ add_comm _ _) i) hy, cons_succ,
+        append_apply_right _ i (λ h, hy $ fin.ext $ le_antisymm
+          (nat.lt_succ_iff.1 h) (nat.zero_le _))],
+    congr },
+end
+
+lemma append_update_fst (ho : o = m + n) (i : fin m) (x : β) :
+  append ho (function.update u i x) v =
+    function.update (append ho u v) (cast_lt i $ ho.symm ▸ nat.lt_add_right i m n i.2) x :=
+begin
+  ext y,
+  cases decidable.em ((y : ℕ) < m),
+  { rw append_apply_left ho _ h,
+    rcases classical.em (y = cast ho.symm (cast_add n i)) with ⟨rfl, hi⟩,
+    { erw function.update_same,
+      convert function.update_same i _ _,
+      ext,
+      refl },
+    { rw [function.update_noteq, function.update_noteq, append_apply_left ho _ h],
+      all_goals { contrapose! h_1, try {rw h_1 <|> rw ←h_1}, ext, refl }}},
+  { rw [append_apply_right ho _ h, function.update_noteq],
+    { rw append_apply_right ho _ h },
+    { contrapose! h, exact h.symm ▸ i.2 }},
+end
+
+lemma append_update_snd (ho : o = m + n) (i : fin n) (x : β) :
+  append ho u (function.update v i x) =
+    function.update (append ho u v) (cast ho.symm (nat_add m i)) x :=
+begin
+  ext y,
+  cases decidable.em ((y : ℕ) < m),
+  { rw [append_apply_left ho y h, function.update_noteq, append_apply_left],
+    contrapose! h,
+    rw h,
+    exact nat.le_add_right _ _ },
+  { rw append_apply_right,
+    cases decidable.em (y = (cast ho.symm (nat_add m i))) with hi hi,
+    { have hy : (⟨(y : ℕ) - m, (nat.sub_lt_left_iff_lt_add $
+        le_of_not_lt h).2 (ho ▸ y.2)⟩ : fin n) = i :=
+      fin.ext (by rw [coe_mk, hi]; exact nat.add_sub_cancel_left _ _),
+      rw [hy, function.update_same, hi, function.update_same] },
+    { rw [function.update_noteq hi, function.update_noteq, append_apply_right ho _ h],
+      contrapose! hi,
+      rw ←hi,
+      ext,
+      exact (nat.add_sub_of_le (not_lt.1 h)).symm }},
+end
+
+lemma append_assoc {k p r s : ℕ} {w : fin k → β} (ho : o = m + n)
+  (hp : p = o + k) (hr : r = n + k) (hs : s = m + r) (x) :
+  append hp (append ho u v) w x = append hs u (append hr v w)
+    (cast (by rw [hp, hs, hr, ho, add_assoc]) x) :=
+begin
+  cases decidable.em ((x : ℕ) < o) with hx hx,
+  { rw append_apply_left hp _ hx,
+    cases decidable.em ((x : ℕ) < m) with hmx hmx,
+    { rw [append_apply_left hs, append_apply_left ho],
+      congr,
+      exact hmx },
+    { rw [append_apply_right ho, append_apply_right hs, append_apply_left hr],
+      congr,
+      all_goals { exact hmx }}},
+  { rw [append_apply_right hp, append_apply_right hs, append_apply_right hr],
+    { congr' 1,
+      ext,
+      simp only [coe_mk, nat.sub_sub],
+      exact congr_arg _ ho },
+    { rw coe_mk,
+      contrapose! hx,
+      rw ho,
+      exact nat.lt_add_of_sub_lt_left hx },
+    { contrapose! hx,
+      rw ho,
+      exact lt_of_lt_of_le hx (le_add_right $ le_refl _) },
+    { exact hx }},
+end
+
+lemma append_assoc' {k p r s : ℕ} {w : fin k → β} (ho : o = m + n)
+  (hp : p = o + k) (hr : r = n + k) (hs : s = m + r) (x) :
+  append hs u (append hr v w) x = append hp (append ho u v) w (cast
+    (by rw [hp, hs, hr, ho, add_assoc]) x) :=
+(append_assoc ho hp hr hs (cast (by rw [hp, hs, hr, ho, add_assoc]) x)).symm
+
+lemma append_cons_fst {p : ℕ} (ho : o = m.succ + n) (hp : p = m + n) {x : β} {i : fin o} :
+  (append ho (cons x u : fin m.succ → β) v) i = (cons x (append hp u v) : fin p.succ → β)
+    (cast (by rw [ho, nat.succ_add, ←hp]) i) :=
+begin
+  cases decidable.em ((i : ℕ) < m.succ),
+  { rw append_apply_left ho _ h,
+    cases decidable.em (cast (by rw [ho, nat.succ_add, ←hp]) i = 0) with hi hi,
+    { rw [hi, cons_zero],
+      convert @cons_zero m (λ i, β) x _,
+      ext,
+      rwa ext_iff at hi },
+    { rw [←succ_pred _ hi, cons_succ, ←succ_pred (i.cast_lt h), cons_succ, append_apply_left],
+      { congr },
+      { contrapose! hi,
+        ext,
+        rwa ext_iff at hi }}},
+  { rw [append_apply_right _ _ h, ←succ_pred (cast (by rw [ho, nat.succ_add, ←hp]) i)
+        (by contrapose! h; convert nat.succ_pos _; exact (fin.ext_iff _ _).1 h),
+        cons_succ, append_apply_right _ _ (λ hnot, h $ _)],
+    { congr' 1,
+      ext,
+      simp only [coe_pred, coe_cast, coe_mk, nat.succ_eq_add_one, add_comm, nat.sub_sub] },
+    { convert nat.succ_lt_succ hnot,
+      convert (nat.succ_pred_eq_of_pos _).symm,
+      exact lt_of_lt_of_le (nat.succ_pos m) (not_lt.1 h) }},
+end
+
+lemma append_comp {τ : Type*} (ho : o = m + n)
+  (F : β → τ) : append ho (F ∘ u) (F ∘ v) = F ∘ append ho u v :=
+begin
+  ext,
+  cases decidable.em ((x : ℕ) < m),
+  { simp only [append_apply_left ho _ h, function.comp_app] },
+  { simp only [append_apply_right ho _ h, function.comp_app] },
+end
+
 @[simp] lemma fin_append_apply_zero {α : Type*} {o : ℕ} (ho : (o + 1) = (m + 1) + n)
   (u : fin (m + 1) → α) (v : fin n → α) :
   fin.append ho u v 0 = u 0 := rfl
@@ -1523,6 +1685,11 @@ begin
   { rw eq_last_of_not_lt h,
     simp }
 end
+
+lemma append_one_eq_snoc {β : Type*} {o : ℕ} {u : fin m → β} (ho : o = m + 1)
+  {x : β} (i : fin o) :
+  append ho u (λ i : fin 1, x) i = (snoc u x : fin m.succ → β) (cast ho i) :=
+rfl
 
 /-- Updating the last element of a tuple does not change the beginning. -/
 @[simp] lemma init_update_last : init (update q (last n) z) = init q :=
