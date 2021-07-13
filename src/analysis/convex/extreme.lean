@@ -27,7 +27,7 @@ This is an analytic notion of "being on the side of". It is weaker than being ex
 
 ## Implementation notes
 
-The exact definition of extremeness has been carefully chosen so as to make as many lemmas
+The exact definition of extremity has been carefully chosen so as to make as many lemmas
 unconditional. In practice, `A` is often assumed to be a convex set.
 
 ## References
