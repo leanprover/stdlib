@@ -276,6 +276,40 @@ begin
   { rw [gpow_neg_succ_of_nat, ← support_inv, ← inv_pow, pow_apply_mem_support] }
 end
 
+lemma set_support_inv_eq {α : Type*} (p : perm α) :
+  {x | p x ≠ x} = {x | p⁻¹ x ≠ x} :=
+begin
+  ext x,
+  simp only [set.mem_set_of_eq, ne.def],
+  rw [eq_comm, inv_def, symm_apply_eq]
+end
+
+lemma coe_support_eq_set_support (p : perm α) :
+  (p.support : set α) = {x | p x ≠ x} :=
+by { ext, simp }
+
+lemma set_support_apply_mem {α : Type*} {p : perm α} {a : α} :
+  p a ∈ {x | p x ≠ x} ↔ a ∈ {x | p x ≠ x} :=
+by simp
+
+lemma set_support_gpow_subset {α : Type*} (p : perm α) (n : ℤ) :
+  {x | (p ^ n) x ≠ x} ⊆ {x | p x ≠ x} :=
+begin
+  intros x,
+  simp only [set.mem_set_of_eq, ne.def],
+  intros hx H,
+  simpa [gpow_apply_eq_self_of_apply_eq_self H] using hx
+end
+
+lemma set_support_mul_subset {α : Type*} (p q : perm α) :
+  {x | (p * q) x ≠ x} ⊆ {x | p x ≠ x} ∪ {x | q x ≠ x} :=
+begin
+  intro x,
+  simp only [perm.coe_mul, function.comp_app, ne.def, set.mem_union_eq, set.mem_set_of_eq],
+  by_cases hq : q x = x;
+  simp [hq]
+end
+
 lemma pow_eq_on_of_mem_support (h : ∀ (x ∈ f.support ∩ g.support), f x = g x)
   (k : ℕ) : ∀ (x ∈ f.support ∩ g.support), (f ^ k) x = (g ^ k) x :=
 begin
@@ -420,6 +454,15 @@ begin
     { rw [list.prod_cons, mul_apply, ←IH h hl.right _ hx, eq_comm, ←not_mem_support],
       refine (hl.left _ h).symm.mem_imp _,
       simpa using hx } }
+end
+
+lemma disjoint.mono {x y : perm α} (h : disjoint f g)
+  (hf : x.support ≤ f.support) (hg : y.support ≤ g.support) :
+  disjoint x y :=
+begin
+  rw disjoint_iff_disjoint_support at h ⊢,
+  intros a ha,
+  exact h (mem_inter_of_mem (hf (mem_of_mem_inter_left ha)) (hg (mem_of_mem_inter_right ha)))
 end
 
 lemma support_le_prod_of_mem {l : list (perm α)} (h : f ∈ l) (hl : l.pairwise disjoint) :
