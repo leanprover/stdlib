@@ -117,9 +117,13 @@ begin
   exact (eq_of_inf_eq_sup_eq i s).symm,
 end
 
-theorem sdiff_symm (hy : y ≤ x) (hz : z ≤ x) (H : x \ y = z) : x \ z = y :=
+lemma sdiff_le : x \ y ≤ x :=
+calc x \ y ≤ (x ⊓ y) ⊔ (x \ y) : le_sup_right
+       ... = x                 : sup_inf_sdiff x y
+
+theorem sdiff_symm (hy : y ≤ x) (H : x \ y = z) : x \ z = y :=
 have hyi : x ⊓ y = y := inf_eq_right.2 hy,
-have hzi : x ⊓ z = z := inf_eq_right.2 hz,
+have hzi : x ⊓ z = z := inf_eq_right.2 (by { rw ←H, exact sdiff_le }),
 eq_of_inf_eq_sup_eq
   (begin
     have ixy := inf_inf_sdiff x y,
@@ -135,10 +139,6 @@ eq_of_inf_eq_sup_eq
     have sxy := sup_inf_sdiff x y,
     rwa [H, hyi] at sxy,
   end)
-
-lemma sdiff_le : x \ y ≤ x :=
-calc x \ y ≤ (x ⊓ y) ⊔ (x \ y) : le_sup_right
-       ... = x                 : sup_inf_sdiff x y
 
 @[simp] lemma bot_sdiff : ⊥ \ x = ⊥ := le_bot_iff.1 sdiff_le
 
@@ -597,6 +597,18 @@ is_compl_top_bot.compl_eq_iff
 
 @[simp] theorem compl_sup : (x ⊔ y)ᶜ = xᶜ ⊓ yᶜ :=
 (is_compl_compl.sup_inf is_compl_compl).compl_eq
+
+@[simp] lemma sup_inf_compl (a b : α) : a ⊔ b ⊓ aᶜ = a ⊔ b :=
+by rw [sup_inf_left, sup_compl_eq_top, inf_top_eq]
+
+@[simp] lemma inf_sup_compl (a b : α) : a ⊓ (b ⊔ aᶜ) = a ⊓ b :=
+by rw [inf_sup_left, inf_compl_eq_bot, sup_bot_eq]
+
+@[simp] lemma inf_sup_inf_compl_sup_inf_compl (a b : α) : a ⊓ b ⊔ a ⊓ bᶜ ⊔ b ⊓ aᶜ = a ⊔ b :=
+by rw [←inf_sup_left, sup_compl_eq_top, inf_top_eq, sup_inf_compl]
+
+@[simp] lemma sup_inf_sup_compl_inf_sup_compl (a b : α) : (a ⊔ b) ⊓ (a ⊔ bᶜ) ⊓ (b ⊔ aᶜ) = a ⊓ b :=
+by rw [←sup_inf_left, inf_compl_eq_bot, sup_bot_eq, inf_sup_compl]
 
 theorem compl_le_compl (h : y ≤ x) : xᶜ ≤ yᶜ :=
 is_compl_compl.antimono is_compl_compl h

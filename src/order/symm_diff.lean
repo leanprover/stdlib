@@ -67,6 +67,9 @@ instance symm_diff_is_comm : is_commutative α (Δ) := ⟨symm_diff_comm⟩
 lemma symm_diff_eq_sup_sdiff_inf : a Δ b = (a ⊔ b) \ (a ⊓ b) :=
 by simp [sup_sdiff, sdiff_inf, sup_comm, (Δ)]
 
+@[simp] lemma sup_sdiff_symm_diff : (a ⊔ b) \ (a Δ b) = a ⊓ b :=
+sdiff_symm inf_le_sup (by rw symm_diff_eq_sup_sdiff_inf)
+
 lemma disjoint_symm_diff_inf : disjoint (a Δ b) (a ⊓ b) :=
 begin
   rw [symm_diff_eq_sup_sdiff_inf],
@@ -167,6 +170,9 @@ calc a Δ b = a ↔ a Δ b = a Δ ⊥ : by rw symm_diff_bot
 @[simp] lemma symm_diff_eq_bot : a Δ b = ⊥ ↔ a = b :=
 calc a Δ b = ⊥ ↔ a Δ b = a Δ a : by rw symm_diff_self
            ... ↔     a = b     : by rw [symm_diff_right_inj, eq_comm]
+
+@[simp] lemma symm_diff_symm_diff_sup : a Δ b Δ (a ⊓ b) = a ⊔ b :=
+by rw [symm_diff_eq_iff_sdiff_eq (symm_diff_le_sup _ _), sup_sdiff_symm_diff]
 
 end generalized_boolean_algebra
 

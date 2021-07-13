@@ -493,6 +493,8 @@ have partial_order_eq :
 section lattice
 variables [lattice α] {a b c d : α}
 
+lemma inf_le_sup : a ⊓ b ≤ a ⊔ b := inf_le_left.trans le_sup_left
+
 /-!
 #### Distributivity laws
 -/

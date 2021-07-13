@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bryan Gin-ge Chen
 -/
 
+import order.symm_diff
 import tactic.ring
 import tactic.abel
 
@@ -166,5 +167,170 @@ def to_boolean_algebra : boolean_algebra α :=
 
 localized "attribute [instance, priority 100] boolean_ring.to_boolean_algebra" in
   boolean_algebra_of_boolean_ring
+
+end boolean_ring
+
+namespace boolean_algebra
+
+/-- Every Boolean algebra has the structure of a Boolean ring with the following data:
+
+* `a + b` unfolds to `a Δ b` (symmetric difference),
+* `a * b` unfolds to `a ⊓ b`
+* `-a` unfolds to `a`
+* `0` unfolds to `⊥`
+* `1` unfolds to `⊤`
+-/
+def to_boolean_ring (α : Type*) [boolean_algebra α] : boolean_ring α :=
+{ add := (Δ),
+  add_assoc := symm_diff_assoc,
+  zero := ⊥,
+  zero_add := λ b, by simp [(+), symm_diff_eq],
+  add_zero := λ b, by simp [(+), symm_diff_eq],
+  neg := λ a, a,
+  add_left_neg := λ b,
+    begin
+      simp only [has_neg.neg, (+), add_semigroup.add, add_monoid.add, add_zero_class.add,
+        symm_diff_eq, sup_bot_eq, inf_compl_eq_bot],
+      refl,
+    end,
+  add_comm := symm_diff_comm,
+  mul := (⊓),
+  mul_assoc := λ a b c, by simp only [(*), inf_assoc],
+  one := ⊤,
+  one_mul := λ b, by simp [(*)],
+  mul_one := λ b, by simp [(*)],
+  left_distrib := λ a b c,
+    begin
+      simp only [symm_diff_eq, compl_inf, inf_sup_left, inf_assoc],
+      rw [@inf_comm _ _ b aᶜ, ←@inf_assoc _ _ a aᶜ, inf_compl_eq_bot, bot_inf_eq,
+        bot_sup_eq, @inf_comm _ _ c aᶜ, ←@inf_assoc _ _ a aᶜ,
+        inf_compl_eq_bot, bot_inf_eq, bot_sup_eq],
+    end,
+  right_distrib := λ a b c,
+    begin
+      simp only [symm_diff_eq, compl_inf, inf_sup_right, inf_assoc, inf_sup_left],
+      rw [@inf_comm _ _ c, @inf_comm _ _ c aᶜ, inf_compl_eq_bot, inf_bot_eq, inf_bot_eq,
+        sup_bot_eq, sup_bot_eq],
+    end,
+  mul_self := λ b, inf_idem }
+
+localized "attribute [instance, priority 100] boolean_algebra.to_boolean_ring" in
+  boolean_ring_of_boolean_algebra
+
+/-!
+The following lemmas amount to a proof that applying `boolean_algebra.to_boolean_ring` and then
+`boolean_ring.to_boolean_algebra` to a Boolean algebra results in the same Boolean algebra.
+-/
+
+variables {α : Type*} (BA : boolean_algebra α)
+
+lemma to_boolean_ring.sup_eq :
+  (@boolean_ring.to_boolean_algebra α (@boolean_algebra.to_boolean_ring α BA)).sup = BA.sup :=
+symm_diff_symm_diff_sup _ _
+
+lemma to_boolean_ring.le_iff :
+  (@boolean_ring.to_boolean_algebra α (@boolean_algebra.to_boolean_ring α BA)).le = BA.le :=
+begin
+  ext a b,
+  change a Δ b Δ (a ⊓ b) = b ↔ a ≤ b,
+  simp [symm_diff_symm_diff_sup],
+end
+
+lemma to_boolean_ring.lt_iff :
+  (@boolean_ring.to_boolean_algebra α (@boolean_algebra.to_boolean_ring α BA)).lt = BA.lt :=
+begin
+  ext a b,
+  change a Δ b Δ (a ⊓ b) = b ∧ b Δ a Δ (b ⊓ a) ≠ a ↔ a < b,
+  simp only [symm_diff_symm_diff_sup, lt_iff_le_not_le, sup_eq_right, ne.def],
+  refl,
+end
+
+lemma to_boolean_ring.inf_eq :
+  (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).inf = BA.inf :=
+rfl
+
+lemma to_boolean_ring.top_eq :
+  (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).top = BA.top :=
+rfl
+
+lemma to_boolean_ring.bot_eq :
+  (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).bot = BA.bot :=
+rfl
+
+lemma to_boolean_ring.compl_eq :
+  (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).compl = BA.compl :=
+top_symm_diff _
+
+lemma to_boolean_ring.sdiff_eq :
+  (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).sdiff = BA.sdiff :=
+begin
+  ext a b,
+  change a ⊓ (⊤ Δ b) = a \ b,
+  rw [top_symm_diff, sdiff_eq],
+end
+
+end boolean_algebra
+
+/-!
+The following lemmas amount to a proof that applying `boolean_ring.to_boolean_algebra` and then
+`boolean_algebra.to_boolean_ring` to a Boolean ring results in the same Boolean ring.
+-/
+
+namespace boolean_ring
+variables {α : Type*} (BR : boolean_ring α)
+
+lemma to_boolean_algebra.add_eq_aux [boolean_ring α] (a b : α) :
+  (a * (1 + b)) + (b * (1 + a)) + (a * (1 + b)) * (b * (1 + a)) = a + b :=
+calc (a * (1 + b)) + (b * (1 + a)) + (a * (1 + b)) * (b * (1 + a)) =
+    a + b + (a * b + a * b) + (a * b + (a * a)*b) + (a * (b * b) + (a*a)*(b*b)) : by ring
+  ... = a+b : by simp only [mul_self, add_self, add_zero]
+
+lemma to_boolean_algebra.add_eq :
+  (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).add = BR.add :=
+begin
+  ext a b,
+  exact to_boolean_algebra.add_eq_aux _ _
+end
+
+lemma to_boolean_algebra.zero_eq :
+  (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).zero = BR.zero :=
+rfl
+
+lemma to_boolean_algebra.neg_eq :
+  (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).neg = BR.neg :=
+funext $ λ a, (neg_eq a).symm
+
+lemma to_boolean_algebra.sub_eq :
+  (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).sub = BR.sub :=
+begin
+  ext a b,
+  change  (a * (1 + b)) + (b * (1 + a)) + (a * (1 + b)) * (b * (1 + a)) = a - b,
+  rw [to_boolean_algebra.add_eq_aux, sub_eq_add],
+end
+
+lemma to_boolean_algebra.mul_eq :
+  (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).mul = BR.mul :=
+rfl
+
+lemma to_boolean_algebra.one_eq :
+  (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).one = BR.one :=
+rfl
+
+/-- Boolean rings and Boolean algebras are equivalent. -/
+def boolean_ring_equiv_boolean_algebra (α : Type*) : boolean_ring α ≃ boolean_algebra α :=
+{ to_fun := @to_boolean_algebra α,
+  inv_fun := @boolean_algebra.to_boolean_ring α,
+  left_inv := λ BR,
+    begin
+      rcases BR with ⟨⟨⟩⟩,
+      dsimp [to_boolean_algebra, boolean_algebra.to_boolean_ring],
+      sorry
+    end,
+  right_inv := λ BA,
+    begin
+      rcases BA with ⟨⟩,
+      dsimp [to_boolean_algebra, boolean_algebra.to_boolean_ring],
+      sorry
+    end, }
 
 end boolean_ring
