@@ -153,6 +153,9 @@ instance : algebra R ℍ[R, c₁, c₂] :=
 @[simp] lemma smul_im_j : (r • a).im_j = r • a.im_j := rfl
 @[simp] lemma smul_im_k : (r • a).im_k = r • a.im_k := rfl
 
+@[simp] lemma smul_mk (re im_i im_j im_k : R) :
+  r • (⟨re, im_i, im_j, im_k⟩ : ℍ[R, c₁, c₂]) = ⟨r • re, r • im_i, r • im_j, r • im_k⟩ := rfl
+
 @[norm_cast, simp] lemma coe_add : ((x + y : R) : ℍ[R, c₁, c₂]) = x + y :=
 (algebra_map R ℍ[R, c₁, c₂]).map_add x y
 
