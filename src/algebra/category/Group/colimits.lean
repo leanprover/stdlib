@@ -305,9 +305,9 @@ noncomputable def cokernel_iso_quotient {G H : AddCommGroup} (f : G ⟶ H) :
 { hom := cokernel.desc f (mk' _)
     (by { ext, apply quotient.sound, fsplit, exact -x,
           simp only [add_zero, add_monoid_hom.map_neg], }),
-  inv := add_monoid_hom.of (quotient_add_group.lift _ (cokernel.π f)
+  inv := quotient_add_group.lift _ (cokernel.π f)
     (by { intros x H_1, cases H_1, induction H_1_h,
-          simp only [cokernel.condition_apply, zero_apply]})),
+          simp only [cokernel.condition_apply, zero_apply]}),
   -- obviously can take care of the next goals, but it is really slow
   hom_inv_id' := begin
     ext1, simp only [coequalizer_as_cokernel, category.comp_id, cokernel.π_desc_assoc], ext1, refl,

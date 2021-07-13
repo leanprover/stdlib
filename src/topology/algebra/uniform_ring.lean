@@ -47,8 +47,10 @@ begin
     end },
   have : continuous ((coe ∘ uncurry (*)) : α × α → completion α),
     from (continuous_coe α).comp continuous_mul,
-  convert dense_inducing_coe.extend_Z_bilin dense_inducing_coe this,
-  simp only [(*), curry, prod.mk.eta]
+  convert dense_inducing_coe.extend_Z_bilin _ _ dense_inducing_coe this,
+  { simp only [(*), curry, prod.mk.eta] },
+  { exact completion.is_add_group_hom_coe },
+  { exact completion.is_add_group_hom_coe },
 end
 
 lemma continuous.mul {β : Type*} [topological_space β] {f g : β → completion α}
@@ -99,7 +101,7 @@ variables {β : Type u} [uniform_space β] [ring β] [uniform_add_group β] [top
 /-- The completion extension as a ring morphism. -/
 def extension_hom [complete_space β] [separated_space β] :
   completion α →+* β :=
-have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
+have hf : uniform_continuous f, from uniform_continuous_of_continuous f.to_is_add_group_hom hf,
 { to_fun := completion.extension f,
   map_zero' := by rw [← coe_zero, extension_coe hf, f.map_zero],
   map_add' := assume a b, completion.induction_on₂ a b

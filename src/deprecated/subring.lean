@@ -14,34 +14,46 @@ variables {R : Type u} [ring R]
 
 /-- `S` is a subring: a set containing 1 and closed under multiplication, addition and additive
 inverse. -/
-class is_subring (S : set R) extends is_add_subgroup S, is_submonoid S : Prop.
+structure is_subring (S : set R) extends is_add_subgroup S, is_submonoid S : Prop.
 
 /-- The ring structure on a subring coerced to a type. -/
 local attribute [instance]
-def subset.ring {S : set R} [is_subring S] : ring S :=
+def subset.ring {S : set R} [hS : fact (is_subring S)] : ring S :=
 { left_distrib := λ x y z, subtype.eq $ left_distrib x.1 y.1 z.1,
   right_distrib := λ x y z, subtype.eq $ right_distrib x.1 y.1 z.1,
-  .. subtype.add_comm_group, .. subtype.monoid }
+  .. @subtype.add_comm_group _ _ _ ⟨hS.elim.to_is_add_subgroup⟩,
+  .. @subtype.monoid _ _ _ ⟨hS.elim.to_is_submonoid⟩ }
 
 /-- The ring structure on a subring coerced to a type. -/
-def subtype.ring {S : set R} [is_subring S] : ring (subtype S) := subset.ring
+def subtype.ring {S : set R} (hS : is_subring S) : ring (subtype S) :=
+@subset.ring _ _ _ ⟨hS⟩
 
 namespace ring_hom
 
-instance is_subring_preimage {R : Type u} {S : Type v} [ring R] [ring S]
-  (f : R →+* S) (s : set S) [is_subring s] : is_subring (f ⁻¹' s) := {}
+-- TODO we seem to have three different naming conventions here
+lemma is_subring_preimage {R : Type u} {S : Type v} [ring R] [ring S]
+  (f : R →+* S) {s : set S} (hs : is_subring s) : is_subring (f ⁻¹' s) :=
+{ ..is_add_group_hom.preimage f.to_is_add_group_hom hs.to_is_add_subgroup,
+  ..is_submonoid.preimage f.to_is_monoid_hom hs.to_is_submonoid,
+}
 
-instance is_subring_image {R : Type u} {S : Type v} [ring R] [ring S]
-  (f : R →+* S) (s : set R) [is_subring s] : is_subring (f '' s) := {}
+lemma is_subring_image {R : Type u} {S : Type v} [ring R] [ring S]
+  (f : R →+* S) {s : set R} (hs : is_subring s) : is_subring (f '' s) :=
+{ ..is_add_group_hom.image_add_subgroup f.to_is_add_group_hom hs.to_is_add_subgroup,
+  ..is_submonoid.image f.to_is_monoid_hom hs.to_is_submonoid,
+}
 
-instance is_subring_set_range {R : Type u} {S : Type v} [ring R] [ring S]
-  (f : R →+* S) : is_subring (set.range f) := {}
+lemma is_subring_set_range {R : Type u} {S : Type v} [ring R] [ring S]
+  (f : R →+* S) : is_subring (set.range f) :=
+{ ..is_add_group_hom.range_add_subgroup f.to_is_add_group_hom,
+  ..range.is_submonoid f.to_is_monoid_hom,
+}
 
 end ring_hom
 
 /-- Restrict the codomain of a ring homomorphism to a subring that includes the range. -/
 def ring_hom.cod_restrict {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S)
-  (s : set S) [is_subring s] (h : ∀ x, f x ∈ s) :
+  (s : set S) [fact (is_subring s)] (h : ∀ x, f x ∈ s) :
   R →+* s :=
 { to_fun := λ x, ⟨f x, h x⟩,
   map_add' := λ x y, subtype.eq $ f.map_add x y,
@@ -50,44 +62,48 @@ def ring_hom.cod_restrict {R : Type u} {S : Type v} [ring R] [ring S] (f : R →
   map_one' := subtype.eq f.map_one }
 
 /-- Coersion `S → R` as a ring homormorphism-/
-def is_subring.subtype (S : set R) [is_subring S] : S →+* R :=
+def is_subring.subtype (S : set R) [fact (is_subring S)] : S →+* R :=
 ⟨coe, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
 
-@[simp] lemma is_subring.coe_subtype {S : set R} [is_subring S] :
+@[simp] lemma is_subring.coe_subtype {S : set R} [fact (is_subring S)] :
   ⇑(is_subring.subtype S) = coe := rfl
 
 variables {cR : Type u} [comm_ring cR]
 
 /-- The commutative ring structure on a subring coerced to a type. -/
-def subset.comm_ring {S : set cR} [is_subring S] : comm_ring S :=
+def subset.comm_ring {S : set cR} [fact (is_subring S)] : comm_ring S :=
 { mul_comm := λ x y, subtype.eq $ mul_comm x.1 y.1,
   .. subset.ring }
 
 /-- The commutative ring structure on a subring coerced to a type. -/
-def subtype.comm_ring {S : set cR} [is_subring S] : comm_ring (subtype S) := subset.comm_ring
+def subtype.comm_ring {S : set cR} [fact (is_subring S)] : comm_ring (subtype S) := subset.comm_ring
 
 /-- The integral domain structure on a subring of an integral domain coerced to a type. -/
-def subring.domain {D : Type*} [integral_domain D] (S : set D) [is_subring S] :
+def subring.domain {D : Type*} [integral_domain D] (S : set D) [fact (is_subring S)] :
   integral_domain S :=
 { exists_pair_ne := ⟨0, 1, mt subtype.ext_iff_val.1 zero_ne_one⟩,
   eq_zero_or_eq_zero_of_mul_eq_zero := λ ⟨x, hx⟩ ⟨y, hy⟩,
     by { simp only [subtype.ext_iff_val, subtype.coe_mk], exact eq_zero_or_eq_zero_of_mul_eq_zero },
   .. subset.comm_ring }
 
-instance is_subring.inter (S₁ S₂ : set R) [is_subring S₁] [is_subring S₂] :
+lemma is_subring.inter {S₁ S₂ : set R} (hS₁ : is_subring S₁) (hS₂ : is_subring S₂) :
   is_subring (S₁ ∩ S₂) :=
-{ }
+{ ..is_add_subgroup.inter hS₁.to_is_add_subgroup hS₂.to_is_add_subgroup,
+  ..is_submonoid.inter hS₁.to_is_submonoid hS₂.to_is_submonoid
+}
 
-instance is_subring.Inter {ι : Sort*} (S : ι → set R) [h : ∀ y : ι, is_subring (S y)] :
+lemma is_subring.Inter {ι : Sort*} {S : ι → set R} (h : ∀ y : ι, is_subring (S y)) :
   is_subring (set.Inter S) :=
-{ }
+{ ..is_add_subgroup.Inter (λ i, (h i).to_is_add_subgroup),
+  ..is_submonoid.Inter (λ i, (h i).to_is_submonoid) }
 
 lemma is_subring_Union_of_directed {ι : Type*} [hι : nonempty ι]
-  (s : ι → set R) [∀ i, is_subring (s i)]
+  {s : ι → set R} (h : ∀ i, is_subring (s i))
   (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
   is_subring (⋃i, s i) :=
-{ to_is_add_subgroup := is_add_subgroup_Union_of_directed s directed,
-  to_is_submonoid := is_submonoid_Union_of_directed s directed }
+{ to_is_add_subgroup := is_add_subgroup_Union_of_directed
+    (λ i, (h i).to_is_add_subgroup) directed,
+  to_is_submonoid := is_submonoid_Union_of_directed (λ i, (h i).to_is_submonoid) directed }
 
 namespace ring
 
@@ -154,18 +170,20 @@ begin
   { exact ⟨L, HL', or.inl $ by rw [list.prod_cons, hhd, HP, neg_one_mul, neg_neg]⟩ }
 end
 
-instance : is_subring (closure s) :=
-{ one_mem := add_group.mem_closure is_submonoid.one_mem,
+lemma closure.is_subring : is_subring (closure s) :=
+{ one_mem := add_group.mem_closure $ is_submonoid.one_mem $ monoid.closure.is_submonoid _,
   mul_mem := λ a b ha hb, add_group.in_closure.rec_on hb
-    (λ b hb, add_group.in_closure.rec_on ha
-      (λ a ha, add_group.subset_closure (is_submonoid.mul_mem ha hb))
-      ((zero_mul b).symm ▸ is_add_submonoid.zero_mem)
-      (λ a ha hab, (neg_mul_eq_neg_mul a b) ▸ is_add_subgroup.neg_mem hab)
-      (λ a c ha hc hab hcb, (add_mul a c b).symm ▸ is_add_submonoid.add_mem hab hcb))
-    ((mul_zero a).symm ▸ is_add_submonoid.zero_mem)
-    (λ b hb hab, (neg_mul_eq_mul_neg a b) ▸ is_add_subgroup.neg_mem hab)
-    (λ b c hb hc hab hac, (mul_add a b c).symm ▸ is_add_submonoid.add_mem hab hac),
-  .. add_group.closure.is_add_subgroup _ }
+    ( λ c hc, add_group.in_closure.rec_on ha
+      ( λ d hd, add_group.subset_closure ((monoid.closure.is_submonoid _).mul_mem hd hc))
+      ( (zero_mul c).symm ▸ (add_group.closure.is_add_subgroup _).zero_mem)
+      ( λ d hd hdc, neg_mul_eq_neg_mul d c ▸ (add_group.closure.is_add_subgroup _).neg_mem hdc)
+      ( λ d e hd he hdc hec, (add_mul d e c).symm ▸
+        ((add_group.closure.is_add_subgroup _).add_mem hdc hec)))
+    ( (mul_zero a).symm ▸ (add_group.closure.is_add_subgroup _).zero_mem)
+    ( λ c hc hac, neg_mul_eq_mul_neg a c ▸ (add_group.closure.is_add_subgroup _).neg_mem hac)
+    ( λ c d hc hd hac had, (mul_add a c d).symm ▸
+      (add_group.closure.is_add_subgroup _).add_mem hac had),
+  ..add_group.closure.is_add_subgroup _}
 
 theorem mem_closure {a : R} : a ∈ s → a ∈ closure s :=
 add_group.mem_closure ∘ @monoid.subset_closure _ _ _ _
@@ -173,15 +191,15 @@ add_group.mem_closure ∘ @monoid.subset_closure _ _ _ _
 theorem subset_closure : s ⊆ closure s :=
 λ _, mem_closure
 
-theorem closure_subset {t : set R} [is_subring t] : s ⊆ t → closure s ⊆ t :=
-add_group.closure_subset ∘ monoid.closure_subset
+theorem closure_subset {t : set R} (ht : is_subring t) : s ⊆ t → closure s ⊆ t :=
+(add_group.closure_subset ht.to_is_add_subgroup) ∘ (monoid.closure_subset ht.to_is_submonoid)
 
-theorem closure_subset_iff (s t : set R) [is_subring t] : closure s ⊆ t ↔ s ⊆ t :=
-(add_group.closure_subset_iff _ t).trans
-  ⟨set.subset.trans monoid.subset_closure, monoid.closure_subset⟩
+theorem closure_subset_iff {s t : set R} (ht : is_subring t) : closure s ⊆ t ↔ s ⊆ t :=
+(add_group.closure_subset_iff ht.to_is_add_subgroup).trans
+  ⟨set.subset.trans monoid.subset_closure, monoid.closure_subset ht.to_is_submonoid⟩
 
 theorem closure_mono {s t : set R} (H : s ⊆ t) : closure s ⊆ closure t :=
-closure_subset $ set.subset.trans H subset_closure
+closure_subset closure.is_subring $ set.subset.trans H subset_closure
 
 lemma image_closure {S : Type*} [ring S] (f : R →+* S) (s : set R) :
   f '' closure s = closure (f '' s) :=
@@ -189,14 +207,16 @@ le_antisymm
   begin
     rintros _ ⟨x, hx, rfl⟩,
     apply in_closure.rec_on hx; intros,
-    { rw [f.map_one], apply is_submonoid.one_mem },
+    { rw [f.map_one], apply closure.is_subring.to_is_submonoid.one_mem },
     { rw [f.map_neg, f.map_one],
-      apply is_add_subgroup.neg_mem, apply is_submonoid.one_mem },
+      apply closure.is_subring.to_is_add_subgroup.neg_mem,
+      apply closure.is_subring.to_is_submonoid.one_mem },
     { rw [f.map_mul],
-      apply is_submonoid.mul_mem; solve_by_elim [subset_closure, set.mem_image_of_mem] },
-    { rw [f.map_add], apply is_add_submonoid.add_mem, assumption' },
+      apply closure.is_subring.to_is_submonoid.mul_mem;
+      solve_by_elim [subset_closure, set.mem_image_of_mem] },
+    { rw [f.map_add], apply closure.is_subring.to_is_add_submonoid.add_mem, assumption' },
   end
-  (closure_subset $ set.image_subset _ subset_closure)
-
+  (closure_subset (ring_hom.is_subring_image _ closure.is_subring) $
+    set.image_subset _ subset_closure)
 
 end ring

@@ -22,7 +22,7 @@ variables {s : finset α} {f : α → (ι →₀ A)} (i : ι)
 variables (g : ι →₀ A) (k : ι → A → γ → B) (x : γ)
 
 theorem finset.sum_apply' : (∑ k in s, f k) i = ∑ k in s, f k i :=
-(s.sum_hom $ finsupp.apply_add_hom i).symm
+(finsupp.apply_add_hom i : (ι →₀ A) →+ A).map_sum f s
 
 theorem finsupp.sum_apply' : g.sum k x = g.sum (λ i b, k i b x) :=
 finset.sum_apply _ _ _

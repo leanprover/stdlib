@@ -672,11 +672,11 @@ theorem map_repeat (f : α → β) (a : α) (k : ℕ) : (repeat a k).map f = rep
 @[simp] theorem map_add (f : α → β) (s t) : map f (s + t) = map f s + map f t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
 
-instance (f : α → β) : is_add_monoid_hom (map f) :=
+lemma map_is_add_monoid_hom (f : α → β) : is_add_monoid_hom (map f) :=
 { map_add := map_add _, map_zero := map_zero _ }
 
 theorem map_nsmul (f : α → β) (n : ℕ) (s) : map f (n • s) = n • (map f s) :=
-(add_monoid_hom.of (map f)).map_nsmul _ _
+(add_monoid_hom.of (map_is_add_monoid_hom f)).map_nsmul _ _
 
 @[simp] theorem mem_map {f : α → β} {b : β} {s : multiset α} :
   b ∈ map f s ↔ ∃ a, a ∈ s ∧ f a = b :=
@@ -853,7 +853,7 @@ theorem prod_singleton [comm_monoid α] (a : α) : prod (a ::ₘ 0) = a := by si
 theorem prod_add [comm_monoid α] (s t : multiset α) : prod (s + t) = prod s * prod t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, by simp
 
-instance sum.is_add_monoid_hom [add_comm_monoid α] : is_add_monoid_hom (sum : multiset α → α) :=
+lemma sum.is_add_monoid_hom [add_comm_monoid α] : is_add_monoid_hom (sum : multiset α → α) :=
 { map_add := sum_add, map_zero := sum_zero }
 
 lemma prod_nsmul {α : Type*} [comm_monoid α] (m : multiset α) :
@@ -920,7 +920,7 @@ quotient.induction_on s $ λ l,
 @[simp, to_additive]
 lemma prod_map_inv {G : Type*} [comm_group G] (m : multiset G) :
   (m.map has_inv.inv).prod = m.prod⁻¹ :=
-m.prod_hom (monoid_hom.of has_inv.inv)
+m.prod_hom (monoid_hom.of $ is_monoid_hom.inv $ is_monoid_hom.id)
 
 lemma dvd_prod [comm_monoid α] {a : α} {s : multiset α} : a ∈ s → a ∣ s.prod :=
 quotient.induction_on s (λ l a h, by simpa using list.dvd_prod h) a
@@ -1781,7 +1781,7 @@ quot.induction_on s $ λ l, countp_eq_length_filter _ _
 @[simp] theorem countp_add (s t) : countp p (s + t) = countp p s + countp p t :=
 by simp [countp_eq_card_filter]
 
-instance countp.is_add_monoid_hom : is_add_monoid_hom (countp p : multiset α → ℕ) :=
+lemma countp.is_add_monoid_hom : is_add_monoid_hom (countp p : multiset α → ℕ) :=
 { map_add := countp_add _, map_zero := countp_zero _ }
 
 @[simp] theorem countp_sub [decidable_eq α] {s t : multiset α} (h : t ≤ s) :
@@ -1840,7 +1840,7 @@ by simp
 @[simp] theorem count_add (a : α) : ∀ s t, count a (s + t) = count a s + count a t :=
 countp_add _
 
-instance count.is_add_monoid_hom (a : α) : is_add_monoid_hom (count a : multiset α → ℕ) :=
+lemma count.is_add_monoid_hom (a : α) : is_add_monoid_hom (count a : multiset α → ℕ) :=
 countp.is_add_monoid_hom _
 
 @[simp] theorem count_nsmul (a : α) (n s) : count a (n • s) = n * count a s :=

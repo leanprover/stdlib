@@ -333,7 +333,7 @@ coe_int_inj $ by simp only [norm_eq_mul_conj, conj_neg, neg_mul_eq_neg_mul_symm,
 @[simp] lemma norm_conj (x : ℤ√d) : x.conj.norm = x.norm :=
 coe_int_inj $ by simp only [norm_eq_mul_conj, conj_conj, mul_comm]
 
-instance : is_monoid_hom norm :=
+lemma is_monoid_hom : is_monoid_hom norm :=
 { map_one := norm_one, map_mul := norm_mul }
 
 lemma norm_nonneg (hd : d ≤ 0) (n : ℤ√d) : 0 ≤ n.norm :=

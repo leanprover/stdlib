@@ -162,7 +162,7 @@ lemma map_smul_of_tower {R S : Type*} [semiring S] [has_scalar R M]
   f (c • x) = c • f x :=
 compatible_smul.map_smul f c x
 
-instance : is_add_monoid_hom f :=
+lemma is_add_monoid_hom : is_add_monoid_hom f :=
 { map_add := map_add f,
   map_zero := map_zero f }
 
@@ -264,7 +264,7 @@ f.to_add_monoid_hom.map_neg x
 @[simp] lemma map_sub (x y : M) : f (x - y) = f x - f y :=
 f.to_add_monoid_hom.map_sub x y
 
-instance : is_add_group_hom f :=
+lemma is_add_group_hom : is_add_group_hom f :=
 { map_add := map_add f }
 
 instance compatible_smul.int_module

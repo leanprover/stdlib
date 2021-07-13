@@ -28,11 +28,14 @@ variables {s s₁ s₂ : finset α} {a : α} {b : β}  {f g : α → β}
 section semiring
 variables [non_unital_non_assoc_semiring β]
 
+example (R : Type) [comm_ring R] (a : R) : is_add_monoid_hom (λ x, x * b) :=
+is_add_monoid_hom.is_add_monoid_hom_mul_right b
+
 lemma sum_mul : (∑ x in s, f x) * b = ∑ x in s, f x * b :=
-(s.sum_hom (λ x, x * b)).symm
+(s.sum_hom (is_add_monoid_hom.is_add_monoid_hom_mul_right b)).symm
 
 lemma mul_sum : b * (∑ x in s, f x) = ∑ x in s, b * f x :=
-(s.sum_hom _).symm
+(s.sum_hom (is_add_monoid_hom.is_add_monoid_hom_mul_left b)).symm
 
 end semiring
 

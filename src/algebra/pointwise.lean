@@ -451,15 +451,17 @@ instance mul_action_set [monoid α] [mul_action α β] : mul_action α (set β) 
 section is_mul_hom
 open is_mul_hom
 
-variables [has_mul α] [has_mul β] (m : α → β) [is_mul_hom m]
+variables [has_mul α] [has_mul β] {m : α → β} (hm : is_mul_hom m)
+
+include hm
 
 @[to_additive]
 lemma image_mul : m '' (s * t) = m '' s * m '' t :=
-by { simp only [← image2_mul, image_image2, image2_image_left, image2_image_right, map_mul m] }
+by { simp only [← image2_mul, image_image2, image2_image_left, image2_image_right, map_mul hm] }
 
 @[to_additive]
 lemma preimage_mul_preimage_subset {s t : set β} : m ⁻¹' s * m ⁻¹' t ⊆ m ⁻¹' (s * t) :=
-by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (map_mul _ _ _).symm ⟩ }
+by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (map_mul hm _ _).symm ⟩ }
 
 end is_mul_hom
 
@@ -468,9 +470,9 @@ with respect to the pointwise operations on sets. -/
 def image_hom [monoid α] [monoid β] (f : α →* β) : set_semiring α →+* set_semiring β :=
 { to_fun := image f,
   map_zero' := image_empty _,
-  map_one' := by simp only [← singleton_one, image_singleton, is_monoid_hom.map_one f],
+  map_one' := by simp only [← singleton_one, image_singleton, f.map_one],
   map_add' := image_union _,
-  map_mul' := λ _ _, image_mul _ }
+  map_mul' := λ _ _, image_mul f.is_monoid_hom_coe.to_is_mul_hom }
 
 end monoid
 

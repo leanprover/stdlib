@@ -778,7 +778,7 @@ F.lift $ λ y, show is_unit (g y.1),
 begin
   obtain ⟨n, hn⟩ := y.2,
   rw [←hn, g.map_pow],
-  exact is_unit.map (monoid_hom.of $ ((^ n) : P → P)) hg,
+  exact is_unit.pow n hg,
 end
 
 @[simp] lemma away_map.lift_eq (hg : is_unit (g x)) (a : M) :
@@ -818,7 +818,7 @@ begin
   rw ← hn,
   dsimp,
   rw [g.map_nsmul],
-  convert is_add_unit.map (add_monoid_hom.of $ (λ x, n • x)) hg,
+  exact is_add_unit.map (add_monoid_hom.of (nsmul.is_add_monoid_hom n)) hg,
 end
 
 @[simp] lemma away_map.lift_eq (hg : is_add_unit (g x)) (a : A) :

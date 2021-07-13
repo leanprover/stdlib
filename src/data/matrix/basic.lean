@@ -637,7 +637,7 @@ def mul_vec (M : matrix m n α) (v : n → α) : m → α
 def vec_mul (v : m → α) (M : matrix m n α) : n → α
 | j := dot_product v (λ i, M i j)
 
-instance mul_vec.is_add_monoid_hom_left (v : n → α) :
+lemma mul_vec.is_add_monoid_hom_left (v : n → α) :
   is_add_monoid_hom (λM:matrix m n α, mul_vec M v) :=
 { map_zero := by ext; simp [mul_vec]; refl,
   map_add :=

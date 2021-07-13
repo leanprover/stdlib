@@ -165,9 +165,9 @@ def coe_fn_add_monoid_hom [Π i, add_zero_class (β i)] : (Π₀ i, β i) →+ (
 def eval_add_monoid_hom [Π i, add_zero_class (β i)] (i : ι) : (Π₀ i, β i) →+ β i :=
 (pi.eval_add_monoid_hom β i).comp coe_fn_add_monoid_hom
 
-instance is_add_monoid_hom [Π i, add_zero_class (β i)] {i : ι} :
+lemma is_add_monoid_hom [Π i, add_zero_class (β i)] {i : ι} :
   is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
-(eval_add_monoid_hom i).is_add_monoid_hom
+(eval_add_monoid_hom i).is_add_monoid_hom_coe
 
 instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 ⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩
@@ -314,9 +314,9 @@ quotient.induction_on v $ λ x, rfl
   (v + v').subtype_domain p = v.subtype_domain p + v'.subtype_domain p :=
 ext $ λ i, by simp only [add_apply, subtype_domain_apply]
 
-instance subtype_domain.is_add_monoid_hom [Π i, add_zero_class (β i)]
+lemma subtype_domain.is_add_monoid_hom [Π i, add_zero_class (β i)]
   {p : ι → Prop} [decidable_pred p] :
-  is_add_monoid_hom (subtype_domain p : (Π₀ i : ι, β i) → Π₀ i : subtype p, β i) :=
+  _root_.is_add_monoid_hom (subtype_domain p : (Π₀ i : ι, β i) → Π₀ i : subtype p, β i) :=
 { map_add := λ _ _, subtype_domain_add, map_zero := subtype_domain_zero }
 
 @[simp]
@@ -578,7 +578,8 @@ ext $ λ i, by simp only [neg_apply, mk_apply]; split_ifs; [refl, rw neg_zero]
   mk s (x - y) = mk s x - mk s y :=
 ext $ λ i, by simp only [sub_apply, mk_apply]; split_ifs; [refl, rw sub_zero]
 
-instance [Π i, add_group (β i)] {s : finset ι} : is_add_group_hom (@mk ι β _ _ s) :=
+lemma mk_is_add_group_hom [Π i, add_group (β i)] {s : finset ι} :
+  is_add_group_hom (@mk ι β _ _ s) :=
 { map_add := λ _ _, mk_add }
 
 section
@@ -827,7 +828,8 @@ lemma prod_comm {ι₁ ι₂ : Sort*} {β₁ : ι₁ → Type*} {β₂ : ι₂ �
   [Π i, add_comm_monoid (β i)]
   {f : Π₀ i₁, β₁ i₁} {g : Π i₁, β₁ i₁ → Π₀ i, β i} {i₂ : ι} :
   (f.sum g) i₂ = f.sum (λi₁ b, g i₁ b i₂) :=
-(f.support.sum_hom (λf : Π₀ i, β i, f i₂)).symm
+(f.support.sum_hom (is_add_monoid_hom : _root_.is_add_monoid_hom (λf : Π₀ i, β i, f i₂))).symm
+
 include dec
 
 lemma support_sum {ι₁ : Type u₁} [decidable_eq ι₁] {β₁ : ι₁ → Type v₁}
@@ -855,7 +857,7 @@ finset.prod_mul_distrib
 @[simp, to_additive] lemma prod_inv [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [comm_group γ] {f : Π₀ i, β i} {h : Π i, β i → γ} :
   f.prod (λi b, (h i b)⁻¹) = (f.prod h)⁻¹ :=
-f.support.prod_hom (@has_inv.inv γ _)
+f.support.prod_hom (show is_monoid_hom (@has_inv.inv γ _), from inv.is_group_hom.to_is_monoid_hom)
 
 @[to_additive]
 lemma prod_add_index [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
@@ -1085,7 +1087,7 @@ omit dec
 lemma subtype_domain_sum [Π i, add_comm_monoid (β i)]
   {s : finset γ} {h : γ → Π₀ i, β i} {p : ι → Prop} [decidable_pred p] :
   (∑ c in s, h c).subtype_domain p = ∑ c in s, (h c).subtype_domain p :=
-eq.symm (s.sum_hom _)
+eq.symm (s.sum_hom subtype_domain.is_add_monoid_hom)
 
 lemma subtype_domain_finsupp_sum {δ : γ → Type x} [decidable_eq γ]
   [Π c, has_zero (δ c)] [Π c (x : δ c), decidable (x ≠ 0)]

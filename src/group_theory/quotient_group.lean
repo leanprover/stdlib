@@ -141,9 +141,9 @@ monoid_hom.mk'
   (λ q : Q, q.lift_on' φ $ assume a b (hab : a⁻¹ * b ∈ N),
   (calc φ a = φ a * 1           : (mul_one _).symm
   ...       = φ a * φ (a⁻¹ * b) : HN (a⁻¹ * b) hab ▸ rfl
-  ...       = φ (a * (a⁻¹ * b)) : (is_mul_hom.map_mul φ a (a⁻¹ * b)).symm
+  ...       = φ (a * (a⁻¹ * b)) : (φ.map_mul a (a⁻¹ * b)).symm
   ...       = φ b               : by rw mul_inv_cancel_left))
-  (λ q r, quotient.induction_on₂' q r $ is_mul_hom.map_mul φ)
+  (λ q r, quotient.induction_on₂' q r $ φ.map_mul)
 
 @[simp, to_additive quotient_add_group.lift_mk]
 lemma lift_mk {φ : G →* H} (HN : ∀x∈N, φ x = 1) (g : G) :
@@ -204,7 +204,7 @@ lemma ker_lift_injective : injective (ker_lift φ) :=
 assume a b, quotient.induction_on₂' a b $
   assume a b (h : φ a = φ b), quotient.sound' $
 show a⁻¹ * b ∈ ker φ, by rw [mem_ker,
-  is_mul_hom.map_mul φ, ← h, is_group_hom.map_inv φ, inv_mul_self]
+  φ.map_mul, ← h, φ.map_inv, inv_mul_self]
 
 -- Note that `ker φ` isn't definitionally `ker (φ.range_restrict)`
 -- so there is a bit of annoying code duplication here

@@ -281,20 +281,20 @@ local attribute [instance] subset.comm_ring
 /-- Algebra over a set that is closed under the ring operations. -/
 local attribute [instance]
 def of_is_subring {R A : Type*} [comm_ring R] [ring A] [algebra R A]
-  (S : set R) [is_subring S] : algebra S A :=
-algebra.of_subring S.to_subring
+  (S : set R) [hS : fact (is_subring S)] : algebra S A :=
+algebra.of_subring (set.to_subring hS.elim)
 
-lemma is_subring_coe_algebra_map_hom {R : Type*} [comm_ring R] (S : set R) [is_subring S] :
+lemma is_subring_coe_algebra_map_hom {R : Type*} [comm_ring R] (S : set R) [fact (is_subring S)] :
   (algebra_map S R : S →+* R) = is_subring.subtype S := rfl
 
-lemma is_subring_coe_algebra_map {R : Type*} [comm_ring R] (S : set R) [is_subring S] :
+lemma is_subring_coe_algebra_map {R : Type*} [comm_ring R] (S : set R) [fact (is_subring S)] :
   (algebra_map S R : S → R) = subtype.val := rfl
 
-lemma is_subring_algebra_map_apply {R : Type*} [comm_ring R] (S : set R) [is_subring S] (x : S) :
-  algebra_map S R x = x := rfl
+lemma is_subring_algebra_map_apply {R : Type*} [comm_ring R] (S : set R) [fact (is_subring S)]
+  (x : S) : algebra_map S R x = x := rfl
 
-lemma set_range_subset {R : Type*} [comm_ring R] {T₁ T₂ : set R} [is_subring T₁] (hyp : T₁ ⊆ T₂) :
-  set.range (algebra_map T₁ R) ⊆ T₂ :=
+lemma set_range_subset {R : Type*} [comm_ring R] {T₁ T₂ : set R} [fact (is_subring T₁)]
+  (hyp : T₁ ⊆ T₂) : set.range (algebra_map T₁ R) ⊆ T₂ :=
 begin
   rintros x ⟨⟨t, ht⟩, rfl⟩,
   exact hyp ht,

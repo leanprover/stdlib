@@ -61,7 +61,7 @@ variables {K : Type*} [group K] [topological_space K] [nonarchimedean_group K]
 @[to_additive nonarchimedean_add_group.nonarchimedean_of_emb]
 lemma nonarchimedean_of_emb (f : G →* H) (emb : open_embedding f) : nonarchimedean_group H :=
 { is_nonarchimedean := λ U hU, have h₁ : (f ⁻¹' U) ∈ nhds (1 : G), from
-    by {apply emb.continuous.tendsto, rwa is_group_hom.map_one f},
+    by {apply emb.continuous.tendsto, rwa f.map_one},
   let ⟨V, hV⟩ := is_nonarchimedean (f ⁻¹' U) h₁ in
     ⟨{is_open' := emb.is_open_map _ V.is_open, ..subgroup.map f V},
       set.image_subset_iff.2 hV⟩ }

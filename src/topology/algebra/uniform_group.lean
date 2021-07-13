@@ -122,11 +122,11 @@ begin
 end
 
 lemma uniform_continuous_of_tendsto_zero [uniform_space β] [add_group β] [uniform_add_group β]
-  {f : α → β} [is_add_group_hom f] (h : tendsto f (𝓝 0) (𝓝 0)) :
+  {f : α → β} (hf : is_add_group_hom f) (h : tendsto f (𝓝 0) (𝓝 0)) :
   uniform_continuous f :=
 begin
   have : ((λx:β×β, x.2 - x.1) ∘ (λx:α×α, (f x.1, f x.2))) = (λx:α×α, f (x.2 - x.1)),
-  { simp only [is_add_group_hom.map_sub f] },
+  { simp only [hf.map_sub] },
   rw [uniform_continuous, uniformity_eq_comap_nhds_zero α, uniformity_eq_comap_nhds_zero β,
     tendsto_comap_iff, this],
   exact tendsto.comp h tendsto_comap
@@ -136,13 +136,13 @@ lemma add_monoid_hom.uniform_continuous_of_continuous_at_zero
   [uniform_space β] [add_group β] [uniform_add_group β]
   (f : α →+ β) (hf : continuous_at f 0) :
   uniform_continuous f :=
-uniform_continuous_of_tendsto_zero (by simpa using hf.tendsto)
+uniform_continuous_of_tendsto_zero f.is_add_group_hom (by simpa using hf.tendsto)
 
 lemma uniform_continuous_of_continuous [uniform_space β] [add_group β] [uniform_add_group β]
-  {f : α → β} [is_add_group_hom f] (h : continuous f) :
+  {f : α → β} (hf : is_add_group_hom f) (h : continuous f) :
   uniform_continuous f :=
-uniform_continuous_of_tendsto_zero $
-  suffices tendsto f (𝓝 0) (𝓝 (f 0)), by rwa [is_add_group_hom.map_zero f] at this,
+uniform_continuous_of_tendsto_zero hf $
+  suffices tendsto f (𝓝 0) (𝓝 (f 0)), by rwa [hf.map_zero] at this,
   h.tendsto 0
 
 end uniform_add_group
@@ -247,9 +247,9 @@ class is_Z_bilin (f : α × β → γ) : Prop :=
 
 variables (f : α × β → γ) [is_Z_bilin f]
 
-lemma is_Z_bilin.comp_hom {g : γ → δ} [add_comm_group δ] [is_add_group_hom g] :
+lemma is_Z_bilin.comp_hom {g : γ → δ} [add_comm_group δ] (hg : is_add_group_hom g) :
   is_Z_bilin (g ∘ f) :=
-by constructor; simp [(∘), is_Z_bilin.add_left f, is_Z_bilin.add_right f, is_add_hom.map_add g]
+by constructor; simp [(∘), is_Z_bilin.add_left f, is_Z_bilin.add_right f, hg.map_add]
 
 instance is_Z_bilin.comp_swap : is_Z_bilin (f ∘ prod.swap) :=
 ⟨λ a a' b, is_Z_bilin.add_right f b a a',
@@ -323,8 +323,8 @@ variables [topological_space α] [add_comm_group α] [topological_add_group α]
 
 -- β is a dense subgroup of α, inclusion is denoted by e
 variables [topological_space β] [add_comm_group β]
-variables {e : β → α} [is_add_group_hom e] (de : dense_inducing e)
-include de
+variables {e : β → α} (he : is_add_group_hom e) (de : dense_inducing e)
+include he de
 
 lemma tendsto_sub_comap_self (x₀ : α) :
   tendsto (λt:β×β, t.2 - t.1) (comap (λp:β×β, (e p.1, e p.2)) $ 𝓝 (x₀, x₀)) (𝓝 0) :=
@@ -332,10 +332,10 @@ begin
   have comm : (λx:α×α, x.2-x.1) ∘ (λt:β×β, (e t.1, e t.2)) = e ∘ (λt:β×β, t.2 - t.1),
   { ext t,
     change e t.2 - e t.1 = e (t.2 - t.1),
-    rwa ← is_add_group_hom.map_sub e t.2 t.1 },
+    rwa ← he.map_sub t.2 t.1 },
   have lim : tendsto (λ x : α × α, x.2-x.1) (𝓝 (x₀, x₀)) (𝓝 (e 0)),
     { have := (continuous_sub.comp (@continuous_swap α α _ _)).tendsto (x₀, x₀),
-      simpa [-sub_eq_add_neg, sub_self, eq.symm (is_add_group_hom.map_zero e)] using this },
+      simpa [-sub_eq_add_neg, sub_self, eq.symm (he.map_zero)] using this },
   have := de.tendsto_comap_nhds_nhds lim comm,
   simp [-sub_eq_add_neg, this]
 end
@@ -353,11 +353,11 @@ variables [topological_space γ] [add_comm_group γ] [topological_add_group γ]
 variables [topological_space δ] [add_comm_group δ] [topological_add_group δ]
 variables [uniform_space G] [add_comm_group G] [uniform_add_group G] [separated_space G]
   [complete_space G]
-variables {e : β → α} [is_add_group_hom e] (de : dense_inducing e)
-variables {f : δ → γ} [is_add_group_hom f] (df : dense_inducing f)
+variables {e : β → α} (he : is_add_group_hom e) (de : dense_inducing e)
+variables {f : δ → γ} (hf : is_add_group_hom f) (df : dense_inducing f)
 variables {φ : β × δ → G} (hφ : continuous φ) [bilin : is_Z_bilin φ]
 
-include de df hφ bilin
+include he de hf df hφ bilin
 
 variables {W' : set G} (W'_nhd : W' ∈ 𝓝 (0 : G))
 include W'_nhd
@@ -369,7 +369,7 @@ begin
   let ee := λ u : β × β, (e u.1, e u.2),
 
   have lim1 : tendsto (λ a : β × β, (a.2 - a.1, y₁)) (comap e Nx ×ᶠ comap e Nx) (𝓝 (0, y₁)),
-  { have := tendsto.prod_mk (tendsto_sub_comap_self de x₀)
+  { have := tendsto.prod_mk (tendsto_sub_comap_self he de x₀)
       (tendsto_const_nhds : tendsto (λ (p : β × β), y₁) (comap ee $ 𝓝 (x₀, x₀)) (𝓝 y₁)),
     rw [nhds_prod_eq, prod_comap_comap_eq, ←nhds_prod_eq],
     exact (this : _) },
@@ -397,7 +397,7 @@ begin
     ((comap ee $ 𝓝 (x₀, x₀)) ×ᶠ (comap ff $ 𝓝 (y₀, y₀))) (𝓝 0),
   { have lim_sub_sub :  tendsto (λ (p : (β × β) × δ × δ), (p.1.2 - p.1.1, p.2.2 - p.2.1))
       ((comap ee (𝓝 (x₀, x₀))) ×ᶠ (comap ff (𝓝 (y₀, y₀)))) (𝓝 0 ×ᶠ 𝓝 0),
-    { have := filter.prod_mono (tendsto_sub_comap_self de x₀) (tendsto_sub_comap_self df y₀),
+    { have := filter.prod_mono (tendsto_sub_comap_self he de x₀) (tendsto_sub_comap_self hf df y₀),
       rwa prod_map_map_eq at this },
     rw ← nhds_prod_eq at lim_sub_sub,
     exact tendsto.comp lim_φ lim_sub_sub },
@@ -422,8 +422,8 @@ begin
   obtain ⟨y₁, y₁_in⟩ : V₁.nonempty :=
     ((df.comap_nhds_ne_bot _).nonempty_of_mem V₁_nhd),
 
-  rcases (extend_Z_bilin_aux de df hφ W_nhd x₀ y₁) with ⟨U₂, U₂_nhd, HU⟩,
-  rcases (extend_Z_bilin_aux df de (hφ.comp continuous_swap) W_nhd y₀ x₁) with ⟨V₂, V₂_nhd, HV⟩,
+  rcases (extend_Z_bilin_aux he de hf df hφ W_nhd x₀ y₁) with ⟨U₂, U₂_nhd, HU⟩,
+  rcases (extend_Z_bilin_aux hf df he de (hφ.comp continuous_swap) W_nhd y₀ x₁) with ⟨V₂, V₂_nhd, HV⟩,
 
   existsi [U₁ ∩ U₂, inter_mem_sets U₁_nhd U₂_nhd,
             V₁ ∩ V₂, inter_mem_sets V₁_nhd V₂_nhd],
@@ -471,7 +471,7 @@ begin
 
     intros W' W'_nhd,
 
-    have key := extend_Z_bilin_key de df hφ W'_nhd x₀ y₀,
+    have key := extend_Z_bilin_key he de hf df hφ W'_nhd x₀ y₀,
     rcases key with ⟨U, U_nhd, V, V_nhd, h⟩,
     rw mem_comap_sets at U_nhd,
     rcases U_nhd with ⟨U', U'_nhd, U'_sub⟩,

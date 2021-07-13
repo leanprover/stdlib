@@ -170,7 +170,7 @@ begin
     ac_refl }
 end
 
-instance is_add_group_hom_lift' {α} (β) [add_comm_group β] (a : free_abelian_group α) :
+lemma is_add_group_hom_lift' {α} (β) [add_comm_group β] (a : free_abelian_group α) :
   is_add_group_hom (λf, (lift f a : β)) :=
 { map_add := λ f g, lift.add' a f g }
 
@@ -247,25 +247,25 @@ neg_bind _ _
   f - g <*> x = (f <*> x) - (g <*> x) :=
 sub_bind _ _ _
 
-instance is_add_group_hom_seq (f : free_abelian_group (α → β)) : is_add_group_hom ((<*>) f) :=
+lemma is_add_group_hom_seq (f : free_abelian_group (α → β)) : is_add_group_hom ((<*>) f) :=
 { map_add := λ x y, show lift (<$> (x+y)) _ = _, by simp only [map_add]; exact
 @@is_add_hom.map_add _ _ _
   (@@free_abelian_group.is_add_group_hom_lift' (free_abelian_group β) _ _).to_is_add_hom _ _ }
 
 @[simp] lemma seq_zero (f : free_abelian_group (α → β)) : f <*> 0 = 0 :=
-is_add_group_hom.map_zero _
+is_add_group_hom.map_zero (is_add_group_hom_seq f)
 
 @[simp] lemma seq_add (f : free_abelian_group (α → β)) (x y : free_abelian_group α) :
   f <*> (x + y) = (f <*> x) + (f <*> y) :=
-is_add_hom.map_add _ _ _
+is_add_hom.map_add (is_add_group_hom_seq f).to_is_add_hom _ _
 
 @[simp] lemma seq_neg (f : free_abelian_group (α → β)) (x : free_abelian_group α) :
   f <*> (-x) = -(f <*> x) :=
-is_add_group_hom.map_neg _ _
+is_add_group_hom.map_neg (is_add_group_hom_seq f) _
 
 @[simp] lemma seq_sub (f : free_abelian_group (α → β)) (x y : free_abelian_group α) :
   f <*> (x - y) = (f <*> x) - (f <*> y) :=
-is_add_group_hom.map_sub _ _ _
+is_add_group_hom.map_sub (is_add_group_hom_seq f) _ _
 
 instance : is_lawful_monad free_abelian_group.{u} :=
 { id_map := λ α x, free_abelian_group.induction_on' x (map_zero id) (λ x, map_pure id x)

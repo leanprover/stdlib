@@ -169,13 +169,13 @@ set_like.coe_injective ha.symm
 end subring
 
 /-- Construct a `subring` from a set satisfying `is_subring`. -/
-def set.to_subring (S : set R) [is_subring S] : subring R :=
+def set.to_subring {S : set R} (hs : is_subring S) : subring R :=
 { carrier := S,
-  one_mem' := is_submonoid.one_mem,
-  mul_mem' := λ a b, is_submonoid.mul_mem,
-  zero_mem' := is_add_submonoid.zero_mem,
-  add_mem' := λ a b, is_add_submonoid.add_mem,
-  neg_mem' := λ a, is_add_subgroup.neg_mem }
+  one_mem' := hs.to_is_submonoid.one_mem,
+  mul_mem' := hs.to_is_submonoid.mul_mem,
+  zero_mem' := hs.to_is_add_submonoid.zero_mem,
+  add_mem' := hs.to_is_add_submonoid.add_mem,
+  neg_mem' := hs.to_is_add_subgroup.neg_mem }
 
 /-- A `subsemiring` containing -1 is a `subring`. -/
 def subsemiring.to_subring (s : subsemiring R) (hneg : (-1 : R) ∈ s) : subring R :=

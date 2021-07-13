@@ -1178,11 +1178,12 @@ end
 
 lemma multiset_map_sum [has_zero M] {f : α →₀ M} {m : β → γ} {h : α → M → multiset β} :
   multiset.map m (f.sum h) = f.sum (λa b, (h a b).map m) :=
-(f.support.sum_hom _).symm
+(f.support.sum_hom (multiset.map_is_add_monoid_hom m)).symm
 
 lemma multiset_sum_sum [has_zero M] [add_comm_monoid N] {f : α →₀ M} {h : α → M → multiset N} :
   multiset.sum (f.sum h) = f.sum (λa b, multiset.sum (h a b)) :=
-(f.support.sum_hom multiset.sum).symm
+(finset.sum_hom f.support
+  (multiset.sum.is_add_monoid_hom : is_add_monoid_hom (_ : multiset N → N))).symm
 
 section map_range
 
@@ -1662,7 +1663,7 @@ variables [add_zero_class M] {p : α → Prop} {v v' : α →₀ M}
   (v + v').subtype_domain p = v.subtype_domain p + v'.subtype_domain p :=
 ext $ λ _, rfl
 
-instance subtype_domain.is_add_monoid_hom :
+lemma subtype_domain.is_add_monoid_hom :
   is_add_monoid_hom (subtype_domain p : (α →₀ M) → subtype p →₀ M) :=
 { map_add := λ _ _, subtype_domain_add, map_zero := subtype_domain_zero }
 
@@ -1682,7 +1683,7 @@ variables [add_comm_monoid M] {p : α → Prop}
 
 lemma subtype_domain_sum {s : finset ι} {h : ι → α →₀ M} :
   (∑ c in s, h c).subtype_domain p = ∑ c in s, (h c).subtype_domain p :=
-eq.symm (s.sum_hom _)
+eq.symm (s.sum_hom subtype_domain.is_add_monoid_hom)
 
 lemma subtype_domain_finsupp_sum [has_zero N] {s : β →₀ N} {h : β → N → α →₀ M} :
   (s.sum h).subtype_domain p = s.sum (λc d, (h c d).subtype_domain p) :=
@@ -1772,7 +1773,7 @@ begin
   { assume a n f _ _ ih,
     rw [to_multiset_add, multiset.map_add, ih, map_domain_add, map_domain_single,
       to_multiset_single, to_multiset_add, to_multiset_single,
-      is_add_monoid_hom.map_nsmul (multiset.map g)],
+      is_add_monoid_hom.map_nsmul (multiset.map_is_add_monoid_hom g)],
     refl }
 end
 
@@ -1807,7 +1808,7 @@ end
 @[simp] lemma count_to_multiset [decidable_eq α] (f : α →₀ ℕ) (a : α) :
   f.to_multiset.count a = f a :=
 calc f.to_multiset.count a = f.sum (λx n, (n • {x} : multiset α).count a) :
-    (f.support.sum_hom $ multiset.count a).symm
+    (f.support.sum_hom (multiset.count.is_add_monoid_hom a)).symm
   ... = f.sum (λx n, n * ({x} : multiset α).count a) : by simp only [multiset.count_nsmul]
   ... = f.sum (λx n, n * (x ::ₘ 0 : multiset α).count a) : rfl
   ... = f a * (a ::ₘ 0 : multiset α).count a : sum_eq_single _

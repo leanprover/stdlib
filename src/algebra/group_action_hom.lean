@@ -320,8 +320,10 @@ ext $ λ x, by rw [comp_apply, id_apply]
 end mul_semiring_action_hom
 
 section
-variables (M) {R'} (U : set R') [is_subring U] [is_invariant_subring M U]
+variables (M) {R'} (U : set R') [hU : fact (is_subring U)] [hMU : fact (is_invariant_subring M U)]
 local attribute [instance] subset.ring
+
+include hU hMU
 
 /-- The canonical inclusion from an invariant subring. -/
 def is_invariant_subring.subtype_hom : U →+*[M] R' :=

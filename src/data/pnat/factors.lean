@@ -66,8 +66,8 @@ def to_nat_multiset : prime_multiset → multiset ℕ :=
 
 instance coe_nat : has_coe prime_multiset (multiset ℕ) := ⟨to_nat_multiset⟩
 
-instance coe_nat_hom : is_add_monoid_hom (coe : prime_multiset → multiset ℕ) :=
-by { unfold_coes, dsimp [to_nat_multiset], apply_instance }
+lemma coe_nat_hom : is_add_monoid_hom (coe : prime_multiset → multiset ℕ) :=
+by { exact multiset.map_is_add_monoid_hom coe }
 
 theorem coe_nat_injective : function.injective (coe : prime_multiset → multiset ℕ) :=
 multiset.map_injective nat.primes.coe_nat_inj
@@ -86,8 +86,8 @@ def to_pnat_multiset : prime_multiset → multiset ℕ+ :=
 
 instance coe_pnat : has_coe prime_multiset (multiset ℕ+) := ⟨to_pnat_multiset⟩
 
-instance coe_pnat_hom : is_add_monoid_hom (coe : prime_multiset → multiset ℕ+) :=
-by { unfold_coes, dsimp [to_pnat_multiset], apply_instance }
+lemma coe_pnat_hom : is_add_monoid_hom (coe : prime_multiset → multiset ℕ+) :=
+multiset.map_is_add_monoid_hom coe
 
 theorem coe_pnat_injective : function.injective (coe : prime_multiset → multiset ℕ+) :=
 multiset.map_injective nat.primes.coe_pnat_inj
@@ -114,7 +114,7 @@ def prod (v : prime_multiset) : ℕ+ := (v : multiset pnat).prod
 theorem coe_prod (v : prime_multiset) : (v.prod : ℕ) = (v : multiset ℕ).prod :=
 begin
   let h : (v.prod : ℕ) = ((v.map coe).map coe).prod :=
-    ((monoid_hom.of coe).map_multiset_prod v.to_pnat_multiset),
+    ((monoid_hom.of pnat.coe_mul_hom).map_multiset_prod v.to_pnat_multiset),
   rw [multiset.map_map] at h,
   have : (coe : ℕ+ → ℕ) ∘ (coe : nat.primes → ℕ+) = coe := funext (λ p, rfl),
   rw[this] at h, exact h,
@@ -185,9 +185,7 @@ theorem prod_zero : (0 : prime_multiset).prod = 1 :=
 by { dsimp [prod], exact multiset.prod_zero }
 
 theorem prod_add (u v : prime_multiset) : (u + v).prod = u.prod * v.prod :=
-by { dsimp [prod],
-     rw [is_add_monoid_hom.map_add (coe : prime_multiset → multiset ℕ+)],
-     rw [multiset.prod_add] }
+by simp [prod, multiset.prod_add, is_add_monoid_hom.map_add (coe_pnat_hom)]
 
 theorem prod_smul (d : ℕ) (u : prime_multiset) :
  (d • u).prod = u.prod ^ d :=

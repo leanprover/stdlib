@@ -136,11 +136,11 @@ lemma is_add_monoid_hom_right (S : sesq_form R M I) (x : M) : is_add_monoid_hom 
 
 lemma sum_left {α : Type*} (S : sesq_form R M I) (t : finset α) (g : α → M) (w : M) :
   S (∑ i in t, g i) w = ∑ i in t, S (g i) w :=
-by haveI s_inst := is_add_monoid_hom_left S w; exact (finset.sum_hom t (λ z, S z w)).symm
+(finset.sum_hom t (is_add_monoid_hom_left S w)).symm
 
 lemma sum_right {α : Type*} (S : sesq_form R M I) (t : finset α) (g : α → M) (w : M) :
   S w (∑ i in t, g i) = ∑ i in t, S w (g i) :=
-by haveI s_inst := is_add_monoid_hom_right S w; exact (finset.sum_hom t (λ z, S w z)).symm
+(finset.sum_hom t (is_add_monoid_hom_right S w)).symm
 
 variables {M₂ : Type w} [add_comm_group M₂] [module R M₂]
 
