@@ -79,6 +79,15 @@ there is an element `k` such that `i ≤ k` and `j ≤ k`. -/
 class directed_order (α : Type u) extends preorder α :=
 (directed : ∀ i j : α, ∃ k, i ≤ k ∧ j ≤ k)
 
+/-- A `preorder` is a `codirected_order` if for any two elements `i`, `j`
+there is an element `k` such that `k ≤ i` and `k ≤ j`. -/
+class codirected_order (α : Type u) extends preorder α :=
+(codirected : ∀ i j : α, ∃ k, k ≤ i ∧ k ≤ j)
+
 @[priority 100]  -- see Note [lower instance priority]
-instance linear_order.to_directed_order (α) [linear_order α] : directed_order α :=
-⟨λ i j, or.cases_on (le_total i j) (λ hij, ⟨j, hij, le_refl j⟩) (λ hji, ⟨i, le_refl i, hji⟩)⟩
+instance semilattice_sup.to_directed_order (α) [semilattice_sup α] : directed_order α :=
+⟨λ i j, ⟨i ⊔ j, le_sup_left, le_sup_right⟩⟩
+
+@[priority 100]  -- see Note [lower instance priority]
+instance semilattice_inf.to_codirected_order (α) [semilattice_inf α] : codirected_order α :=
+⟨λ i j, ⟨i ⊓ j, inf_le_left, inf_le_right⟩⟩

@@ -134,7 +134,10 @@ quotient.induction_on₂ s t $ λ l₁ l₂, (union_sublist_append _ _).subperm
 
 theorem ndunion_le {s t u : multiset α} : ndunion s t ≤ u ↔ s ⊆ u ∧ t ≤ u :=
 multiset.induction_on s (by simp)
-  (by simp [ndinsert_le, and_comm, and.left_comm] {contextual := tt})
+begin
+  simp only [ndinsert_le, cons_ndunion, cons_subset] {contextual := tt},
+  tauto,
+end
 
 theorem subset_ndunion_left (s t : multiset α) : s ⊆ ndunion s t :=
 λ a h, mem_ndunion.2 $ or.inl h
