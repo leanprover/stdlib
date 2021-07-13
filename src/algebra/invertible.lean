@@ -33,6 +33,23 @@ If multiplication is associative, `invertible` is a subsingleton anyway.
 The `simp` normal form tries to normalize `⅟a` to `a ⁻¹`. Otherwise, it pushes
 `⅟` inside the expression as much as possible.
 
+Since `invertible a` is not a `Prop` (but it is a `subsingleton`), we have to be careful about
+coherence issues: we should avoid having multiple non-defeq instances for `invertible a` in the
+same context.  This file plays it safe and uses `def` rather than `instance` for most definitions,
+users can choose which instances to use at the point of use.
+
+For example, here's how you can use an `invertible 1` instance:
+```lean
+variables {α : Type*} [monoid α]
+
+def something_that_needs_inverses (x : α) [invertible x] := sorry
+
+section
+local attribute [instance] invertible_one
+def something_one := something_that_needs_inverses 1
+end
+```
+
 ## Tags
 
 invertible, inverse element, inv_of, a half, one half, a third, one third, ½, ⅓
