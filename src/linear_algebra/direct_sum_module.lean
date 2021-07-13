@@ -32,7 +32,7 @@ variables [Π i, add_comm_monoid (M i)] [Π i, module R (M i)]
 include R
 
 namespace direct_sum
-open_locale direct_sum
+open_locale direct_sum big_operators
 
 variables {R ι M}
 
@@ -166,5 +166,60 @@ lemma submodule_is_internal.to_add_subgroup {R M : Type*}
   [ring R] [add_comm_group M] [module R M] (A : ι → submodule R M) :
   submodule_is_internal A ↔ add_subgroup_is_internal (λ i, (A i).to_add_subgroup) :=
 iff.rfl
+
+lemma submodule_is_internal.apply
+  {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  (A : ι → submodule R M) [Π i (x : A i), decidable (x ≠ 0)] (x : ⨁ i, A i) :
+  direct_sum.to_module R ι M (λ i, (A i).subtype) x = ∑ i in x.support, x i :=
+begin
+  simp only [direct_sum.to_module, dfinsupp.sum_add_hom_apply, linear_map.to_add_monoid_hom_coe,
+    linear_map.coe_mk, dfinsupp.lsum_apply, submodule.subtype],
+  refine finset.sum_congr rfl (λ x hx, rfl),
+end
+
+/--
+Given an indexed collection of submodules of `M` and a proof that they form an internal
+direct sum, build an linear equivlance `(⨁ i, A i) ≃ₗ[R] M`.
+-/
+noncomputable def submodule_is_internal.to_equiv
+  {R : Type u} {M : Type w} [ring R] [add_comm_group M] [module R M]
+  (A : ι → submodule R M) (hA : submodule_is_internal A) :
+  (⨁ i, A i) ≃ₗ[R] M :=
+begin
+  letI : add_comm_group (⨁ (i : ι), (A i)) := direct_sum.add_comm_group (λ i, A i),
+  exact linear_equiv.of_bijective (direct_sum.to_module R ι M (λ i, (A i).subtype))
+    (linear_map.ker_eq_bot_of_injective hA.injective)
+    (linear_map.range_eq_top.mpr hA.surjective),
+end
+
+@[simp] lemma submodule_is_internal.to_equiv_apply
+  {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  (A : ι → submodule R M) (hA : submodule_is_internal A) (x : ⨁ i, A i) :
+  submodule_is_internal.to_equiv A hA x = to_module R ι M (λ i, (A i).subtype) x :=
+rfl
+
+lemma submodule_is_internal.to_equiv_symm_single_apply
+  {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  (A : ι → submodule R M) [Π i (x : A i), decidable (x ≠ 0)]
+  (hA : submodule_is_internal A) (i : ι) (x : M) (hx : x ∈ A i) :
+  (submodule_is_internal.to_equiv A hA).symm x = dfinsupp.single i ⟨x, hx⟩ :=
+begin
+  apply_fun submodule_is_internal.to_equiv A hA using linear_equiv.injective _,
+  rw linear_equiv.apply_symm_apply, dsimp, rw submodule_is_internal.apply,
+  by_cases h : x = 0,
+  { rw dfinsupp.support_single_eq_zero,
+    rwa finset.sum_empty,
+    rwa ← submodule.coe_eq_zero },
+  rw [dfinsupp.support_single_ne_zero, finset.sum_singleton,
+    dfinsupp.single_eq_same, submodule.coe_mk],
+  refine λ h', h _,
+  rw [← submodule.coe_eq_zero.mpr h', submodule.coe_mk]
+lemma submodule_is_internal.supr_eq_top {R M : Type*}
+  [semiring R] [add_comm_monoid M] [module R M] (A : ι → submodule R M)
+  (h : submodule_is_internal A) : supr A = ⊤ :=
+begin
+  rw [submodule.supr_eq_range_dfinsupp_lsum, linear_map.range_eq_top],
+  exact function.bijective.surjective h,
+end
 
 end direct_sum

@@ -420,12 +420,15 @@ instance is_atomistic_of_is_complemented [is_complemented α] : is_atomistic α 
     exact le_Sup ⟨ha.of_is_atom_coe_Iic, a.2⟩ }
 end, λ _, and.left⟩⟩
 
-/-- See Theorem 6.6, Călugăreanu -/
-theorem is_complemented_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} = ⊤) : is_complemented α :=
-⟨λ b, begin
+/-- This encapsulates some of the general information one can get out of an atomistic lattice.
+For more specific data, e.g. the existence of a maximal independent set of atoms, see below. -/
+lemma exists_set_independent_Sup_atoms_eq_compl
+  (h : Sup {a : α | is_atom a} = ⊤) (b : α) :
+  ∃ s : set α, complete_lattice.set_independent s ∧ is_compl b (Sup s) ∧ ∀ a ∈ s, is_atom a :=
+begin
   obtain ⟨s, ⟨s_ind, b_inf_Sup_s, s_atoms⟩, s_max⟩ := zorn.zorn_subset
     {s : set α | complete_lattice.set_independent s ∧ b ⊓ Sup s = ⊥ ∧ ∀ a ∈ s, is_atom a} _,
-  { refine ⟨Sup s, le_of_eq b_inf_Sup_s, _⟩,
+  { refine ⟨s, s_ind, ⟨b_inf_Sup_s.le, _⟩, s_atoms⟩,
     rw [← h, Sup_le_iff],
     intros a ha,
     rw ← inf_eq_left,
@@ -470,7 +473,22 @@ theorem is_complemented_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} = ⊤)
         refine hc2.directed_on.mono (λ s t, Sup_le_Sup) } },
     { rcases set.mem_sUnion.1 ha with ⟨s, sc, as⟩,
       exact (hc1 sc).2.2 a as } }
+end
+
+/-- See Theorem 6.6, Călugăreanu -/
+lemma is_complemented_of_Sup_atoms_eq_top
+  (h : Sup {a : α | is_atom a} = ⊤) : is_complemented α :=
+⟨λ b, begin
+  obtain ⟨s, s_ind, s_top, s_atoms⟩ := exists_set_independent_Sup_atoms_eq_compl h b,
+  refine ⟨Sup s, s_top⟩
 end⟩
+
+lemma is_atomistic.exist_set_independent_Sup_eq_top (h : Sup {a : α | is_atom a} = ⊤) :
+  ∃ s : set α, complete_lattice.set_independent s ∧ Sup s = ⊤ ∧ ∀ a ∈ s, is_atom a :=
+begin
+  obtain ⟨s, s_ind, s_top, s_atoms⟩ := exists_set_independent_Sup_atoms_eq_compl h (⊥ : α),
+  refine ⟨s, s_ind, eq_top_of_is_compl_bot (is_compl.symm s_top), s_atoms⟩,
+end
 
 /-- See Theorem 6.6, Călugăreanu -/
 theorem is_complemented_of_is_atomistic [is_atomistic α] : is_complemented α :=

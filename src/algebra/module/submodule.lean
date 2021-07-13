@@ -183,6 +183,10 @@ by refine {to_fun := coe, ..}; simp [coe_smul]
 
 lemma subtype_eq_val : ((submodule.subtype p) : p → M) = subtype.val := rfl
 
+@[simp] lemma coe_sum {ι : Type*} (x : ι → p) (s : finset ι) :
+  (↑(∑ i in s, x i) : M) = ∑ i in s, ↑(x i) :=
+by convert p.subtype.to_add_monoid_hom.map_sum _ _
+
 end add_comm_monoid
 
 section add_comm_group

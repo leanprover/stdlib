@@ -633,6 +633,10 @@ def prod [has_zero M] [comm_monoid N] (f : α →₀ M) (g : α → M → N) : N
 variables [has_zero M] [has_zero M'] [comm_monoid N]
 
 @[to_additive]
+lemma prod_def (f : α →₀ M) (g : α → M → N) :
+f.prod g = ∏ a in f.support, g a (f a) := rfl
+
+@[to_additive]
 lemma prod_of_support_subset (f : α →₀ M) {s : finset α}
   (hs : f.support ⊆ s) (g : α → M → N) (h : ∀ i ∈ s, g i 0 = 1) :
   f.prod g = ∏ x in s, g x (f x) :=
@@ -1068,6 +1072,23 @@ lemma prod_add_index' [add_comm_monoid M] [comm_monoid N] {f g : α →₀ M}
   (f + g).prod (λ a b, h a (multiplicative.of_add b)) =
     f.prod (λ a b, h a (multiplicative.of_add b)) * g.prod (λ a b, h a (multiplicative.of_add b)) :=
 prod_add_index (λ a, (h a).map_one) (λ a, (h a).map_mul)
+
+lemma sum_add_add
+  [add_comm_monoid M] (f g : α →₀ M) :
+  ∑ a in (f + g).support, (f a + g a) = ∑ a in f.support, f a + ∑ a in g.support, g a :=
+begin
+  have : ∑ a in (f + g).support, (f a + g a) = ∑ a in f.support ∪ g.support, (f a + g a),
+  refine finset.sum_subset finsupp.support_add (λ a ha han, finsupp.not_mem_support_iff.mp han),
+  rw this,
+  rw finset.sum_add_distrib,
+  congr' 1,
+  symmetry,
+  refine finset.sum_subset (f.support.subset_union_left g.support)
+    (λ a ha han, finsupp.not_mem_support_iff.mp han),
+  symmetry,
+  refine finset.sum_subset (f.support.subset_union_right g.support)
+    (λ a ha han, finsupp.not_mem_support_iff.mp han),
+end
 
 /-- The canonical isomorphism between families of additive monoid homomorphisms `α → (M →+ N)`
 and monoid homomorphisms `(α →₀ M) →+ N`. -/

@@ -1081,6 +1081,17 @@ begin
   rwa eq_of_mem_of_not_mem_erase hx hnx
 end
 
+/-- Taking a product over `s : finset α` is the same as taking
+the product over `s.erase a` and then tacking on `f a`. -/
+@[to_additive "Taking a sum over `s : finset α` is the same as taking
+the sum over `s.erase a` and then tacking on `f a`."]
+lemma prod_erase' [decidable_eq α] (s : finset α) {f : α → β} {a : α} (h : a ∈ s) :
+  (∏ (x : α) in s.erase a, f x) * f a = ∏ (x : α) in s, f x :=
+begin
+  rw [mul_comm, ← prod_insert, insert_erase],
+  exacts [h, not_mem_erase a s],
+end
+
 /-- If a product is 1 and the function is 1 except possibly at one
 point, it is 1 everywhere on the `finset`. -/
 @[to_additive "If a sum is 0 and the function is 0 except possibly at one
@@ -1428,4 +1439,3 @@ begin
     simp only [his, finset.sum_insert, not_false_iff],
     exact (int.nat_abs_add_le _ _).trans (add_le_add le_rfl IH) }
 end
-

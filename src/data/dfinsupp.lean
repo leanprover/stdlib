@@ -651,6 +651,13 @@ lemma support_subset_iff {s : set ι} {f : Π₀ i, β i} :
 by simp [set.subset_def];
    exact forall_congr (assume i, not_imp_comm)
 
+lemma support_single_eq_zero {i : ι} {b : β i} (hb : b = 0) : (single i b).support = ∅ :=
+begin
+  ext j, by_cases h : i = j,
+  { cases h, simp [hb], },
+  simp [ne.symm h, h],
+end
+
 lemma support_single_ne_zero {i : ι} {b : β i} (hb : b ≠ 0) : (single i b).support = {i} :=
 begin
   ext j, by_cases h : i = j,
@@ -956,6 +963,20 @@ begin
   rw dfinsupp.sum_add_hom_apply,
   convert S.dfinsupp_sum_mem _ _ _,
   exact h
+end
+
+/-- The supremum of a family of commutative additive submonoids is equal to the range of
+`finsupp.sum_add_hom`; that is, every element in the `supr` can be produced from taking a finite
+number of non-zero elements of `p i`, coercing them to `γ`, and summing them. -/
+lemma _root_.add_submonoid.supr_eq_mrange_dfinsupp_sum_add_hom [add_comm_monoid γ]
+  (p : ι → add_submonoid γ) : supr p = (dfinsupp.sum_add_hom (λ i, (p i).subtype)).mrange :=
+begin
+  apply le_antisymm,
+  { apply supr_le _,
+    intros i y hy,
+    exact ⟨dfinsupp.single i ⟨y, hy⟩, dfinsupp.sum_add_hom_single _ _ _⟩, },
+  { rintros x ⟨v, rfl⟩,
+    exact add_submonoid.dfinsupp_sum_add_hom_mem _ v _ (λ i _, (le_supr p i : p i ≤ _) (v i).prop) }
 end
 
 omit dec
