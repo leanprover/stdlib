@@ -197,7 +197,7 @@ adjunction.hom_equiv_unit _
 lemma uncurry_id_eq_ev (A X : C) [exponentiable A] : uncurry (𝟙 (A ⟹ X)) = (ev A).app X :=
 by rw [uncurry_eq, prod.map_id_id, id_comp]
 
-lemma curry_id_eq_coev (A X : C) [exponentiable A] : curry (𝟙 _) = (coev A).app X :=
+lemma curry_id_eq_coev (A X : C) [exponentiable A] : curry (𝟙 (A ⨯ X)) = (coev A).app X :=
 by { rw [curry_eq, (exp A).map_id (A ⨯ _)], apply comp_id }
 
 lemma curry_injective : function.injective (curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X)) :=

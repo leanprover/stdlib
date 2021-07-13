@@ -68,7 +68,6 @@ namespace adjunction
 
 restate_axiom hom_equiv_unit'
 restate_axiom hom_equiv_counit'
-attribute [simp, priority 10] hom_equiv_unit hom_equiv_counit
 
 section
 
@@ -305,11 +304,8 @@ Composition of adjunctions.
 See https://stacks.math.columbia.edu/tag/0DV0.
 -/
 def comp (adj₁ : F ⊣ G) (adj₂ : H ⊣ I) : F ⋙ H ⊣ I ⋙ G :=
-{ hom_equiv := λ X Z, equiv.trans (adj₂.hom_equiv _ _) (adj₁.hom_equiv _ _),
-  unit := adj₁.unit ≫
-  (whisker_left F $ whisker_right adj₂.unit G) ≫ (functor.associator _ _ _).inv,
-  counit := (functor.associator _ _ _).hom ≫
-    (whisker_left I $ whisker_right adj₁.counit H) ≫ adj₂.counit }
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ X Z, (adj₂.hom_equiv _ _).trans (adj₁.hom_equiv _ _) }
 
 /-- If `F` and `G` are left adjoints then `F ⋙ G` is a left adjoint too. -/
 instance left_adjoint_of_comp {E : Type u₃} [ℰ : category.{v₃} E] (F : C ⥤ D) (G : D ⥤ E)

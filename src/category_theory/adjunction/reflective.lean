@@ -116,7 +116,7 @@ def unit_comp_partial_bijective_aux [reflective i] (A : C) (B : D) :
 lemma unit_comp_partial_bijective_aux_symm_apply [reflective i] {A : C} {B : D}
   (f : i.obj ((left_adjoint i).obj A) ⟶ i.obj B) :
   (unit_comp_partial_bijective_aux _ _).symm f = (of_right_adjoint i).unit.app A ≫ f :=
-by simp [unit_comp_partial_bijective_aux]
+by simp [unit_comp_partial_bijective_aux, hom_equiv_unit]
 
 /--
 If `i` has a reflector `L`, then the function `(i.obj (L.obj A) ⟶ B) → (A ⟶ B)` given by

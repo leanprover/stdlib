@@ -19,6 +19,8 @@ variables {C : Type u₁} [category.{v₁} C]
 variables {D : Type u₂} [category.{v₂} D]
 variables {L : C ⥤ D} {R : D ⥤ C} (h : L ⊣ R)
 
+local attribute [simp] adjunction.hom_equiv_unit adjunction.hom_equiv_counit
+
 /--
 If the left adjoint is fully faithful, then the unit is an isomorphism.
 
