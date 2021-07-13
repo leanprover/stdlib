@@ -1255,6 +1255,15 @@ namespace real
 lemma norm_of_nonneg {x : ℝ} (hx : 0 ≤ x) : ∥x∥ = x :=
 abs_of_nonneg hx
 
+lemma norm_of_nonpos {x : ℝ} (hx : x ≤ 0) : ∥x∥ = -x :=
+abs_of_nonpos hx
+
+lemma norm_of_pos {x : ℝ} (hx : 0 < x) : ∥x∥ = x :=
+abs_of_pos hx
+
+lemma norm_of_neg {x : ℝ} (hx : x < 0) : ∥x∥ = -x :=
+abs_of_neg hx
+
 @[simp] lemma norm_coe_nat (n : ℕ) : ∥(n : ℝ)∥ = n := abs_of_nonneg n.cast_nonneg
 
 @[simp] lemma nnnorm_coe_nat (n : ℕ) : ∥(n : ℝ)∥₊ = n := nnreal.eq $ by simp

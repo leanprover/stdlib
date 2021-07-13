@@ -744,6 +744,21 @@ begin
   simp [union_comm]
 end
 
+lemma union_Union_neq_eq_Union {ι} (f : ι → set α) (j : ι) :
+  (f j ∪ ⋃ (i : ι) (hi : i ≠ j), f i) = ⋃ i, f i :=
+begin
+  ext x,
+  simp only [exists_prop, mem_Union, mem_union_eq],
+  split,
+  { rintro (hj | ⟨i, hij, hi⟩),
+    { exact ⟨j, hj⟩ },
+    { exact ⟨i, hi⟩ } },
+  { rintro ⟨i, hi⟩,
+    by_cases h :  i = j,
+    { exact or.inl (h ▸ hi) },
+    { exact or.inr ⟨i, h, hi⟩ } }
+end
+
 section function
 /-!
 ### `maps_to`
