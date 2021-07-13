@@ -822,6 +822,13 @@ begin
   exact hN i hi (hg _),
 end
 
+/-- `submodule.exists_finset_of_mem_supr` as an `iff` -/
+lemma submodule.mem_supr_iff_exists_finset
+  {ι : Sort*} {p : ι → submodule R M} {m : M} :
+  (m ∈ ⨆ i, p i) ↔ ∃ s : finset ι, m ∈ ⨆ i ∈ s, p i :=
+⟨submodule.exists_finset_of_mem_supr p,
+ λ h, let ⟨_, hs⟩ := h in supr_le_supr (λ i, (supr_const_le : _ ≤ p i)) hs⟩
+
 lemma mem_span_finset {s : finset M} {x : M} :
   x ∈ span R (↑s : set M) ↔ ∃ f : M → R, ∑ i in s, f i • i = x :=
 ⟨λ hx, let ⟨v, hvs, hvx⟩ := (finsupp.mem_span_image_iff_total _).1
