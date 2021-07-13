@@ -81,7 +81,7 @@ enough.
 attribute [mfld_simps] id.def function.comp.left_id set.mem_set_of_eq set.image_eq_empty
 set.univ_inter set.preimage_univ set.prod_mk_mem_set_prod_eq and_true set.mem_univ
 set.mem_image_of_mem true_and set.mem_inter_eq set.mem_preimage function.comp_app
-set.inter_subset_left set.mem_prod set.range_id and_self set.mem_range_self
+set.inter_subset_left set.mem_prod set.range_id set.range_prod_map and_self set.mem_range_self
 eq_self_iff_true forall_const forall_true_iff set.inter_univ set.preimage_id function.comp.right_id
 not_false_iff and_imp set.prod_inter_prod set.univ_prod_univ true_or or_true prod.map_mk
 set.preimage_inter heq_iff_eq equiv.sigma_equiv_prod_apply equiv.sigma_equiv_prod_symm_apply

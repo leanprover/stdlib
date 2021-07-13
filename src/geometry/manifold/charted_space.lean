@@ -542,33 +542,60 @@ end
 
 end
 
-/-- Same thing as `H × H'`. We introduce it for technical reasons: a charted space `M` with model
-`H` is a set of local charts from `M` to `H` covering the space. Every space is registered as a
-charted space over itself, using the only chart `id`, in `manifold_model_space`. You can also define
-a product of charted space `M` and `M'` (with model space `H × H'`) by taking the products of the
-charts. Now, on `H × H'`, there are two charted space structures with model space `H × H'` itself,
-the one coming from `manifold_model_space`, and the one coming from the product of the two
-`manifold_model_space` on each component. They are equal, but not defeq (because the product of `id`
-and `id` is not defeq to `id`), which is bad as we know. This expedient of renaming `H × H'` solves
-this problem. -/
+/-- For technical reasons we introduce two type tags:
+
+* `model_prod H H'` is the same as `H × H'`;
+* `model_pi H` is the same as `Π i, H i`, where `H : ι → Type*` and `ι` is a finite type.
+
+In both cases the reason is the same, so we explain it only in the case of the product. A charted
+space `M` with model `H` is a set of local charts from `M` to `H` covering the space. Every space is
+registered as a charted space over itself, using the only chart `id`, in `manifold_model_space`. You
+can also define a product of charted space `M` and `M'` (with model space `H × H'`) by taking the
+products of the charts. Now, on `H × H'`, there are two charted space structures with model space
+`H × H'` itself, the one coming from `manifold_model_space`, and the one coming from the product of
+the two `manifold_model_space` on each component. They are equal, but not defeq (because the product
+of `id` and `id` is not defeq to `id`), which is bad as we know. This expedient of renaming `H × H'`
+solves this problem. -/
+library_note "Manifold type tags"
+
+/-- Same thing as `H × H'` We introduce it for technical reasons,
+see note [Manifold type tags]. -/
 def model_prod (H : Type*) (H' : Type*) := H × H'
+
+/-- Same thing as `Π i, H i` We introduce it for technical reasons,
+see note [Manifold type tags]. -/
+def model_pi {ι : Type*} (H : ι → Type*) := Π i, H i
 
 section
 local attribute [reducible] model_prod
 
-instance model_prod_inhabited {α β : Type*} [inhabited α] [inhabited β] :
-  inhabited (model_prod α β) :=
-⟨(default α, default β)⟩
+instance model_prod_inhabited [inhabited H] [inhabited H'] :
+  inhabited (model_prod H H') :=
+prod.inhabited
 
 instance (H : Type*) [topological_space H] (H' : Type*) [topological_space H'] :
   topological_space (model_prod H H') :=
-by apply_instance
+prod.topological_space
 
 /- Next lemma shows up often when dealing with derivatives, register it as simp. -/
 @[simp, mfld_simps] lemma model_prod_range_prod_id
   {H : Type*} {H' : Type*} {α : Type*} (f : H → α) :
   range (λ (p : model_prod H H'), (f p.1, p.2)) = set.prod (range f) univ :=
 by rw prod_range_univ_eq
+
+end
+
+section
+
+variables {ι : Type*} {Hi : ι → Type*}
+
+instance model_pi_inhabited [Π i, inhabited (Hi i)] :
+  inhabited (model_pi Hi) :=
+pi.inhabited _
+
+instance [Π i, topological_space (Hi i)] :
+  topological_space (model_pi Hi) :=
+Pi.topological_space
 
 end
 
@@ -579,25 +606,10 @@ instance prod_charted_space (H : Type*) [topological_space H]
   (H' : Type*) [topological_space H']
   (M' : Type*) [topological_space M'] [charted_space H' M'] :
   charted_space (model_prod H H') (M × M') :=
-{ atlas            :=
-    {f : (local_homeomorph (M×M') (model_prod H H')) |
-      ∃ g ∈ charted_space.atlas H M, ∃ h ∈ (charted_space.atlas H' M'),
-        f = local_homeomorph.prod g h},
-  chart_at         := λ x: (M × M'),
-    (charted_space.chart_at H x.1).prod (charted_space.chart_at H' x.2),
-  mem_chart_source :=
-  begin
-    intro x,
-    simp only with mfld_simps,
-  end,
-  chart_mem_atlas  :=
-  begin
-    intro x,
-    use (charted_space.chart_at H x.1),
-    split,
-    { apply chart_mem_atlas _, },
-    { use (charted_space.chart_at H' x.2), simp only [chart_mem_atlas, and_self, true_and] }
-  end }
+{ atlas            := image2 local_homeomorph.prod (atlas H M) (atlas H' M'),
+  chart_at         := λ x : M × M', (chart_at H x.1).prod (chart_at H' x.2),
+  mem_chart_source := λ x, ⟨mem_chart_source _ _, mem_chart_source _ _⟩,
+  chart_mem_atlas  := λ x, mem_image2_of_mem (chart_mem_atlas _ _) (chart_mem_atlas _ _) }
 
 section prod_charted_space
 
@@ -608,6 +620,21 @@ variables [topological_space H] [topological_space M] [charted_space H M]
   (chart_at (model_prod H H') x) = (chart_at H x.fst).prod (chart_at H' x.snd) := rfl
 
 end prod_charted_space
+
+/-- The product of a finite family of charted spaces is naturally a charted space, with the
+canonical construction of the atlas of finite product maps. -/
+instance pi_charted_space {ι : Type*} [fintype ι] (H : ι → Type*) [Π i, topological_space (H i)]
+  (M : ι → Type*) [Π i, topological_space (M i)] [Π i, charted_space (H i) (M i)] :
+  charted_space (model_pi H) (Π i, M i) :=
+{ atlas := local_homeomorph.pi '' (set.pi univ $ λ i, atlas (H i) (M i)),
+  chart_at := λ f, local_homeomorph.pi $ λ i, chart_at (H i) (f i),
+  mem_chart_source := λ f i hi, mem_chart_source (H i) (f i),
+  chart_mem_atlas := λ f, mem_image_of_mem _ $ λ i hi, chart_mem_atlas (H i) (f i) }
+
+@[simp, mfld_simps] lemma pi_charted_space_chart_at {ι : Type*} [fintype ι] (H : ι → Type*)
+  [Π i, topological_space (H i)] (M : ι → Type*) [Π i, topological_space (M i)]
+  [Π i, charted_space (H i) (M i)] (f : Π i, M i) :
+  chart_at (model_pi H) f = local_homeomorph.pi (λ i, chart_at (H i) (f i)) := rfl
 
 end charted_space
 
