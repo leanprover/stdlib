@@ -112,6 +112,19 @@ We use this tactic for writing tests.
 meta def guard_target (p : parse texpr) : conv unit :=
 do `(%%t = _) ← target, tactic.interactive.guard_expr_eq t p
 
+/--
+When using `rw` in `conv` mode on conditional equality lemmas, sometimes `⊢` goals can be
+introduced which are impossible to close with `conv` tactics. Note that goals like `⊢ a = 0` will
+be displayed by conv mode as `| a`, making the problem difficult to diagnose at times.
+
+The `exact` conv tactic allows these to be closed, and is sufficient to allow re-entering tactic
+mode with `exact by { ... }`.
+
+Discussion of how to fix `rw` in the longer term can be found in
+https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Closing.20.60.E2.8A.A2.60.20goals.20in.20.60conv.60.20mode/near/212181256
+-/
+meta def exact := tactic.interactive.exact
+
 end interactive
 end conv
 
