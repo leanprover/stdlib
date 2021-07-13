@@ -312,11 +312,11 @@ begin
   split,
   { rintro ⟨n, f, hfs, hfk⟩,
     set ulift_var := mv_polynomial.rename_equiv R equiv.ulift,
-    refine ⟨ulift (fin n), infer_instance, f.comp ulift_var.to_alg_hom,
+    refine ⟨ulift (fin n), infer_instance, f.comp ↑ulift_var,
       hfs.comp ulift_var.surjective,
       submodule.fg_ker_ring_hom_comp _ _ _ hfk ulift_var.surjective⟩,
-    convert submodule.fg_bot,
-    exact ring_hom.ker_coe_equiv ulift_var.to_ring_equiv, },
+    rw [alg_equiv.coe_ring_hom_commutes, ring_hom.ker_coe_equiv ↑ulift_var],
+    exact submodule.fg_bot, },
   { rintro ⟨ι, hfintype, f, hf⟩,
     haveI : fintype ι := hfintype,
     obtain ⟨equiv⟩ := @fintype.trunc_equiv_fin ι (classical.dec_eq ι) _,
@@ -324,8 +324,8 @@ begin
     refine ⟨fintype.card ι, f.comp equiv.symm,
       hf.1.comp (alg_equiv.symm equiv).surjective,
       submodule.fg_ker_ring_hom_comp _ f _ hf.2 equiv.symm.surjective⟩,
-    convert submodule.fg_bot,
-    exact ring_hom.ker_coe_equiv (equiv.symm.to_ring_equiv), }
+    rw [alg_equiv.coe_ring_hom_commutes, ring_hom.ker_coe_equiv ↑equiv.symm],
+    exact submodule.fg_bot, }
 end
 
 /-- If `A` is a finitely presented `R`-algebra, then `mv_polynomial (fin n) A` is finitely presented

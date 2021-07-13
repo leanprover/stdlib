@@ -16,6 +16,8 @@ In this file we define
 
 * `subspace k M` : an abbreviation for `submodule` assuming that `k` is a `field`.
 
+We allow `submodule R M` to be used in the weaker case when we only have `distrib_mul_action R M`.
+
 ## Tags
 
 submodule, subspace, linear map
@@ -32,8 +34,8 @@ set_option old_structure_cmd true
 /-- A submodule of a module is one which is closed under vector operations.
   This is a sufficient condition for the subset of vectors in the submodule
   to themselves form a module. -/
-structure submodule (R : Type u) (M : Type v) [semiring R]
-  [add_comm_monoid M] [module R M] extends add_submonoid M, sub_mul_action R M : Type v.
+structure submodule (R : Type u) (M : Type v) [monoid R]
+  [add_monoid M] [distrib_mul_action R M] extends add_submonoid M, sub_mul_action R M : Type v.
 
 /-- Reinterpret a `submodule` as an `add_submonoid`. -/
 add_decl_doc submodule.to_add_submonoid
@@ -43,7 +45,7 @@ add_decl_doc submodule.to_sub_mul_action
 
 namespace submodule
 
-variables [semiring R] [add_comm_monoid M] [module R M]
+variables [monoid R] [add_monoid M] [distrib_mul_action R M]
 
 instance : set_like (submodule R M) M :=
 ⟨submodule.carrier, λ p q h, by cases p; cases q; congr'⟩
@@ -104,17 +106,17 @@ end submodule
 
 namespace submodule
 
-section add_comm_monoid
+section monoid__add_monoid
 
-variables [semiring S] [semiring R] [add_comm_monoid M]
+variables [monoid S] [monoid R] [add_monoid M]
 
 -- We can infer the module structure implicitly from the bundled submodule,
 -- rather than via typeclass resolution.
-variables {module_M : module R M}
+variables {distrib_mul_action_M : distrib_mul_action R M}
 variables {p q : submodule R M}
 variables {r : R} {x y : M}
 
-variables [has_scalar S R] [module S M] [is_scalar_tower S R M]
+variables [has_scalar S R] [distrib_mul_action S M] [is_scalar_tower S R M]
 
 variables (p)
 @[simp] lemma mem_carrier : x ∈ p.carrier ↔ x ∈ (p : set M) := iff.rfl
@@ -126,13 +128,6 @@ lemma add_mem (h₁ : x ∈ p) (h₂ : y ∈ p) : x + y ∈ p := p.add_mem' h₁
 lemma smul_mem (r : R) (h : x ∈ p) : r • x ∈ p := p.smul_mem' r h
 lemma smul_of_tower_mem (r : S) (h : x ∈ p) : r • x ∈ p :=
 p.to_sub_mul_action.smul_of_tower_mem r h
-
-lemma sum_mem {t : finset ι} {f : ι → M} : (∀c∈t, f c ∈ p) → (∑ i in t, f i) ∈ p :=
-p.to_add_submonoid.sum_mem
-
-lemma sum_smul_mem {t : finset ι} {f : ι → M} (r : ι → R)
-    (hyp : ∀ c ∈ t, f c ∈ p) : (∑ i in t, r i • f i) ∈ p :=
-submodule.sum_mem _ (λ i hi, submodule.smul_mem  _ _ (hyp i hi))
 
 @[simp] lemma smul_mem_iff' (u : units S) : (u:S) • x ∈ p ↔ x ∈ p :=
 p.to_sub_mul_action.smul_mem_iff' u
@@ -158,22 +153,75 @@ variables {p}
 
 variables (p)
 
-instance : add_comm_monoid p :=
-{ add := (+), zero := 0, .. p.to_add_submonoid.to_add_comm_monoid }
+instance : add_monoid p :=
+{ add := (+), zero := 0, .. p.to_add_submonoid.to_add_monoid }
 
-instance module' : module S p :=
+instance : distrib_mul_action S p :=
 by refine {smul := (•), ..p.to_sub_mul_action.mul_action', ..};
-   { intros, apply set_coe.ext, simp [smul_add, add_smul, mul_smul] }
-instance : module R p := p.module'
+   { intros, apply set_coe.ext, simp [smul_add] }
 
 instance : is_scalar_tower S R p :=
 p.to_sub_mul_action.is_scalar_tower
+
+end monoid__add_monoid
+
+section monoid__add_comm_monoid
+
+variables [monoid R] [add_comm_monoid M]
+
+-- We can infer the module structure implicitly from the bundled submodule,
+-- rather than via typeclass resolution.
+variables {distrib_mul_action_M : distrib_mul_action R M}
+variables {p q : submodule R M}
+variables {r : R} {x y : M}
+
+variables (p)
+
+instance : add_comm_monoid p :=
+{ add := (+), zero := 0, .. p.to_add_submonoid.to_add_comm_monoid }
+
+lemma sum_mem {t : finset ι} {f : ι → M} : (∀c∈t, f c ∈ p) → (∑ i in t, f i) ∈ p :=
+p.to_add_submonoid.sum_mem
+
+lemma sum_smul_mem {t : finset ι} {f : ι → M} (r : ι → R)
+    (hyp : ∀ c ∈ t, f c ∈ p) : (∑ i in t, r i • f i) ∈ p :=
+submodule.sum_mem _ (λ i hi, submodule.smul_mem  _ _ (hyp i hi))
+
+end monoid__add_comm_monoid
+
+section monoid_with_zero__add_monoid
+
+variables [monoid_with_zero R] [add_monoid M]
+-- We can infer the module structure implicitly from the bundled submodule,
+-- rather than via typeclass resolution.
+variables {distrib_mul_action_M : distrib_mul_action R M}
+variables {p q : submodule R M}
 
 instance no_zero_smul_divisors [no_zero_smul_divisors R M] : no_zero_smul_divisors R p :=
 ⟨λ c x h,
   have c = 0 ∨ (x : M) = 0,
   from eq_zero_or_eq_zero_of_smul_eq_zero (congr_arg coe h),
   this.imp_right (@subtype.ext_iff _ _ x 0).mpr⟩
+
+end monoid_with_zero__add_monoid
+
+section semiring__add_comm_monoid
+
+variables [semiring S] [semiring R] [add_comm_monoid M]
+
+variables {module_M : module R M}
+variables {p q : submodule R M}
+variables {r : R} {x y : M}
+
+variables [has_scalar S R] [module S M] [is_scalar_tower S R M]
+
+variables (p)
+
+instance module' : module S p :=
+by refine {smul := (•), ..p.distrib_mul_action, ..};
+   { intros, apply set_coe.ext, simp [add_smul] }
+
+instance : module R p := p.module'
 
 /-- Embedding of a submodule `p` to the ambient space `M`. -/
 protected def subtype : p →ₗ[R] M :=
@@ -183,9 +231,9 @@ by refine {to_fun := coe, ..}; simp [coe_smul]
 
 lemma subtype_eq_val : ((submodule.subtype p) : p → M) = subtype.val := rfl
 
-end add_comm_monoid
+end semiring__add_comm_monoid
 
-section add_comm_group
+section ring__add_comm_group
 
 variables [ring R] [add_comm_group M]
 variables {module_M : module R M}
@@ -235,34 +283,34 @@ instance : add_comm_group p :=
 
 @[simp, norm_cast] lemma coe_sub (x y : p) : (↑(x - y) : M) = ↑x - ↑y := rfl
 
-end add_comm_group
+end ring__add_comm_group
 
 section ordered_monoid
 
-variables [semiring R]
+variables [monoid R]
 
 /-- A submodule of an `ordered_add_comm_monoid` is an `ordered_add_comm_monoid`. -/
 instance to_ordered_add_comm_monoid
-  {M} [ordered_add_comm_monoid M] [module R M] (S : submodule R M) :
+  {M} [ordered_add_comm_monoid M] [distrib_mul_action R M] (S : submodule R M) :
   ordered_add_comm_monoid S :=
 subtype.coe_injective.ordered_add_comm_monoid coe rfl (λ _ _, rfl)
 
 /-- A submodule of a `linear_ordered_add_comm_monoid` is a `linear_ordered_add_comm_monoid`. -/
 instance to_linear_ordered_add_comm_monoid
-  {M} [linear_ordered_add_comm_monoid M] [module R M] (S : submodule R M) :
+  {M} [linear_ordered_add_comm_monoid M] [distrib_mul_action R M] (S : submodule R M) :
   linear_ordered_add_comm_monoid S :=
 subtype.coe_injective.linear_ordered_add_comm_monoid coe rfl (λ _ _, rfl)
 
 /-- A submodule of an `ordered_cancel_add_comm_monoid` is an `ordered_cancel_add_comm_monoid`. -/
 instance to_ordered_cancel_add_comm_monoid
-  {M} [ordered_cancel_add_comm_monoid M] [module R M] (S : submodule R M) :
+  {M} [ordered_cancel_add_comm_monoid M] [distrib_mul_action R M] (S : submodule R M) :
   ordered_cancel_add_comm_monoid S :=
 subtype.coe_injective.ordered_cancel_add_comm_monoid coe rfl (λ _ _, rfl)
 
 /-- A submodule of a `linear_ordered_cancel_add_comm_monoid` is a
 `linear_ordered_cancel_add_comm_monoid`. -/
 instance to_linear_ordered_cancel_add_comm_monoid
-  {M} [linear_ordered_cancel_add_comm_monoid M] [module R M] (S : submodule R M) :
+  {M} [linear_ordered_cancel_add_comm_monoid M] [distrib_mul_action R M] (S : submodule R M) :
   linear_ordered_cancel_add_comm_monoid S :=
 subtype.coe_injective.linear_ordered_cancel_add_comm_monoid coe rfl (λ _ _, rfl)
 

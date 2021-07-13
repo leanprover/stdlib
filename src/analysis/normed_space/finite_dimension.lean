@@ -410,12 +410,12 @@ let ⟨g, hg⟩ := (f : E →ₗ[𝕜] F).exists_right_inverse_of_surjective hf 
 
 lemma closed_embedding_smul_left {c : E} (hc : c ≠ 0) : closed_embedding (λ x : 𝕜, x • c) :=
 begin
-  haveI : finite_dimensional 𝕜 (submodule.span 𝕜 {c}) :=
+  haveI : finite_dimensional 𝕜 (𝕜 ∙ c) :=
     finite_dimensional.span_of_finite 𝕜 (finite_singleton c),
-  have m1 : closed_embedding (coe : submodule.span 𝕜 {c} → E) :=
-  (submodule.span 𝕜 {c}).closed_of_finite_dimensional.closed_embedding_subtype_coe,
+  have m1 : closed_embedding (coe : (𝕜 ∙ c) → E) :=
+  (𝕜 ∙ c).closed_of_finite_dimensional.closed_embedding_subtype_coe,
   have m2 : closed_embedding
-    (linear_equiv.to_span_nonzero_singleton 𝕜 E c hc : 𝕜 → submodule.span 𝕜 {c}) :=
+    (linear_equiv.to_span_nonzero_singleton 𝕜 E c hc : 𝕜 → 𝕜 ∙ c) :=
   (continuous_linear_equiv.to_span_nonzero_singleton 𝕜 c hc).to_homeomorph.closed_embedding,
   exact m1.comp m2
 end

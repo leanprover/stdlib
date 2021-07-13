@@ -403,7 +403,7 @@ namespace submodule
 
 universes u v w
 
-variables {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M] [module R M]
+variables {R : Type u} {M : Type v} [comm_semiring R] [add_comm_monoid M] [module R M]
 variable {W : submodule R M}
 
 /-- The `dual_restrict` of a submodule `W` of `M` is the linear map from the
@@ -419,8 +419,7 @@ linear_map.dom_restrict' W
 
 /-- The `dual_annihilator` of a submodule `W` is the set of linear maps `φ` such
   that `φ w = 0` for all `w ∈ W`. -/
-def dual_annihilator {R : Type u} {M : Type v} [comm_ring R] [add_comm_group M]
-  [module R M] (W : submodule R M) : submodule R $ module.dual R M :=
+def dual_annihilator (W : submodule R M) : submodule R $ module.dual R M :=
 W.dual_restrict.ker
 
 @[simp] lemma mem_dual_annihilator (φ : module.dual R M) :

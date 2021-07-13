@@ -468,8 +468,10 @@ lemma eq_zero_of_constant_mem_of_maximal (hR : is_field R)
 begin
   refine classical.by_contradiction (λ hx0, hI.ne_top ((eq_top_iff_one I).2 _)),
   obtain ⟨y, hy⟩ := hR.mul_inv_cancel hx0,
-  convert I.smul_mem (C y) hx,
-  rw [smul_eq_mul, ← C.map_mul, mul_comm y x, hy, ring_hom.map_one],
+  have : 1 = C y • C x,
+  { rw [smul_eq_mul, ← C.map_mul, mul_comm, hy, ring_hom.map_one], },
+  rw this,
+  exact I.smul_mem (C y) hx,
 end
 
 /-- Transport an ideal of `R[X]` to an `R`-submodule of `R[X]`. -/

@@ -240,8 +240,8 @@ theorem supported_Union {δ : Type*} (s : δ → set α) :
 begin
   refine le_antisymm _ (supr_le $ λ i, supported_mono $ set.subset_Union _ _),
   haveI := classical.dec_pred (λ x, x ∈ (⋃ i, s i)),
-  suffices : ((submodule.subtype _).comp (restrict_dom M R (⋃ i, s i))).range ≤
-    ⨆ i, supported M R (s i),
+  suffices : ((submodule.subtype $ supported M R (⋃ i, s i))
+    .comp (restrict_dom M R (⋃ i, s i))).range ≤ ⨆ i, supported M R (s i),
   { rwa [linear_map.range_comp, range_restrict_dom, map_top, range_subtype] at this },
   rw [range_le_iff_comap, eq_top_iff],
   rintro l ⟨⟩,
