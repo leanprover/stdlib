@@ -822,12 +822,20 @@ lemma prod_comm {ι₁ ι₂ : Sort*} {β₁ : ι₁ → Type*} {β₂ : ι₂ �
   f₁.prod (λ i₁ x₁, f₂.prod $ λ i₂ x₂, h i₁ x₁ i₂ x₂) =
   f₂.prod (λ i₂ x₂, f₁.prod $ λ i₁ x₁, h i₁ x₁ i₂ x₂) := finset.prod_comm
 
+lemma sum_hom {ι₁ : Type u₁} [decidable_eq ι₁] {β₁ : ι₁ → Type v₁}
+  [Π i₁, has_zero (β₁ i₁)] [Π i (x : β₁ i), decidable (x ≠ 0)]
+  {M N : Type*} [add_comm_monoid M] [add_comm_monoid N]
+  (f : Π₀ i₁, β₁ i₁) {g : Π i₁, β₁ i₁ → M} (h : M → N)
+  [is_add_monoid_hom h] :
+  f.sum (λ i₁ b, h (g i₁ b)) = h (f.sum g) :=
+f.support.sum_hom h
+
 @[simp] lemma sum_apply {ι₁ : Type u₁} [decidable_eq ι₁] {β₁ : ι₁ → Type v₁}
   [Π i₁, has_zero (β₁ i₁)] [Π i (x : β₁ i), decidable (x ≠ 0)]
   [Π i, add_comm_monoid (β i)]
   {f : Π₀ i₁, β₁ i₁} {g : Π i₁, β₁ i₁ → Π₀ i, β i} {i₂ : ι} :
   (f.sum g) i₂ = f.sum (λi₁ b, g i₁ b i₂) :=
-(f.support.sum_hom (λf : Π₀ i, β i, f i₂)).symm
+(f.sum_hom (λf : Π₀ i, β i, f i₂)).symm
 include dec
 
 lemma support_sum {ι₁ : Type u₁} [decidable_eq ι₁] {β₁ : ι₁ → Type v₁}
