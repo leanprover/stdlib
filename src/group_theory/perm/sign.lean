@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
+import tactic.linarith
 import data.fintype.basic
 import data.finset.sort
 import data.nat.parity
@@ -688,5 +689,107 @@ by simp [equiv.perm.extend_domain]
 end congr
 
 end sign
+
+lemma prod_swap_adj_aug {n i j : ℕ} (hi : i < n) (hj : i + 1 ≤ j) (hj' : j + 1 < n)
+  {L : list (perm (fin n))}
+  (hL : L.prod = swap ⟨i, hi⟩ ⟨j, buffer.lt_aux_1 hj'⟩) :
+  ([swap ⟨j, buffer.lt_aux_1 hj'⟩ ⟨j + 1, hj'⟩] ++ L ++
+   [swap ⟨j, buffer.lt_aux_1 hj'⟩ ⟨j + 1, hj'⟩] : list (perm $ fin n)).prod = swap ⟨i, hi⟩ ⟨j + 1, hj'⟩ :=
+begin
+  rw [list.prod_append, list.prod_append, hL, list.prod_singleton],
+  rw swap_comm (⟨i, _⟩ : fin n) ⟨j + 1, _⟩,
+  apply swap_mul_swap_mul_swap,
+  { apply ne_of_lt, exact hj },
+  { apply ne_of_lt, show i < j+1, linarith }
+end
+
+lemma swap_eq_prod_swap_adj_aux (n : ℕ) {i j : fin n} (hij : i < j) : ∃ L : list (perm (fin n)),
+L.prod = equiv.swap i j ∧ ∀ l ∈ L, ∃ k : fin n, ∃ h : ↑k + 1 < n,
+ l = equiv.swap k ⟨k + 1, h⟩ :=
+begin
+  cases j with j hj,
+  cases i with i hi,
+  change i < j at hij,
+  revert hj,
+  refine nat.le_induction _ _ j (show i+1 ≤ j, from hij),
+  { intro hj,
+    refine ⟨[swap (⟨i, hi⟩ : fin n) (⟨i + 1, hj⟩ : fin n)], _, _⟩,
+    { exact list.prod_singleton, },
+    { intros l hl,
+      refine ⟨⟨i, hi⟩, hj, list.mem_singleton.mp hl⟩, }, },
+  { clear hij j,
+    intros j hj h hj',
+    have hjn : j < n := lt_trans (nat.lt_succ_self j) hj',
+    rcases h hjn with ⟨L, hL1, hL2⟩,
+    let M := [swap (⟨j, hjn⟩ : fin n) (⟨j+1, hj'⟩ : fin n)] ++ L ++ [swap (⟨j, hjn⟩ : fin n) (⟨j+1, hj'⟩)],
+    refine ⟨M, _, _⟩,
+    { exact prod_swap_adj_aug hi hj hj' hL1, },
+    { intros l hl,
+      rw [list.mem_append, list.mem_append, list.mem_singleton] at hl,
+      rcases hl with ⟨rfl | hl⟩ | rfl,
+      { exact ⟨⟨j, hjn⟩, hj', rfl⟩ },
+      { exact hL2 _ hl, },
+      { exact ⟨⟨j, hjn⟩, hj', rfl⟩ }, }, },
+end
+
+lemma swap_eq_prod_swap_adj (n : ℕ) {i j : fin n} (hij : i ≠ j) : ∃ L : list (perm (fin n)),
+L.prod = equiv.swap i j ∧ ∀ l ∈ L, ∃ k : fin n, ∃ h : ↑k + 1 < n,
+ l = equiv.swap k ⟨k + 1, h⟩ :=
+begin
+  wlog h1 : i < j using [i j, j i],
+  { rcases lt_trichotomy i j with h1 | rfl | h3,
+    { left, assumption },
+    { exfalso, cc },
+    { right, assumption }, },
+  { exact swap_eq_prod_swap_adj_aux n h1, },
+  { symmetry' at hij,
+    rw swap_comm,
+    exact this hij }
+end
+
+lemma perm_eq_prod_swap_adj (n : ℕ) (f : perm $ fin n) : ∃ L : list (perm (fin n)),
+L.prod = f ∧ ∀ l ∈ L, ∃ k : fin n, ∃ h : ↑k + 1 < n, l = equiv.swap k ⟨k + 1, h⟩ :=
+begin
+  apply swap_induction_on f,
+  { refine ⟨list.nil, rfl, _⟩,
+    intros l hl,
+    exfalso,
+    rw list.mem_nil_iff at hl,
+    assumption, },
+  { rintros g x y hxy ⟨base, hbase_prod, hbase_mem⟩,
+    obtain ⟨add, hadd_prod, hadd_mem⟩ := swap_eq_prod_swap_adj n hxy,
+    refine ⟨add ++ base, _, _⟩,
+    { rw [←hbase_prod, ←hadd_prod],
+      rw list.prod_append },
+    { intros l hl,
+      rw list.mem_append at hl,
+      cases hl with hl_add hl_base,
+      { exact hadd_mem l hl_add, },
+      { exact hbase_mem l hl_base, }, }, },
+end
+
+@[elab_as_eliminator]
+lemma swap_adj_induction_on {n : ℕ} {P : perm (fin n) → Prop} (f : equiv.perm $ fin n) :
+  P 1 → (∀ f (x y : fin n), ↑x + 1 = ↑y → P f → P (swap x y * f)) → P f :=
+begin
+  cases perm_eq_prod_swap_adj n f with l hl,
+  induction l with g l ih generalizing f,
+  { simp [hl.1.symm], cc, },
+  { assume h1 hmul_swap,
+    rcases hl.2 g (by simp) with ⟨x, hx, hxy⟩,
+    rw [← hl.1, list.prod_cons, hxy],
+    exact hmul_swap l.prod x ⟨x + 1, hx⟩ (by simp)
+    (ih l.prod
+    begin
+      split, refl,
+      intros v hv,
+      exact hl.2 _ (list.mem_cons_of_mem _ hv),
+    end h1 hmul_swap),  },
+end
+
+@[elab_as_eliminator]
+lemma swap_adj_induction_on' {n : ℕ} {P : perm (fin n) → Prop} (f : equiv.perm $ fin n) :
+  P 1 → (∀ s (x y : fin n), ↑x + 1 = ↑y → P s → P (s * swap x y)) → P f :=
+λ h1 IH, inv_inv f ▸ swap_adj_induction_on f⁻¹ h1 (λ f, IH f⁻¹)
 
 end equiv.perm

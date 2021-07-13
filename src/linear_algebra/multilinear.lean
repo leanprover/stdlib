@@ -843,6 +843,26 @@ protected def pi_ring_equiv [fintype ι]  : M₂ ≃ₗ[R] (multilinear_map R (�
 
 end comm_semiring
 
+section algebra
+
+variables (S : Type u) [comm_semiring S]
+variables {N : Type u} [semiring N] [algebra S N]
+variable {q : ℕ}
+variable (ν : fin q → N)
+
+@[priority 100] instance algebra_to_semimodule : semimodule S N := algebra.to_semimodule
+
+/--
+The multilinear map sending a vector of elements of a semiring to their product.
+-/
+def algebra_prod : multilinear_map S (λ i : fin q, N) N :=
+multilinear_map.mk_pi_algebra_fin S q N
+
+lemma algebra_prod_split (ν : fin q.succ → N) :
+algebra_prod S ν = (ν 0) * algebra_prod S (ν ∘ fin.succ) := by simp [algebra_prod]
+
+end algebra
+
 end multilinear_map
 
 section currying
