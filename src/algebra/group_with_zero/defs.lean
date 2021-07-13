@@ -45,6 +45,24 @@ mul_zero_class.zero_mul a
 @[ematch, simp] lemma mul_zero (a : M₀) : a * 0 = 0 :=
 mul_zero_class.mul_zero a
 
+variables {ι : Type*} [decidable_eq ι]
+
+lemma pi.single_mul_fun_apply (i j : ι) (a : M₀) (f : ι → M₀) :
+  pi.single i a j * f j = pi.single i (a * f i) j :=
+pi.apply_single (λ i, (* f i)) (λ i, zero_mul _) _ _ _
+
+lemma pi.fun_mul_single_apply (i j : ι) (f : ι → M₀) (a : M₀) :
+  f j * pi.single i a j = pi.single i (f i * a) j :=
+pi.apply_single (λ i, ((*) (f i))) (λ i, mul_zero _) _ _ _
+
+lemma pi.single_mul_fun (i : ι) (a : M₀) (f : ι → M₀) :
+  pi.single i a * f = pi.single i (a * f i) :=
+funext $ λ j, pi.single_mul_fun_apply i j a f
+
+lemma pi.fun_mul_single (i : ι) (f : ι → M₀) (a : M₀) :
+  f * pi.single i a = pi.single i (f i * a) :=
+funext $ λ j, pi.fun_mul_single_apply i j f a
+
 end mul_zero_class
 
 /-- Predicate typeclass for expressing that `a * b = 0` implies `a = 0` or `b = 0`
