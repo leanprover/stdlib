@@ -161,6 +161,14 @@ def strict_mono [has_lt α] [has_lt β] (f : α → β) : Prop :=
 
 lemma strict_mono_id [has_lt α] : strict_mono (id : α → α) := λ a b, id
 
+lemma strict_mono_of_strict_mono_nat [preorder α] {f : ℕ → α} (hf : ∀n, f n < f (n + 1)) :
+  strict_mono f | n m h :=
+begin
+  induction h,
+  { exact hf _ },
+  { transitivity, assumption, exact hf _ }
+end
+
 /-- A function `f` is strictly monotone increasing on `t` if `x < y` for `x,y ∈ t` implies
 `f x < f y`. -/
 def strict_mono_incr_on [has_lt α] [has_lt β] (f : α → β) (t : set α) : Prop :=

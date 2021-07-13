@@ -1116,6 +1116,51 @@ mem_sets_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Ico_self
 lemma Icc_mem_nhds {a b x : α} (ha : a < x) (hb : x < b) : Icc a b ∈ 𝓝 x :=
 mem_sets_of_superset (Ioo_mem_nhds ha hb) Ioo_subset_Icc_self
 
+lemma exists_seq_strict_mono_tendsto' [densely_ordered α] {x l : α}
+  (hl : l < x) (hx : is_countably_generated (𝓝 x)) :
+  ∃ u : ℕ → α, strict_mono u ∧ (∀ n, u n < x) ∧ tendsto u at_top (𝓝 x) :=
+begin
+  obtain ⟨s, hs⟩ : ∃ s : ℕ → set α, (𝓝 x).has_basis (λ (_x : ℕ), true) s :=
+    let ⟨s, hs⟩ := hx.exists_antimono_basis in ⟨s, hs.to_has_basis⟩,
+  have : ∀ n k, k < x → ∃ y, Icc y x ⊆ s n ∧ k < y ∧ y < x,
+  { assume n k hk,
+    obtain ⟨L, hL, h⟩ : ∃ (L : α) (hL : L ∈ Ico k x), Ioc L x ⊆ s n :=
+      exists_Ioc_subset_of_mem_nhds' (hs.mem_of_mem trivial) hk,
+    obtain ⟨y, hy⟩ : ∃ (y : α), L < y ∧ y < x := exists_between hL.2,
+    exact ⟨y, λ z hz, h ⟨hy.1.trans_le hz.1, hz.2⟩, hL.1.trans_lt hy.1, hy.2⟩ },
+  choose! f hf using this,
+  let u : ℕ → α := λ n, nat.rec_on n (f 0 l) (λ n h, f n.succ h),
+  have I : ∀ n, u n < x,
+  { assume n,
+    induction n with n IH,
+    { exact (hf 0 l hl).2.2 },
+    { exact (hf n.succ _ IH).2.2 } },
+  have S : strict_mono u := strict_mono_of_strict_mono_nat (λ n, (hf n.succ _ (I n)).2.1),
+  refine ⟨u, S, I, hs.tendsto_right_iff.2 (λ n _, _)⟩,
+  simp only [ge_iff_le, eventually_at_top],
+  refine ⟨n, λ p hp, _⟩,
+  have up : u p ∈ Icc (u n) x := ⟨S.monotone hp, (I p).le⟩,
+  have : Icc (u n) x ⊆ s n,
+    by { cases n, { exact (hf 0 l hl).1 }, { exact (hf n.succ (u n) (I n)).1 } },
+  exact this up
+end
+
+lemma exists_seq_strict_mono_tendsto [densely_ordered α] [no_bot_order α]
+  [first_countable_topology α] (x : α) :
+  ∃ u : ℕ → α, strict_mono u ∧ (∀ n, u n < x) ∧ tendsto u at_top (𝓝 x) :=
+let ⟨l, hl⟩ := no_bot x in exists_seq_strict_mono_tendsto' hl (is_countably_generated_nhds x)
+
+lemma exists_seq_strict_antimono_tendsto' [densely_ordered α] {x m : α}
+  (hm : x < m) (hx : is_countably_generated (𝓝 x)) :
+  ∃ u : ℕ → α, (∀ a b, a < b → u b < u a) ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝 x) :=
+@exists_seq_strict_mono_tendsto' (order_dual α) _ _ _ _ x m hm hx
+
+lemma exists_seq_strict_antimono_tendsto [densely_ordered α] [no_top_order α]
+  [first_countable_topology α] (x : α) :
+  ∃ u : ℕ → α, (∀ a b, a < b → u b < u a) ∧ (∀ n, x < u n) ∧ tendsto u at_top (𝓝 x) :=
+let ⟨m, hm⟩ := no_top x in
+  exists_seq_strict_antimono_tendsto' hm (is_countably_generated_nhds x)
+
 section pi
 
 /-!
@@ -2526,6 +2571,32 @@ lemma map_cinfi_of_continuous_at_of_monotone {f : α → β} {g : γ → α}
 @map_csupr_of_continuous_at_of_monotone (order_dual α) (order_dual β) _ _ _ _ _ _ _ _ _ _
   Cf Mf.order_dual H
 
+/-- A monotone map has a limit to the left of any point `x`, equal to `Sup (f '' (Iio x))`. -/
+lemma monotone.tendsto_nhds_within_Iio
+  {α : Type*} [linear_order α] [topological_space α] [order_topology α]
+  {f : α → β} (Mf : monotone f) (x : α) :
+  tendsto f (𝓝[Iio x] x) (𝓝 (Sup (f '' (Iio x)))) :=
+begin
+  rcases eq_empty_or_nonempty (Iio x) with h|h, { simp [h] },
+  refine tendsto_order.2 ⟨λ l hl, _, λ m hm, _⟩,
+  { obtain ⟨z, zx, lz⟩ : ∃ (a : α), a < x ∧ l < f a,
+      by simpa only [mem_image, exists_prop, exists_exists_and_eq_and]
+        using exists_lt_of_lt_cSup (nonempty_image_iff.2 h) hl,
+    exact (mem_nhds_within_Iio_iff_exists_Ioo_subset' zx).2
+      ⟨z, zx, λ y hy, lz.trans_le (Mf (hy.1.le))⟩ },
+  { filter_upwards [self_mem_nhds_within],
+    assume y hy,
+    apply lt_of_le_of_lt _ hm,
+    exact le_cSup (Mf.map_bdd_above bdd_above_Iio) (mem_image_of_mem _ hy) }
+end
+
+/-- A monotone map has a limit to the right of any point `x`, equal to `Inf (f '' (Ioi x))`. -/
+lemma monotone.tendsto_nhds_within_Ioi
+  {α : Type*} [linear_order α] [topological_space α] [order_topology α]
+  {f : α → β} (Mf : monotone f) (x : α) :
+  tendsto f (𝓝[Ioi x] x) (𝓝 (Inf (f '' (Ioi x)))) :=
+@monotone.tendsto_nhds_within_Iio (order_dual β) _ _ _ (order_dual α) _ _ _ f Mf.order_dual x
+
 /-- A bounded connected subset of a conditionally complete linear order includes the open interval
 `(Inf s, Sup s)`. -/
 lemma is_connected.Ioo_cInf_cSup_subset {s : set α} (hs : is_connected s) (hb : bdd_below s)
@@ -2590,7 +2661,7 @@ begin
 end
 
 /-- A preconnected set is either one of the intervals `Icc`, `Ico`, `Ioc`, `Ioo`, `Ici`, `Ioi`,
-`Iic`, `Iio`, or `univ`, or `∅`. The converse statement requires `α` to be densely ordererd. Though
+`Iic`, `Iio`, or `univ`, or `∅`. The converse statement requires `α` to be densely ordered. Though
 one can represent `∅` as `(Inf s, Inf s)`, we include it into the list of possible cases to improve
 readability. -/
 lemma set_of_is_preconnected_subset_of_ordered :
