@@ -1290,6 +1290,99 @@ begin
     mul_le_mul_of_nonneg_left (sum_div_factorial_le _ _ hn) (pow_nonneg (abs_nonneg _) _)
 end
 
+lemma foo (a b d: ℝ) (c : ℕ) (ha : 0 ≤ a) (hab : a ≤ b) : a * (1 / b) = a / b :=
+begin
+
+end
+
+lemma exp_bound' {x : ℂ} {n : ℕ} (hn : 0 < n) (hx : abs x ≤ n / 2) :
+  abs (exp x - ∑ m in range n, x ^ m / m!) ≤ 2 * abs x ^ n * (n!)⁻¹ :=
+begin
+  rw [← lim_const (∑ m in range n, _), exp, sub_eq_add_neg, ← lim_neg, lim_add, ← lim_abs],
+  refine lim_le (cau_seq.le_of_exists ⟨n, λ j hj, _⟩),
+  simp_rw ← sub_eq_add_neg,
+  show abs (∑ m in range j, x ^ m / m! - ∑ m in range n, x ^ m / m!)
+    ≤ 2 * abs x ^ n * (n!)⁻¹,
+  rw sum_range_sub_sum_range hj,
+  exact calc abs (∑ m in (range j).filter (λ k, n ≤ k), (x ^ m / m! : ℂ))
+      = abs (∑ m in (range j).filter (λ k, n ≤ k), (x ^ n * (x ^ (m - n) / m!) : ℂ)) :
+    begin
+      refine congr_arg abs (sum_congr rfl (λ m hm, _)),
+      rw [mem_filter, mem_range] at hm,
+      rw [← mul_div_assoc, ← pow_add, nat.add_sub_cancel' hm.2]
+    end
+  ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs (x ^ n * (_ / m!)) : abv_sum_le_sum_abv _ _
+  ... ≤ ∑ m in filter (λ k, n ≤ k) (range j), abs x ^ n * (((1/2) ^ (m - n)) / n!) :
+    begin
+      refine sum_le_sum (λ m hm, _),
+      rw [abs_mul, abv_pow abs, abs_div, abs_cast_nat],
+      apply mul_le_mul_of_nonneg_left,
+      apply (div_le_div_iff _ _).2,
+      rw abv_pow abs,
+      rw mem_filter at hm,
+      apply (div_le_iff' _).1,
+      rw mul_div_right_comm,
+      rw <-div_pow,
+      -- simp only [one_div, div_pow, inv_pow'],
+      rw div_eq_inv_mul,
+      -- rw field.inv_inv,
+      calc ((1 / 2)⁻¹ * abs x) ^ (m - n) * ↑n!
+          ≤ (n) ^ (m - n) * ↑n! :
+            begin
+              apply mul_le_mul,
+              apply pow_le_pow_of_le_left,
+              apply mul_nonneg,
+              simp only [one_div, zero_le_one, inv_inv', zero_le_bit0],
+              exact abs_nonneg x,
+              apply (inv_mul_le_iff' _).2,
+              rw mul_one_div,
+              exact hx,
+              simp only [one_div, zero_lt_bit0, zero_lt_one, inv_pos],
+              simp only [nat.cast_nonneg],
+              apply pow_nonneg,
+              simp only [nat.cast_nonneg],
+            end
+      ... ≤ ↑m! :
+            begin
+              apply pow_mul_factorial_le_factorial,
+            end,
+
+      apply pow_pos,
+      simp only [one_div, zero_lt_bit0, zero_lt_one, inv_pos],
+
+
+      simp only [nat.cast_pos],
+      exact nat.factorial_pos m,
+      simp only [nat.cast_pos],
+      exact nat.factorial_pos n,
+      apply pow_nonneg,
+      exact abs_nonneg x,
+
+      -- refine mul_le_mul_of_nonneg_left ((div_le_div_right _).2 _) _,
+      -- exact nat.cast_pos.2 (nat.factorial_pos _),
+      -- rw abv_pow abs,
+      -- exact (pow_le_one _ (abs_nonneg _) hx),
+      -- exact pow_nonneg (abs_nonneg _) _
+    end
+  ... ≤ 2 * abs x ^ n * (↑n!)⁻¹ :
+    begin
+      rw <-mul_sum,
+      rw <-sum_div,
+      rw div_eq_mul_inv,
+      rw <-mul_assoc,
+      apply mul_le_mul,
+      rw mul_comm,
+      apply mul_le_mul,
+      sorry,
+      exact le_refl (abs x ^ n),
+      apply pow_nonneg,
+      exact abs_nonneg x,
+      exact zero_le_two,
+      apply le_refl,
+
+    end
+end
+
 lemma abs_exp_sub_one_le {x : ℂ} (hx : abs x ≤ 1) :
   abs (exp x - 1) ≤ 2 * abs x :=
 calc abs (exp x - 1) = abs (exp x - ∑ m in range 1, x ^ m / m!) :
