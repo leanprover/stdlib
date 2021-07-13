@@ -890,6 +890,75 @@ end to_matrix
 
 end matrix
 
+namespace finsupp
+
+variables {α β : Type*}
+variables {M' : Type*} [add_comm_monoid M']
+variables {N : Type*} [has_zero N]
+
+lemma bilin_add_left' (A : α → β → N → (M' →+ R)) (p q : α →₀ M') (r : β →₀ N) :
+  (p + q).sum (λ i x, r.sum (λ j y, A i j y x))
+  = p.sum (λ i x, r.sum (λ j y, A i j y x)) + q.sum (λ i x, r.sum (λ j y, A i j y x)) :=
+begin
+  rw finsupp.sum_add_index,
+  { simp },
+  { simp }
+end
+
+lemma bilin_add_right' (A : α → β → N → (M' →+ R)) (p : α →₀ N) (q r : β →₀ M') :
+  p.sum (λ i x, (q + r).sum (λ j y, A i j x y))
+  = p.sum (λ i x, q.sum (λ j y, A i j x y)) + p.sum (λ i x, r.sum (λ j y, A i j x y)) :=
+begin
+  rw ← finsupp.sum_add,
+  congr,
+  ext i x,
+  rw finsupp.sum_add_index,
+  { simp },
+  { simp [mul_add] }
+end
+
+lemma bilin_smul_left' (A : α → β → N → (M →ₗ[R] R)) (a : R)
+  (p : α →₀ M) (q : β →₀ N) :
+  (a • p).sum (λ i x, q.sum (λ j y, A i j y x))
+  = a • p.sum (λ i x, q.sum (λ j y, A i j y x)) :=
+begin
+  let h : α → M →ₗ[R] R := λ i, q.sum (λ j y, A i j y),
+  have := @finsupp.sum_smul_index_linear_map' _ _ _ _ _ _ _ _ _ _ _ h,
+  convert this;
+  { ext i x,
+    simp [h] },
+end
+
+lemma bilin_smul_right' (A : α → β → N → (M →ₗ[R] R)) (a : R)
+  (p : α →₀ N) (q : β →₀ M) :
+  p.sum (λ i x, (a • q).sum (λ j y, A i j x y))
+  = a • p.sum (λ i x, q.sum (λ j y, A i j x y)) :=
+begin
+  rw finsupp.smul_sum,
+  congr,
+  ext i x,
+  exact finsupp.sum_smul_index_linear_map'
+end
+
+open bilin_form
+
+/-- A collection of `bilin_form R M`, parametrized by two indices in `α`, induces a bilinear form
+on `α →₀ M`.  This can be thought of as an infinite-dimensional version of `matrix.to_bilin_form`.
+-/
+noncomputable def bilin_form_of (A : α → α → (bilin_form R M)) :
+  bilin_form R (α →₀ M) :=
+{ bilin := λ p q, p.sum (λ i x, q.sum (λ j y, A i j x y)),
+  bilin_add_left := bilin_add_left' (λ i j x, (to_lin'_flip (A i j) x).to_add_monoid_hom),
+  bilin_smul_left := bilin_smul_left' (λ i j, to_lin'_flip (A i j)),
+  bilin_add_right := bilin_add_right' (λ i j x, (to_lin' (A i j) x).to_add_monoid_hom),
+  bilin_smul_right := bilin_smul_right' (λ i j, to_lin' (A i j)) }
+
+@[simp] lemma bilin_form_of_apply (A : α → α → (bilin_form R M)) (p q : α →₀ M) :
+  finsupp.bilin_form_of A p q = p.sum (λ i x, q.sum (λ j y, A i j x y)) :=
+rfl
+
+end finsupp
+
 namespace refl_bilin_form
 
 open refl_bilin_form bilin_form
@@ -934,6 +1003,22 @@ begin
 end
 
 end sym_bilin_form
+
+/-- A bilinear form on `finsupp` from an "infinite matrix" is symmetric, if the coefficients
+satisfy a symmetry condition. -/
+-- TODO the same for matrices
+lemma finsupp.is_sym_to_bilinear_form {α : Type*} (A : α → α → (bilin_form R M))
+  (hA : ∀ i j x y, A i j x y = A j i y x) :
+  sym_bilin_form.is_sym (finsupp.bilin_form_of A) :=
+begin
+  intros p q,
+  simp only [finsupp.bilin_form_of_apply, p.sum_comm q],
+  congr,
+  ext i x,
+  congr,
+  ext j y,
+  exact (hA i j x y).symm
+end
 
 namespace alt_bilin_form
 

@@ -657,6 +657,61 @@ end discriminant
 
 end quadratic_form
 
+namespace finsupp
+variables {α : Type*}
+
+/-- A collection of `bilin_form R M`, parametrized by two indices in `α` induces a quadratic form
+on `α →₀ M`.  This can be thought of as an infinite-dimensional version of
+`matrix.to_quadratic_form`.  For this construction to be well-behaved, we usually require an
+additional symmetry hypothesis on the coefficients `A`. -/
+noncomputable def quadratic_form_of (A : α → α → (bilin_form R M)) :
+  quadratic_form R (α →₀ M) :=
+(finsupp.bilin_form_of A).to_quadratic_form
+
+@[simp] lemma quadratic_form_of_apply (A : α → α → (bilin_form R M)) (p : α →₀ M) :
+  (finsupp.quadratic_form_of A) p = p.sum (λ i x, p.sum (λ j y, A i j x y)) :=
+rfl
+
+@[simp] lemma quadratic_form_of_polar (A : α → α → (bilin_form R M))
+  (hA : ∀ i j x y, A i j x y = A j i y x) :
+  (finsupp.quadratic_form_of A).polar = 2 • (finsupp.bilin_form_of A) :=
+begin
+  ext x y,
+  convert bilin_form.polar_to_quadratic_form x y,
+  simp only [pi.smul_apply],
+  rw finsupp.is_sym_to_bilinear_form A hA,
+  simp [bit0, add_smul]
+end
+
+@[simp] lemma to_quadratic_form_polar_apply (A : α → α → (bilin_form R M))
+  (hA : ∀ i j x y, A i j x y = A j i y x) (p q : α →₀ M) :
+  polar (finsupp.quadratic_form_of A) p q = 2 * (finsupp.bilin_form_of A) p q :=
+by { rw [quadratic_form_of_polar A hA, bit0], simp [add_smul, two_mul] }
+
+/-- The "Euclidean" quadratic form on `α →₀ R₁`:  the sum of the squares of the elements. -/
+noncomputable def norm_sq [decidable_eq α] : quadratic_form R₁ (α →₀ R₁) :=
+finsupp.quadratic_form_of
+  (λ i j, if i = j then bilin_form.lin_mul_lin linear_map.id linear_map.id else 0)
+
+@[simp] lemma norm_sq_apply [decidable_eq α] (p : α →₀ R₁) : norm_sq p = p.sum (λ i x, x ^ 2) :=
+begin
+  simp only [norm_sq, quadratic_form_of_apply],
+  transitivity p.sum (λ i x, p.sum (λ j y, ite (i = j) (x * y) 0)),
+  { congr,
+    ext i x,
+    congr,
+    ext j y,
+    split_ifs; simp },
+  { apply finset.sum_congr rfl,
+    intros i hi,
+    simp only [mem_support_iff, ne.def, sum_ite_eq],
+    rw if_pos,
+    { rw pow_two },
+    { simpa using hi } },
+end
+
+end finsupp
+
 namespace quadratic_form
 
 variables {M₁ : Type*} {M₂ : Type*} {M₃ : Type*}
