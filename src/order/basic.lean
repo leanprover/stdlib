@@ -112,7 +112,7 @@ instance order.preimage.decidable {α β} (f : α → β) (s : β → β → Pro
 λ x y, H _ _
 
 section monotone
-variables [preorder α] [preorder β] [preorder γ]
+variables [has_le α] [has_le β] [has_le γ]
 
 /-- A function between preorders is monotone if
   `a ≤ b` implies `f a ≤ f b`. -/
@@ -120,22 +120,12 @@ def monotone (f : α → β) := ∀⦃a b⦄, a ≤ b → f a ≤ f b
 
 theorem monotone_id : @monotone α α _ _ id := assume x y h, h
 
-theorem monotone_const {b : β} : monotone (λ(a:α), b) := assume x y h, le_refl b
-
 protected theorem monotone.comp {g : β → γ} {f : α → β} (m_g : monotone g) (m_f : monotone f) :
   monotone (g ∘ f) :=
 assume a b h, m_g (m_f h)
 
 protected theorem monotone.iterate {f : α → α} (hf : monotone f) (n : ℕ) : monotone (f^[n]) :=
 nat.rec_on n monotone_id (λ n ihn, ihn.comp hf)
-
-lemma monotone_of_monotone_nat {f : ℕ → α} (hf : ∀n, f n ≤ f (n + 1)) :
-  monotone f | n m h :=
-begin
-  induction h,
-  { refl },
-  { transitivity, assumption, exact hf _ }
-end
 
 lemma monotone.reflect_lt {α β} [linear_order α] [preorder β] {f : α → β} (hf : monotone f)
   {x x' : α} (h : f x < f x') : x < x' :=
@@ -152,6 +142,17 @@ by { rintro rfl, apply (hf.reflect_lt h1).not_le, exact nat.le_of_lt_succ (hf.re
 lemma monotone.ne_of_lt_of_lt_int {α} [preorder α] {f : ℤ → α} (hf : monotone f)
   (x x' : ℤ) {y : α} (h1 : f x < y) (h2 : y < f (x + 1)) : f x' ≠ y :=
 by { rintro rfl, apply (hf.reflect_lt h1).not_le, exact int.le_of_lt_add_one (hf.reflect_lt h2) }
+
+variables [is_refl β (≤)]
+theorem monotone_const {b : β} : monotone (λ(a:α), b) := assume x y h, refl b
+
+lemma monotone_of_monotone_nat {α : Type*} [preorder α] {f : ℕ → α} (hf : ∀n, f n ≤ f (n + 1)) :
+  monotone f | n m h :=
+begin
+  induction h,
+  { refl },
+  { transitivity, assumption, exact hf _ }
+end
 
 end monotone
 
