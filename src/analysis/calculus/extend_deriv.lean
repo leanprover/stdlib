@@ -201,3 +201,15 @@ begin
     exact (f_diff y (ne_of_lt hy)).deriv.symm },
   simpa using B.union A
 end
+
+/-- If a real function `f` has a derivative `g` everywhere but at a point, and `f` and `g` are
+continuous at this point, then `g` is the derivative of `f` everywhere. -/
+lemma has_deriv_at_of_has_deriv_at_of_ne' {f g : ℝ → E} {x : ℝ}
+  (f_diff : ∀ y ≠ x, has_deriv_at f (g y) y)
+  (hf : continuous_at f x) (hg : continuous_at g x) (y : ℝ) :
+  has_deriv_at f (g y) y :=
+begin
+  rcases em (y = x) with rfl|hne,
+  { exact has_deriv_at_of_has_deriv_at_of_ne f_diff hf hg },
+  { exact f_diff y hne }
+end

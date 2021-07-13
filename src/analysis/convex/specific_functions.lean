@@ -102,9 +102,8 @@ lemma convex_on_rpow {p : ℝ} (hp : 1 ≤ p) : convex_on (Ici 0) (λ x : ℝ, x
 begin
   have A : deriv (λ (x : ℝ), x ^ p) = λ x, p * x^(p-1), by { ext x, simp [hp] },
   apply convex_on_of_deriv2_nonneg (convex_Ici 0),
-  { apply (continuous_rpow_of_pos (λ _, lt_of_lt_of_le zero_lt_one hp)
-      continuous_id continuous_const).continuous_on },
-  { apply differentiable.differentiable_on, simp [hp] },
+  { exact continuous_on_id.rpow_const (λ x _, or.inr (zero_le_one.trans hp)) },
+  { exact (differentiable_rpow_const hp).differentiable_on },
   { rw A,
     assume x hx,
     replace hx : x ≠ 0, by { simp at hx, exact ne_of_gt hx },
