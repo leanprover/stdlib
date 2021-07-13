@@ -31,28 +31,28 @@ state equalities of the form `g x = norm' 𝕜 x` when `g` is a linear function.
 
 For the concrete cases of `ℝ` and `ℂ`, this is just `∥x∥` and `↑∥x∥`, respectively.
 -/
-noncomputable def norm' (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [semi_normed_algebra ℝ 𝕜]
+noncomputable def norm' (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
   {E : Type*} [semi_normed_group E] (x : E) : 𝕜 :=
 algebra_map ℝ 𝕜 ∥x∥
 
-lemma norm'_def (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [semi_normed_algebra ℝ 𝕜]
+lemma norm'_def (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
   {E : Type*} [semi_normed_group E] (x : E) :
   norm' 𝕜 x = (algebra_map ℝ 𝕜 ∥x∥) := rfl
 
 lemma norm_norm'
-  (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [semi_normed_algebra ℝ 𝕜]
+  (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
   (A : Type*) [semi_normed_group A]
   (x : A) : ∥norm' 𝕜 x∥ = ∥x∥ :=
 by rw [norm'_def, norm_algebra_map_eq, norm_norm]
 
 @[simp] lemma norm'_eq_zero_iff
-  (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [semi_normed_algebra ℝ 𝕜]
+  (𝕜 : Type*) [nondiscrete_normed_field 𝕜] [normed_algebra ℝ 𝕜]
   (A : Type*) [normed_group A] (x : A) :
   norm' 𝕜 x = 0 ↔ x = 0 :=
 by simp [norm', ← norm_eq_zero, norm_algebra_map_eq]
 
 namespace real
-variables {E : Type*} [semi_normed_group E] [semi_normed_space ℝ E]
+variables {E : Type*} [semi_normed_group E] [normed_space ℝ E]
 
 /-- Hahn-Banach theorem for continuous linear functions over `ℝ`. -/
 theorem exists_extension_norm_eq (p : subspace ℝ E) (f : p →L[ℝ] ℝ) :
@@ -79,7 +79,7 @@ end real
 section is_R_or_C
 open is_R_or_C
 
-variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [semi_normed_group F] [semi_normed_space 𝕜 F]
+variables {𝕜 : Type*} [is_R_or_C 𝕜] {F : Type*} [semi_normed_group F] [normed_space 𝕜 F]
 
 /-- Hahn-Banach theorem for continuous linear functions over `𝕜` satisyfing `is_R_or_C 𝕜`. -/
 theorem exists_extension_norm_eq (p : subspace 𝕜 F) (f : p →L[𝕜] 𝕜) :
@@ -87,7 +87,7 @@ theorem exists_extension_norm_eq (p : subspace 𝕜 F) (f : p →L[𝕜] 𝕜) :
 begin
   letI : module ℝ F := restrict_scalars.module ℝ 𝕜 F,
   letI : is_scalar_tower ℝ 𝕜 F := restrict_scalars.is_scalar_tower _ _ _,
-  letI : semi_normed_space ℝ F := semi_normed_space.restrict_scalars _ 𝕜 _,
+  letI : normed_space ℝ F := normed_space.restrict_scalars _ 𝕜 _,
   -- Let `fr: p →L[ℝ] ℝ` be the real part of `f`.
   let fr := re_clm.comp (f.restrict_scalars ℝ),
   have fr_apply : ∀ x, fr x = re (f x), by { assume x, refl },

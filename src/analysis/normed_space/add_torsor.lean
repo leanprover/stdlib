@@ -216,15 +216,15 @@ lemma dist_point_reflection_self' (x y : P) :
   dist (point_reflection x y) y = ∥bit0 (x -ᵥ y)∥ :=
 by rw [point_reflection_apply, dist_eq_norm_vsub V, vadd_vsub_assoc, bit0]
 
-lemma dist_point_reflection_self (𝕜 : Type*) [normed_field 𝕜] [semi_normed_space 𝕜 V] (x y : P) :
+lemma dist_point_reflection_self (𝕜 : Type*) [normed_field 𝕜] [normed_space 𝕜 V] (x y : P) :
   dist (point_reflection x y) y = ∥(2:𝕜)∥ * dist x y :=
 by rw [dist_point_reflection_self', ← two_smul' 𝕜 (x -ᵥ y), norm_smul, ← dist_eq_norm_vsub V]
 
-lemma point_reflection_fixed_iff (𝕜 : Type*) [normed_field 𝕜] [semi_normed_space 𝕜 V]
+lemma point_reflection_fixed_iff (𝕜 : Type*) [normed_field 𝕜] [normed_space 𝕜 V]
   [invertible (2:𝕜)] {x y : P} : point_reflection x y = y ↔ y = x :=
 affine_equiv.point_reflection_fixed_iff_of_module 𝕜
 
-variables [semi_normed_space ℝ V]
+variables [normed_space ℝ V]
 
 lemma dist_point_reflection_self_real (x y : P) :
   dist (point_reflection x y) y = 2 * dist x y :=
@@ -348,12 +348,12 @@ end
 
 section normed_space
 
-variables {𝕜 : Type*} [normed_field 𝕜] [semi_normed_space 𝕜 V]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 V]
 
 open affine_map
 
 /-- If `f` is an affine map, then its linear part is continuous iff `f` is continuous. -/
-lemma affine_map.continuous_linear_iff [semi_normed_space 𝕜 V'] {f : P →ᵃ[𝕜] P'} :
+lemma affine_map.continuous_linear_iff [normed_space 𝕜 V'] {f : P →ᵃ[𝕜] P'} :
   continuous f.linear ↔ continuous f :=
 begin
   inhabit P,
@@ -412,7 +412,7 @@ end
 
 end normed_space
 
-variables [semi_normed_space ℝ V] [normed_space ℝ W]
+variables [normed_space ℝ V] [normed_space ℝ W]
 
 lemma dist_midpoint_midpoint_le (p₁ p₂ p₃ p₄ : V) :
   dist (midpoint ℝ p₁ p₂) (midpoint ℝ p₃ p₄) ≤ (dist p₁ p₃ + dist p₂ p₄) / 2 :=

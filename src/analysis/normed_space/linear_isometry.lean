@@ -15,7 +15,7 @@ isometric equivalence between `E` and `F`.
 We also prove some trivial lemmas and provide convenience constructors.
 
 Since a lot of elementary properties don't require `∥x∥ = 0 → x = 0` we start setting up the
-theory for `semi_normed_space` and we specialize to `normed_space` when needed.
+theory for `semi_normed_group` and we specialize to `normed_group` when needed.
 -/
 open function set
 

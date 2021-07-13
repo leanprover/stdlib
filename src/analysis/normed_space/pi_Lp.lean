@@ -287,8 +287,8 @@ by simp [norm_eq, h, real.sqrt_eq_rpow, ←real.rpow_nat_cast]
 variables (𝕜 : Type*) [normed_field 𝕜]
 
 /-- The product of finitely many seminormed spaces is a seminormed space, with the `L^p` norm. -/
-instance semi_normed_space [∀i, semi_normed_group (β i)] [∀i, semi_normed_space 𝕜 (β i)] :
-  semi_normed_space 𝕜 (pi_Lp p hp β) :=
+instance normed_space [∀i, semi_normed_group (β i)] [∀i, normed_space 𝕜 (β i)] :
+  normed_space 𝕜 (pi_Lp p hp β) :=
 { norm_smul_le :=
   begin
     assume c f,
@@ -303,12 +303,12 @@ instance semi_normed_space [∀i, semi_normed_group (β i)] [∀i, semi_normed_s
 /-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/
 instance normed_space [∀i, normed_group (α i)] [∀i, normed_space 𝕜 (α i)] :
   normed_space 𝕜 (pi_Lp p hp α) :=
-{ ..pi_Lp.semi_normed_space p hp α 𝕜 }
+{ ..pi_Lp.normed_space p hp α 𝕜 }
 
 /- Register simplification lemmas for the applications of `pi_Lp` elements, as the usual lemmas
 for Pi types will not trigger. -/
 variables {𝕜 p hp α}
-[∀i, semi_normed_group (β i)] [∀i, semi_normed_space 𝕜 (β i)] (c : 𝕜) (x y : pi_Lp p hp β) (i : ι)
+[∀i, semi_normed_group (β i)] [∀i, normed_space 𝕜 (β i)] (c : 𝕜) (x y : pi_Lp p hp β) (i : ι)
 
 @[simp] lemma add_apply : (x + y) i = x i + y i := rfl
 @[simp] lemma sub_apply : (x - y) i = x i - y i := rfl

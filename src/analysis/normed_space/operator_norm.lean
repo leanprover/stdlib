@@ -18,7 +18,7 @@ Define the operator norm on the space of continuous linear maps between normed s
 its basic properties. In particular, show that this space is itself a normed space.
 
 Since a lot of elementary properties don't require `∥x∥ = 0 → x = 0` we start setting up the
-theory for `semi_normed_space` and we specialize to `normed_space` at the end.
+theory for `semi_normed_group` and we specialize to `normed_group` at the end.
 -/
 
 noncomputable theory
@@ -39,7 +39,7 @@ However, the other direction always holds.
 In this section, we just assume that `𝕜` is a normed field.
 In the remainder of the file, it will be non-discrete. -/
 
-variables [normed_field 𝕜] [semi_normed_space 𝕜 E] [semi_normed_space 𝕜 F] (f : E →ₗ[𝕜] F)
+variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] (f : E →ₗ[𝕜] F)
 
 lemma linear_map.lipschitz_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   lipschitz_with (real.to_nnreal C) f :=
@@ -110,8 +110,8 @@ rfl
 
 end normed_field
 
-variables [nondiscrete_normed_field 𝕜] [semi_normed_space 𝕜 E] [semi_normed_space 𝕜 F]
-[semi_normed_space 𝕜 G] (c : 𝕜) (f g : E →L[𝕜] F) (h : F →L[𝕜] G) (x y z : E)
+variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F]
+[normed_space 𝕜 G] (c : 𝕜) (f g : E →L[𝕜] F) (h : F →L[𝕜] G) (x y z : E)
 include 𝕜
 
 lemma linear_map.bound_of_shell_semi_normed (f : E →ₗ[𝕜] F) {ε C : ℝ} (ε_pos : 0 < ε) {c : 𝕜}
@@ -324,7 +324,7 @@ le_antisymm norm_id_le $ let ⟨x, hx⟩ := h in
 have _ := (id 𝕜 E).ratio_le_op_norm x,
 by rwa [id_apply, div_self hx] at this
 
-lemma op_norm_smul_le {𝕜' : Type*} [normed_field 𝕜'] [semi_normed_space 𝕜' F]
+lemma op_norm_smul_le {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F]
   [smul_comm_class 𝕜 𝕜' F] (c : 𝕜') (f : E →L[𝕜] F) : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
 ((c • f).op_norm_le_bound
   (mul_nonneg (norm_nonneg _) (op_norm_nonneg _)) (λ _,
@@ -340,8 +340,8 @@ lemma op_norm_neg : ∥-f∥ = ∥f∥ := by simp only [norm_def, neg_apply, nor
 instance to_semi_normed_group : semi_normed_group (E →L[𝕜] F) :=
 semi_normed_group.of_core _ ⟨op_norm_zero, op_norm_add_le, op_norm_neg⟩
 
-instance to_semi_normed_space {𝕜' : Type*} [normed_field 𝕜'] [semi_normed_space 𝕜' F]
-  [smul_comm_class 𝕜 𝕜' F] : semi_normed_space 𝕜' (E →L[𝕜] F) :=
+instance to_normed_space {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F]
+  [smul_comm_class 𝕜 𝕜' F] : normed_space 𝕜' (E →L[𝕜] F) :=
 ⟨op_norm_smul_le⟩
 
 /-- The operator norm is submultiplicative. -/
@@ -596,7 +596,7 @@ end multiplication_linear
 section smul_linear
 
 variables (𝕜) (𝕜' : Type*) [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-  [semi_normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
+  [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
 
 /-- Scalar multiplication as a continuous bilinear map. -/
 def lsmul : 𝕜' →L[𝕜] E →L[𝕜] E :=
@@ -608,8 +608,8 @@ end smul_linear
 section restrict_scalars
 
 variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜' 𝕜]
-variables [semi_normed_space 𝕜' E] [is_scalar_tower 𝕜' 𝕜 E]
-variables [semi_normed_space 𝕜' F] [is_scalar_tower 𝕜' 𝕜 F]
+variables [normed_space 𝕜' E] [is_scalar_tower 𝕜' 𝕜 E]
+variables [normed_space 𝕜' F] [is_scalar_tower 𝕜' 𝕜 F]
 
 @[simp] lemma norm_restrict_scalars (f : E →L[𝕜] F) : ∥f.restrict_scalars 𝕜'∥ = ∥f∥ :=
 le_antisymm (op_norm_le_bound _ (norm_nonneg _) $ λ x, f.le_op_norm x)
@@ -777,7 +777,7 @@ variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']
 variables {𝕜}
 
 variables {E' F' : Type*} [semi_normed_group E'] [semi_normed_group F']
-  [semi_normed_space 𝕜 E'] [semi_normed_space 𝕜 F']
+  [normed_space 𝕜 E'] [normed_space 𝕜 F']
 
 /--
 Compose a bilinear map `E →L[𝕜] F →L[𝕜] G` with two linear maps `E' →L[𝕜] E` and `F' →L[𝕜] F`.
@@ -919,10 +919,6 @@ norm_id_field
 instance to_normed_group : normed_group (E →L[𝕜] F) :=
 normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 
-instance to_normed_space {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F]
-  [smul_comm_class 𝕜 𝕜' F] : normed_space 𝕜' (E →L[𝕜] F) :=
-⟨op_norm_smul_le⟩
-
 /-- Continuous linear maps form a normed ring with respect to the operator norm. -/
 instance to_normed_ring : normed_ring (E →L[𝕜] E) :=
 { norm_mul := op_norm_comp_le,
@@ -997,7 +993,7 @@ open filter
 
 /-- If the target space is complete, the space of continuous linear maps with its norm is also
 complete. This works also if the source space is seminormed. -/
-instance {E : Type*} [semi_normed_group E] [semi_normed_space 𝕜 E] [complete_space F] :
+instance {E : Type*} [semi_normed_group E] [normed_space 𝕜 E] [complete_space F] :
   complete_space (E →L[𝕜] F) :=
 begin
   -- We show that every Cauchy sequence converges.
@@ -1158,7 +1154,7 @@ end linear_isometry
 namespace continuous_linear_map
 
 /-- Precomposition with a linear isometry preserves the operator norm. -/
-lemma op_norm_comp_linear_isometry_equiv {G : Type*} [semi_normed_group G] [semi_normed_space 𝕜 G]
+lemma op_norm_comp_linear_isometry_equiv {G : Type*} [semi_normed_group G] [normed_space 𝕜 G]
   (f : F →L[𝕜] G) (g : E ≃ₗᵢ[𝕜] F) :
   ∥f.comp g.to_linear_isometry.to_continuous_linear_map∥ = ∥f∥ :=
 begin

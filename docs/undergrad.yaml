@@ -412,7 +412,7 @@ Topology:
     complete metric spaces: 'metric.complete_of_cauchy_seq_tendsto'
     contraction mapping theorem: 'contracting_with.exists_fixed_point'
   Normed vector spaces on $\R$ and $\C$:
-    topology on a normed vector space: 'semi_normed_space.has_continuous_smul'
+    topology on a normed vector space: 'normed_space.has_continuous_smul'
     equivalent norms:
     Banach open mapping theorem: 'open_mapping'
     equivalence of norms in finite dimension: 'linear_equiv.to_continuous_linear_equiv'
