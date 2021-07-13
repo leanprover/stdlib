@@ -88,7 +88,7 @@ begin
     work_on_goal 1 { apply ne_of_lt _ q₂, have : (ab i).2 ∈ _ := max'_mem _ _ },
     all_goals
     { -- Reduce to showing there is a subsequence of length `a_i + 1` which ends at `j`.
-      rw nat.lt_iff_add_one_le,
+      rw lt_iff_add_one_le,
       apply le_max',
       rw mem_image at this ⊢,
       -- In particular we take the subsequence `t` of length `a_i` which ends at `i`, by definition

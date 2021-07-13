@@ -108,6 +108,9 @@ instance : has_one ℕ+ := ⟨succ_pnat 0⟩
 
 instance : comm_monoid ℕ+ := coe_injective.comm_monoid coe rfl (λ _ _, rfl)
 
+instance : has_lt_iff_add_one_le ℕ+ :=
+{ lt_iff_add_one_le := λ a b, iff.rfl }
+
 theorem lt_add_one_iff : ∀ {a b : ℕ+}, a < b + 1 ↔ a ≤ b :=
 λ a b, nat.lt_add_one_iff
 

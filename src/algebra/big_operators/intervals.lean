@@ -100,7 +100,7 @@ lemma prod_Ico_reflect (f : ℕ → β) (k : ℕ) {m n : ℕ} (h : m ≤ n + 1) 
 begin
   have : ∀ i < m, i ≤ n,
   { intros i hi,
-    exact (add_le_add_iff_right 1).1 (le_trans (nat.lt_iff_add_one_le.1 hi) h) },
+    exact (add_le_add_iff_right 1).1 ((lt_iff_add_one_le.1 hi).trans h) },
   cases lt_or_le k m with hkm hkm,
   { rw [← finset.Ico.image_const_sub (this _ hkm)],
     refine (prod_image _).symm,

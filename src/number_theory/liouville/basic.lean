@@ -199,7 +199,7 @@ begin
     refine mul_le_mul_of_nonneg_right _ (mul_nonneg (pow_nonneg b0.le _) (abs_nonneg _)),
     refine hn.le.trans _,
     refine pow_le_pow_of_le_left zero_le_two _ _,
-    exact int.cast_two.symm.le.trans (int.cast_le.mpr (int.add_one_le_iff.mpr b1)) },
+    exact int.cast_two.symm.le.trans (int.cast_le.mpr (lt_iff_add_one_le.mp b1)) },
   -- this branch of the proof exploits the "integrality" of evaluations of polynomials
   -- at ratios of integers.
   { lift b to ℕ using zero_le_one.trans b1.le,

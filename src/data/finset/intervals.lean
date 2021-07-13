@@ -13,7 +13,7 @@ For now this only covers `Ico n m`, the "closed-open" interval containing `[n, .
 -/
 
 namespace finset
-open multiset nat
+open multiset
 
 /-! ### intervals -/
 /- Ico (a closed open interval) -/
@@ -69,7 +69,7 @@ begin
   simp only [subset_iff, mem],
   refine ⟨λ h, ⟨_, _⟩, _⟩,
   { exact (h ⟨le_refl _, hmn⟩).1 },
-  { refine le_of_pred_lt (@h (pred n₁) ⟨le_pred_of_lt hmn, pred_lt _⟩).2,
+  { refine nat.le_of_pred_lt (@h n₁.pred ⟨nat.le_pred_of_lt hmn, nat.pred_lt _⟩).2,
     exact ne_of_gt (lt_of_le_of_lt (nat.zero_le m₁) hmn) },
   { rintros ⟨hm, hn⟩ k ⟨hmk, hkn⟩,
     exact ⟨le_trans hm hmk, lt_of_lt_of_le hkn hn⟩ }
@@ -171,7 +171,7 @@ lemma image_const_sub {k m n : ℕ} (hkn : k ≤ n) :
 begin
   rw [nat.sub_add_comm hkn],
   ext j,
-  simp only [mem, mem_image, exists_prop, nat.lt_iff_add_one_le, add_le_add_iff_right],
+  simp only [mem, mem_image, exists_prop, lt_iff_add_one_le, add_le_add_iff_right],
   split,
   { rintros ⟨j, ⟨hjk, hjm⟩, rfl⟩,
     split,

@@ -23,10 +23,9 @@ When testing a proposition like `∀ n : ℕ, prime n → n ≤ 100`,
 `sampleable` to generate small examples of ℕ and progressively increase
 in size. For each example `n`, `prime n` is tested. If it is false,
 the example will be rejected (not a test success nor a failure) and
-`slim_check` will move on to other examples. If `prime n` is true, `n
-≤ 100` will be tested. If it is false, `n` is a counter-example of `∀
-n : ℕ, prime n → n ≤ 100` and the test fails. If `n ≤ 100` is true,
-the test passes and `slim_check` moves on to trying more examples.
+`slim_check` will move on to other examples. If `prime n` is true, `n ≤ 100` will be tested. If it
+is false, `n` is a counter-example of `∀ n : ℕ, prime n → n ≤ 100` and the test fails. If `n ≤ 100`
+is true, the test passes and `slim_check` moves on to trying more examples.
 
 This is a port of the Haskell QuickCheck library.
 
@@ -225,11 +224,13 @@ if h : n ≤ 1
       from nat.div_lt_of_lt_mul (nat.mul_lt_mul_of_pos_right (by norm_num) h₂),
     have n / 2 < n, by simpa,
     let m := n / 2 in
-    have h₀ : m ≤ k, from le_trans (le_of_lt this) hn,
+    have h₀ : m ≤ k, from this.le.trans hn,
     have h₃ : 0 < m,
-      by simp only [m, lt_iff_add_one_le, zero_add]; rw [nat.le_div_iff_mul_le]; linarith,
+      by { rw [nat.lt_iff_add_one_le, zero_add, nat.le_div_iff_mul_le, one_mul],
+        { exact lt_of_not_ge h },
+        norm_num },
     have h₁ : k - m < k,
-      from nat.sub_lt (lt_of_lt_of_le h₂ hn) h₃,
+      from nat.sub_lt (h₂.trans_le hn) h₃,
     nat.shrink' m h₀ (⟨k - m, h₁⟩ :: ls)
 
 /-- `nat.shrink n` creates a list of smaller natural numbers by

@@ -45,7 +45,7 @@ variable {N}
 
 lemma m_le_n {m n : ℤ} (h1 : problem_predicate N m n) : m ≤ n :=
 begin
-  by_contradiction h2,
+  by_contra h2,
   have h3 : 1 = (n * (n - m) - m ^ 2) ^ 2,
   { calc 1 = (n ^ 2 - m * n - m ^ 2) ^ 2 : h1.eq_one.symm
        ... = (n * (n - m) - m ^ 2) ^ 2   : by ring },

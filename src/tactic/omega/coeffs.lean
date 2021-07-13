@@ -199,7 +199,7 @@ begin
       [ {apply h1}, {apply h2} ];
       apply ne.symm;
       apply ne_of_lt;
-      rw nat.lt_iff_add_one_le;
+      rw lt_iff_add_one_le;
       exact h3 },
     repeat { rw add_comm,
              apply le_trans _ (nat.le_sub_add _ _),

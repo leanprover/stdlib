@@ -65,6 +65,9 @@ instance : linear_ordered_comm_ring int :=
 instance : linear_ordered_add_comm_group int :=
 by apply_instance
 
+instance has_lt_iff_add_one_le : has_lt_iff_add_one_le ℤ :=
+{ lt_iff_add_one_le := λ a b, iff.rfl }
+
 @[simp] lemma add_neg_one (i : ℤ) : i + -1 = i - 1 := rfl
 
 theorem abs_eq_nat_abs : ∀ a : ℤ, abs a = nat_abs a

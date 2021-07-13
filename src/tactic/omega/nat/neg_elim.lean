@@ -107,7 +107,7 @@ begin
     { apply or.symm,
       simpa only [preform.holds, le_and_le_iff_eq.symm,
         not_and_distrib, not_le] using h },
-    simpa only [preform.holds, not_le, int.add_one_le_iff] using h },
+    simpa only [preform.holds, not_le, ←lt_iff_add_one_le] using h },
   { simp only [neg_elim_core], cases h;
     [{left, apply ihp}, {right, apply ihq}];
     assumption },

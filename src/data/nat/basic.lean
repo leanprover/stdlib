@@ -16,7 +16,6 @@ This file contains:
   * `decreasing_induction`: recursion growing downwards
   * `strong_rec'`: recursion based on strong inequalities
 - decidability instances on predicates about the natural numbers
-
 -/
 
 universes u v
@@ -104,6 +103,9 @@ instance nat.subtype.semilattice_sup_bot (s : set ℕ) [decidable_pred (∈ s)] 
   bot_le := λ x, nat.find_min' _ x.2,
   ..subtype.linear_order s,
   ..lattice_of_linear_order }
+
+instance nat.has_lt_iff_add_one_le : has_lt_iff_add_one_le ℕ :=
+{ lt_iff_add_one_le := λ a b, iff.rfl }
 
 theorem nat.nsmul_eq_mul (m n : ℕ) : m • n = m * n :=
 rfl
@@ -317,10 +319,11 @@ theorem lt_succ_iff {m n : ℕ} : m < succ n ↔ m ≤ n :=
 ⟨le_of_lt_succ, lt_succ_of_le⟩
 
 lemma succ_le_iff {m n : ℕ} : succ m ≤ n ↔ m < n :=
-⟨lt_of_succ_le, succ_le_of_lt⟩
+lt_iff_add_one_le.symm
 
+-- just for linarith. Feel free to remove it if you manage to make linarith look up the instance
 lemma lt_iff_add_one_le {m n : ℕ} : m < n ↔ m + 1 ≤ n :=
-by rw succ_le_iff
+lt_iff_add_one_le
 
 -- Just a restatement of `nat.lt_succ_iff` using `+1`.
 lemma lt_add_one_iff {a b : ℕ} : a < b + 1 ↔ a ≤ b :=

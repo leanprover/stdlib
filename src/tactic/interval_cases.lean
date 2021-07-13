@@ -62,9 +62,9 @@ do t ← infer_type e,
       b ← b.to_rat,
       tn ← infer_type n,
       match tn with
-      | `(ℕ) := to_expr ``(nat.lt_add_one_iff.mpr %%e)
-      | `(ℕ+) := to_expr ``(pnat.lt_add_one_iff.mpr %%e)
-      | `(ℤ) := to_expr ``(int.lt_add_one_iff.mpr %%e)
+      | `(ℕ) := to_expr ``(nat.add_one_le_iff.mpr %%e)
+      | `(ℕ+) := to_expr ``(pnat.add_one_le_iff.mpr %%e)
+      | `(ℤ) := to_expr ``(int.add_one_le_iff.mpr %%e)
       | _ := failed
       end
    | _ := failed

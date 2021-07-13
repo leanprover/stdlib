@@ -223,7 +223,7 @@ instance : archimedean ℕ :=
 instance : archimedean ℤ :=
 ⟨λ n m m0, ⟨n.to_nat, le_trans (int.le_to_nat _) $
 by simpa only [nsmul_eq_mul, int.nat_cast_eq_coe_nat, zero_add, mul_one]
-  using mul_le_mul_of_nonneg_left (int.add_one_le_iff.2 m0) (int.coe_zero_le n.to_nat)⟩⟩
+  using mul_le_mul_of_nonneg_left (lt_iff_add_one_le.1 m0) (int.coe_zero_le n.to_nat)⟩⟩
 
 /-- A linear ordered archimedean ring is a floor ring. This is not an `instance` because in some
 cases we have a computable `floor` function. -/

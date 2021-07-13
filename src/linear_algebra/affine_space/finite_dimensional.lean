@@ -231,7 +231,7 @@ end
 lemma affine_independent_iff_not_finrank_vector_span_le [fintype ι] (p : ι → P) {n : ℕ}
   (hc : fintype.card ι = n + 2) :
   affine_independent k p ↔ ¬ finrank k (vector_span k (set.range p)) ≤ n :=
-by rw [affine_independent_iff_le_finrank_vector_span k p hc, ←nat.lt_iff_add_one_le, lt_iff_not_ge]
+by rw [affine_independent_iff_le_finrank_vector_span k p hc, ←lt_iff_add_one_le, lt_iff_not_ge]
 
 /-- `n + 2` points have a `vector_span` with dimension at most `n` if
 and only if they are not affinely independent. -/

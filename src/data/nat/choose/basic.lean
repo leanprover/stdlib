@@ -215,7 +215,7 @@ begin
   refine le_of_mul_le_mul_right _ (nat.lt_sub_left_of_add_lt (lt_of_lt_of_le h (n.div_le_self 2))),
   rw ← choose_succ_right_eq,
   apply nat.mul_le_mul_left,
-  rw [← nat.lt_iff_add_one_le, nat.lt_sub_left_iff_add_lt, ← mul_two],
+  rw [←lt_iff_add_one_le, nat.lt_sub_left_iff_add_lt, ←mul_two],
   exact lt_of_lt_of_le (mul_lt_mul_of_pos_right h zero_lt_two) (n.div_mul_le_self 2),
 end
 
