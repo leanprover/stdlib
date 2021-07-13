@@ -167,4 +167,12 @@ lemma submodule_is_internal.to_add_subgroup {R M : Type*}
   submodule_is_internal A ↔ add_subgroup_is_internal (λ i, (A i).to_add_subgroup) :=
 iff.rfl
 
+lemma submodule_is_internal.supr_eq_top {R M : Type*}
+  [semiring R] [add_comm_monoid M] [module R M] (A : ι → submodule R M)
+  (h : submodule_is_internal A) : supr A = ⊤ :=
+begin
+  rw [submodule.supr_eq_range_dfinsupp_lsum, linear_map.range_eq_top],
+  exact function.bijective.surjective h,
+end
+
 end direct_sum

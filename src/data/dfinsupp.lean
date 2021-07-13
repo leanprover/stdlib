@@ -958,6 +958,20 @@ begin
   exact h
 end
 
+/-- The supremum of a family of commutative additive submonoids is equal to the range of
+`finsupp.sum_add_hom`; that is, every element in the `supr` can be produced from taking a finite
+number of non-zero elements of `p i`, coercing them to `γ`, and summing them. -/
+lemma _root_.add_submonoid.supr_eq_mrange_dfinsupp_sum_add_hom [add_comm_monoid γ]
+  (p : ι → add_submonoid γ) : supr p = (dfinsupp.sum_add_hom (λ i, (p i).subtype)).mrange :=
+begin
+  apply le_antisymm,
+  { apply supr_le _,
+    intros i y hy,
+    exact ⟨dfinsupp.single i ⟨y, hy⟩, dfinsupp.sum_add_hom_single _ _ _⟩, },
+  { rintros x ⟨v, rfl⟩,
+    exact add_submonoid.dfinsupp_sum_add_hom_mem _ v _ (λ i _, (le_supr p i : p i ≤ _) (v i).prop) }
+end
+
 omit dec
 lemma sum_add_hom_comm {ι₁ ι₂ : Sort*} {β₁ : ι₁ → Type*} {β₂ : ι₂ → Type*} {γ : Type*}
   [decidable_eq ι₁] [decidable_eq ι₂] [Π i, add_zero_class (β₁ i)] [Π i, add_zero_class (β₂ i)]
