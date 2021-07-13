@@ -577,4 +577,35 @@ end
 
 end complement
 
+section graph_operations
+
+def two_pt_quo {β : Type*} (v w : β) := @quot β (λ i j, i = j ∨ (i = v ∧ j = w) ∨ (i = w ∧ j = v))
+
+def contract_edge {G : simple_graph V} {v w : V} (h : G.adj v w) : simple_graph (two_pt_quo v w) :=
+{ adj := λ i j, G.adj (quot.out i) (quot.out j),
+  sym := λ x y h, by exact (G.edge_symm (quot.out x) (quot.out y)).1 h,
+  loopless := λ x, by simp only [simple_graph.irrefl, not_false_iff]}
+
+def delete_edge {G : simple_graph V} {v w : V} (h : G.adj v w) : simple_graph V :=
+{ adj := λ a b, ¬((a = v ∧ b = w) ∨ (a = w ∧ b = v)) ∧ G.adj a b,
+  sym := λ a b,
+          begin
+            simp only [and_imp],
+            intros hne hadj,
+            refine ⟨_, (G.edge_symm a b).1 hadj⟩,
+            push_neg,
+            push_neg at hne,
+            cases hne with hav haw,
+            split,
+            { contrapose,
+              push_neg,
+              exact haw },
+            { contrapose,
+              push_neg,
+              exact hav },
+          end,
+  loopless := λ a, by simp only [simple_graph.irrefl, not_false_iff, and_false]}
+
+end graph_operations
+
 end simple_graph
