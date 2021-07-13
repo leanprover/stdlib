@@ -68,7 +68,7 @@ matched because they preserve the properties of QPF. The latter example,
 
 each proves that some operations on functors preserves the QPF structure
 
-##reference
+## Reference
 
  * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 -/
