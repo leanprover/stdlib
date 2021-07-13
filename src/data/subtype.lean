@@ -47,6 +47,11 @@ lemma heq_iff_coe_eq (h : ∀ x, p x ↔ q x) {a1 : {x // p x}} {a2 : {x // q x}
   a1 == a2 ↔ (a1 : α) = (a2 : α) :=
 eq.rec (λ a2', heq_iff_eq.trans ext_iff) (funext $ λ x, propext (h x)) a2
 
+@[ext]
+lemma heq_of_coe_eq (h : ∀ x, p x ↔ q x) {a1 : {x // p x}} {a2 : {x // q x}} :
+  (a1 : α) = (a2 : α) → a1 == a2 :=
+(heq_iff_coe_eq h).mpr
+
 lemma ext_val {a1 a2 : {x // p x}} : a1.1 = a2.1 → a1 = a2 :=
 subtype.ext
 
