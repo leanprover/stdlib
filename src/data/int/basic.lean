@@ -1394,6 +1394,15 @@ theorem exists_least_of_bdd {P : ℤ → Prop}
   ∃ lb : ℤ, P lb ∧ (∀ z : ℤ, P z → lb ≤ z) :=
 by classical; exact let ⟨b, Hb⟩ := Hbdd, ⟨lb, H⟩ := least_of_bdd b Hb Hinh in ⟨lb, H⟩
 
+lemma coe_least_of_bdd_eq {P : ℤ → Prop} [decidable_pred P]
+  {b b' : ℤ} (Hb : ∀ z : ℤ, P z → b ≤ z) (Hb' : ∀ z : ℤ, P z → b' ≤ z) (Hinh : ∃ z : ℤ, P z) :
+  (least_of_bdd b Hb Hinh : ℤ) = least_of_bdd b' Hb' Hinh :=
+begin
+  rcases least_of_bdd b Hb Hinh with ⟨n, hn, h2n⟩,
+  rcases least_of_bdd b' Hb' Hinh with ⟨n', hn', h2n'⟩,
+  exact le_antisymm (h2n _ hn') (h2n' _ hn),
+end
+
 /-- A computable version of `exists_greatest_of_bdd`: given a decidable predicate on the
 integers, with an explicit upper bound and a proof that it is somewhere true, return
 the greatest value for which the predicate is true. -/
@@ -1410,6 +1419,16 @@ theorem exists_greatest_of_bdd {P : ℤ → Prop}
   (Hbdd : ∃ b : ℤ, ∀ z : ℤ, P z → z ≤ b) (Hinh : ∃ z : ℤ, P z) :
   ∃ ub : ℤ, P ub ∧ (∀ z : ℤ, P z → z ≤ ub) :=
 by classical; exact let ⟨b, Hb⟩ := Hbdd, ⟨lb, H⟩ := greatest_of_bdd b Hb Hinh in ⟨lb, H⟩
+
+lemma coe_greatest_of_bdd_eq {P : ℤ → Prop} [decidable_pred P]
+  {b b' : ℤ} (Hb : ∀ z : ℤ, P z → z ≤ b) (Hb' : ∀ z : ℤ, P z → z ≤ b') (Hinh : ∃ z : ℤ, P z) :
+  (greatest_of_bdd b Hb Hinh : ℤ) = greatest_of_bdd b' Hb' Hinh :=
+begin
+  rcases greatest_of_bdd b Hb Hinh with ⟨n, hn, h2n⟩,
+  rcases greatest_of_bdd b' Hb' Hinh with ⟨n', hn', h2n'⟩,
+  exact le_antisymm (h2n' _ hn) (h2n _ hn'),
+end
+
 
 end int
 
