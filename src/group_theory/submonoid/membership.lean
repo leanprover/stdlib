@@ -206,11 +206,46 @@ set.ext (λ n, exists_congr $ λ i, by simp; refl)
 
 @[simp] lemma mem_powers (n : M) : n ∈ powers n := ⟨1, pow_one _⟩
 
+lemma mem_powers_iff (z x : M) : x ∈ powers z ↔ ∃ n : ℕ, z ^ n = x := iff.rfl
+
 lemma powers_eq_closure (n : M) : powers n = closure {n} :=
 by { ext, exact mem_closure_singleton.symm }
 
 lemma powers_subset {n : M} {P : submonoid M} (h : n ∈ P) : powers n ≤ P :=
 λ x hx, match x, hx with _, ⟨i, rfl⟩ := P.pow_mem h i end
+
+/-- Exponentiation map from natural numbers to powers. -/
+def pow (n : M) (m : ℕ) : powers n := ⟨n ^ m, m, rfl⟩
+
+/-- Logarithms from powers to natural numbers. -/
+def log [decidable_eq M] {n : M} (p : powers n) : ℕ :=
+nat.find $ (mem_powers_iff n p).mp p.prop
+
+@[simp] theorem pow_log_eq_self [decidable_eq M] {n : M} (p : powers n) : pow n (log p) = p :=
+begin
+  rw [pow, log],
+  rcases p with ⟨_, hp⟩,
+  congr,
+  exact nat.find_spec hp,
+end
+
+lemma pow_right_injective_iff_pow_injective {n : M} :
+  function.injective (λ m : ℕ, n ^ m) ↔ function.injective (pow n) :=
+begin
+  split; simp only []; intros h₁ _ _ h₂,
+  { simp only [pow, subtype.mk_eq_mk] at h₂,
+    exact h₁ h₂ },
+  { dsimp only [function.injective, pow] at h₁,
+    apply h₁,
+    congr,
+    exact h₂ }
+end
+
+theorem log_pow_eq_self [decidable_eq M] {n : M} (h : function.injective (λ m : ℕ, n ^ m)) (m : ℕ) :
+  log (pow n m) = m := pow_right_injective_iff_pow_injective.mp h $ pow_log_eq_self _
+
+theorem int.log_pow_eq_self {x : ℤ} (h : 2 ≤ x.nat_abs) (m : ℕ) : log (pow x m) = m :=
+log_pow_eq_self (int.pow_right_injective h) _
 
 end submonoid
 

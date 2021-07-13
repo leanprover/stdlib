@@ -138,11 +138,11 @@ begin
     split,
     { rw le_iff_sub_nonneg,
       exact le_trans hGHp.2
-        (le_trans add_comm_le $ le_of_le_of_equiv (le_refl _) $ add_congr (equiv_refl _)
+        (le_trans add_comm_le $ le_of_le_of_equiv (pgame.le_refl _) $ add_congr (equiv_refl _)
         (neg_equiv_self G)) },
     { rw le_iff_sub_nonneg,
       exact le_trans hGHp.2
-        (le_of_le_of_equiv (le_refl _) $ add_congr (equiv_refl _) (neg_equiv_self H)) } }
+        (le_of_le_of_equiv (pgame.le_refl _) $ add_congr (equiv_refl _) (neg_equiv_self H)) } }
 end
 
 lemma le_zero_iff {G : pgame} [G.impartial] : G ≤ 0 ↔ 0 ≤ G :=

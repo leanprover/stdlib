@@ -193,6 +193,14 @@ calc n • a = n • a + 0 : (add_zero _).symm
   ... < n • a + (m - n) • a : add_lt_add_left (gsmul_pos ha (sub_pos.mpr h)) _
   ... = m • a : by { rw [← add_gsmul], simp }
 
+lemma gsmul_lt_gsmul_of_lt_right_of_pos {a b : A} {m : ℤ} (hab : a < b) (hm : 0 < m) :
+  m • a < m • b :=
+begin
+  rw ← sub_pos at hab,
+  rw [← sub_pos, ← gsmul_sub],
+  exact gsmul_pos hab hm,
+end
+
 lemma abs_nsmul {α : Type*} [linear_ordered_add_comm_group α] (n : ℕ) (a : α) :
   abs (n • a) = n • abs a :=
 begin
@@ -275,6 +283,17 @@ begin
   refine ⟨λ h, _, nsmul_lt_nsmul ha⟩,
   by_contra H,
   exact lt_irrefl _ (lt_of_le_of_lt (nsmul_le_nsmul (le_of_lt ha) $ not_lt.mp H) h)
+end
+
+lemma gsmul_eq_gsmul_iff {a b : A} {m : ℤ} (hm : 0 < m) : m • a = m • b ↔ a = b :=
+begin
+  refine ⟨λ hab, _, congr_arg _⟩,
+  contrapose hab,
+  obtain hab' | hab' := ne_iff_lt_or_gt.mp hab,
+  { apply ne_of_lt,
+    exact gsmul_lt_gsmul_of_lt_right_of_pos hab' hm },
+  { apply ne_of_gt,
+    exact gsmul_lt_gsmul_of_lt_right_of_pos hab' hm }
 end
 
 end linear_ordered_add_comm_group
@@ -540,6 +559,34 @@ alias int.abs_le_self_sq ← int.abs_le_self_pow_two
 lemma le_self_sq (b : ℤ) : b ≤ b ^ 2 := le_trans (le_nat_abs) (abs_le_self_sq _)
 
 alias int.le_self_sq ← int.le_self_pow_two
+
+lemma pow_right_injective {x : ℤ} (h : 2 ≤ x.nat_abs) : function.injective (λ (n : ℕ), x ^ n) :=
+λ n m hnm, begin
+  obtain pos | neg := int.nat_abs_eq x,
+  { lift x to ℕ using (pos.symm ▸ int.coe_nat_nonneg _),
+  norm_cast at h hnm,
+  exact nat.pow_right_injective h hnm },
+  dsimp only at hnm,
+  rw [←neg_neg x, neg_pow, neg_pow (-x)] at hnm,
+  replace neg := neg_eq_iff_neg_eq.mp neg.symm,
+  generalize' hy : -x = y,
+  rw [←neg_neg x, int.nat_abs_neg] at h,
+  rw [hy] at *,
+  lift y to ℕ using (neg.symm ▸ int.coe_nat_nonneg _),
+  obtain h₁ | h₁ := neg_one_pow_eq_or ℤ n;
+  obtain h₂ | h₂ := neg_one_pow_eq_or ℤ m;
+  all_goals { simp only [h₁, h₂, neg_mul_eq_neg_mul_symm, one_mul, neg_inj] at hnm,
+              norm_cast at h hnm,
+              exact nat.pow_right_injective h hnm <|> exfalso },
+  swap,
+  replace hnm := hnm.symm,
+  all_goals { apply int.ne_neg_of_pos _ _ hnm;
+              norm_cast;
+              apply nat.pos_of_ne_zero;
+              apply pow_ne_zero;
+              apply ne_bot_of_gt;
+              exact nat.succ_le_iff.mp h }
+end
 
 end int
 
