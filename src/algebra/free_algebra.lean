@@ -31,6 +31,8 @@ Given a commutative semiring `R`, and a type `X`, we construct the free unital, 
   of the composition of an algebra morphism with `ι` is the algebra morphism itself.
 5. `equiv_monoid_algebra_free_monoid : free_algebra R X ≃ₐ[R] monoid_algebra R (free_monoid X)`
 6. An inductive principle `induction`.
+7. Statements about the natural grading of the free algebra `grades x i`: `grades.map_algebra_map`,
+  `grades.map_algebra_ι`, and `grades.map_grades`.
 
 ## Implementation details
 
@@ -383,6 +385,90 @@ begin
   exact of_id a,
 end
 
+variables {R X}
+
+/--
+Separate an element of the free algebra into its ℕ-graded components.
+
+This is defined as an `alg_hom` to `add_monoid_algebra` so that algebra operators can be moved
+before and after the mapping.
+-/
+noncomputable
+def grades : (free_algebra R X) →ₐ[R] add_monoid_algebra (free_algebra R X) ℕ :=
+lift R $ finsupp.single 1 ∘ ι R
+
+/-- Recombining the grades recovers the original element-/
+lemma sum_id_grades :
+  (add_monoid_algebra.sum_id R).comp grades = alg_hom.id R (free_algebra R X) :=
+begin
+  ext,
+  simp [grades, add_monoid_algebra.sum_id_apply, finsupp.sum_single_index],
+end
+
+noncomputable
+instance : has_coe (add_monoid_algebra (free_algebra R X) ℕ) (free_algebra R X) := ⟨
+  (add_monoid_algebra.sum_id R : add_monoid_algebra (free_algebra R X) ℕ →ₐ[R] (free_algebra R X))
+⟩
+
+@[simp, norm_cast]
+lemma coe_def (x : add_monoid_algebra (free_algebra R X) ℕ) : (x : free_algebra R X) = add_monoid_algebra.sum_id R x := rfl
+
+
+/-- An element of `R` lifted with `algebra_map` has a single grade 0 element -/
+lemma grades.map_algebra_map (r : R) :
+  grades (algebra_map R (free_algebra R X) r) = finsupp.single 0 (algebra_map R _ r) :=
+by simp
+
+/-- An element of `X` lifted with the canonical `ι R` function has a single grade 1 element -/
+lemma grades.map_ι (x : X) :
+  grades (ι R x) = finsupp.single 1 (ι R x) :=
+by simp [grades]
+
+-- note this is true for any `zero_hom`, not just `grades`. Of course, then we need to repeat this
+-- for `add_monoid_hom`, `add_equiv`, `linear_map`, `ring_hom`, `ring_equiv`, `alg_hom`, ...
+private lemma map_single_apply (x : free_algebra R X) (i j : ℕ) :
+  grades (finsupp.single i x j) = finsupp.single i (grades x) j :=
+by rw [finsupp.single_apply, finsupp.single_apply, apply_ite grades, grades.map_zero]
+
+/-- The grade-`i` part consists only of itself -/
+@[simp]
+lemma grades.map_grades (x : free_algebra R X) (i : ℕ) :
+  grades (grades x i) = finsupp.single i (grades x i) :=
+begin
+  induction x using free_algebra.induction generalizing i,
+  case h_grade0 : {
+    rw [grades.map_algebra_map, map_single_apply, grades.map_algebra_map,
+      finsupp.single_of_single_apply],
+  },
+  case h_grade1 : {
+    rw [grades.map_ι, map_single_apply, grades.map_ι,
+      finsupp.single_of_single_apply],
+  },
+  case h_add : x y hx hy {
+    rw [grades.map_add, finsupp.add_apply, grades.map_add, finsupp.single_add, hx, hy],
+  },
+  case h_mul : f g hx hy {
+    rw grades.map_mul,
+    rw add_monoid_algebra.mul_def,
+    simp_rw [finsupp.sum_apply],
+
+    -- pull the sums to the outside
+    have : finsupp.single i = finsupp.single_add_hom i := rfl,
+    rw this,
+    simp_rw alg_hom.map_finsupp_sum,
+    simp_rw add_monoid_hom.map_finsupp_sum,
+    simp_rw finsupp.sum,
+    congr, ext1 fi,
+    congr, ext1 gi,
+    rw ←this,
+
+    -- this proof now resembles the other three
+    rw [map_single_apply, grades.map_mul,
+      finsupp.single_of_single_apply],
+    rw [hx, hy, add_monoid_algebra.single_mul_single],
+  },
+end
+
 /-- The star ring formed by reversing the elements of products -/
 instance : star_ring (free_algebra R X) :=
 { star := opposite.unop ∘ lift R (opposite.op ∘ ι R),
@@ -405,5 +491,4 @@ by simp [star, has_star.star]
 def star_hom : free_algebra R X ≃ₐ[R] (free_algebra R X)ᵒᵖ :=
 { commutes' := λ r, by simp [star_algebra_map],
   ..star_ring_equiv }
-
 end free_algebra

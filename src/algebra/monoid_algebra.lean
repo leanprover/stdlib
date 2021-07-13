@@ -565,7 +565,8 @@ alg_hom.to_linear_map_injective $ finsupp.lhom_ext' $ λ a, linear_map.ext_ring 
     (φ₂ : monoid_algebra k G →* A).comp (of k G)) : φ₁ = φ₂ :=
 alg_hom_ext $ monoid_hom.congr_fun h
 
-variables (k G A)
+variables (k G A B)
+
 
 /-- Any monoid homomorphism `G →* A` can be lifted to an algebra homomorphism
 `monoid_algebra k G →ₐ[k] A`. -/
@@ -610,6 +611,19 @@ lemma lift_unique (F : monoid_algebra k G →ₐ[k] A) (f : monoid_algebra k G) 
 by conv_lhs { rw lift_unique' F, simp [lift_apply] }
 
 end lift
+
+variables (k)
+
+/--
+The `alg_hom` which maps from a grading of an algebra `A` back to that algebra.
+-/
+def sum_id {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] :
+  monoid_algebra A G →ₐ[k] A :=
+lift_nc_alg_hom (alg_hom.id k A) ⟨λ g, 1, by simp, λ a b, by simp⟩ (by simp)
+
+lemma sum_id_apply {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [monoid G] (g : monoid_algebra A G) :
+  sum_id k g = g.sum (λ _ gi, gi) :=
+by simp [sum_id, lift_nc_alg_hom, lift_nc_ring_hom, lift_nc, alg_hom.id, ring_hom.id]
 
 section
 local attribute [reducible] monoid_algebra
@@ -1232,6 +1246,9 @@ def lift : (multiplicative G →* A) ≃ (add_monoid_algebra k G →ₐ[k] A) :=
 
 variables {k G A}
 
+variables {k G}
+
+
 lemma lift_apply' (F : multiplicative G →* A) (f : monoid_algebra k G) :
   lift k G A F f = f.sum (λ a b, (algebra_map k A b) * F (multiplicative.of_add a)) := rfl
 
@@ -1269,6 +1286,18 @@ lemma alg_hom_ext_iff {φ₁ φ₂ : add_monoid_algebra k G →ₐ[k] A} :
 ⟨λ h, alg_hom_ext h, by rintro rfl _; refl⟩
 
 end lift
+
+variables (k)
+/--
+The `alg_hom` which maps from a grading of an algebra `A` back to that algebra.
+-/
+def sum_id {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [add_monoid G] :
+  add_monoid_algebra A G →ₐ[k] A :=
+lift_nc_alg_hom (alg_hom.id k A) ⟨λ g, 1, by simp, λ a b, by simp⟩ (by simp)
+
+lemma sum_id_apply {A : Type*} [comm_semiring k] [semiring A] [algebra k A] [add_monoid G] (g : add_monoid_algebra A G) :
+  sum_id k g = g.sum (λ _ gi, gi) :=
+by simp [sum_id, lift_nc_alg_hom, lift_nc_ring_hom, lift_nc, alg_hom.id, ring_hom.id]
 
 section
 local attribute [reducible] add_monoid_algebra
