@@ -687,6 +687,47 @@ by simp [equiv.perm.extend_domain]
 
 end congr
 
+/-- TODO: where does this belong?-/
+@[to_additive]
+lemma update_one_mul {α : Type*} [decidable_eq α] {β : α → Type*} (a : α) [∀ a, monoid (β a)] (b₁ b₂ : β a) :
+  update 1 a (b₁ * b₂) = update 1 a b₁ * update 1 a b₂ :=
+begin
+  ext x,
+  by_cases h : x = a,
+  { subst h, simp, },
+  { simp [update_noteq h] },
+end
+
+/-- This is like `finsupp.single_add_hom`, but multiplicative -/
+@[to_additive]
+def update_one_hom {α : Type*} [decidable_eq α] {β : α → Type*} (a : α) [∀ a, monoid (β a)] :
+  β a →* Π a, β a :=
+{ to_fun := update 1 a,
+  map_mul' := λ b₁ b₂, begin
+    ext x,
+    by_cases h : x = a,
+    { subst h, simp, },
+    { simp [update_noteq h] },
+  end,
+  map_one' := update_eq_self a 1}
+
+@[simp] lemma sign_sigma_congr_right {α : Type*} {β : α → Type*}
+  [decidable_eq α] [∀ a, decidable_eq (β a)]
+  [fintype α] [∀ a, fintype (β a)] (σ : Π a, perm (β a)) :
+  (sigma_congr_right σ).sign = ∏ a, (σ a).sign :=
+begin
+  suffices : ∀ a', (sigma_congr_right $ function.update 1 a' (σ a')).sign = (σ a').sign ,
+  { simp_rw ←this,
+    sorry, },
+  intro a',
+  generalize : σ a' = σ',
+  { apply σ'.swap_induction_on _ (λ σ'' b₁ b₂ hb ih, _),
+    { erw update_eq_self, simp, },
+    { rw [sign_mul, ←ih],
+      have : (swap b₁ b₂).sign = (swap ⟨a', b₁⟩ ⟨a', b₂⟩ : perm (Σ a, β a)).sign := by simp,
+      rw [this, update_one_mul, ←sign_mul, ←sigma_congr_right_update_one_swap, sigma_congr_right_mul], }, },
+end
+
 end sign
 
 end equiv.perm
