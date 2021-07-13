@@ -156,6 +156,10 @@ protected meta def of_list {key : Type} {data : Type} [has_lt key]
 protected meta def values {key data} (m : rb_lmap key data) : list data :=
 m.fold [] (λ _, (++))
 
+meta instance rb_lmap.has_to_format {α β} [has_to_tactic_format α] [has_to_tactic_format β] :
+  has_to_tactic_format (native.rb_lmap α β) :=
+by delta native.rb_lmap id_rhs; apply_instance
+
 end rb_lmap
 end native
 

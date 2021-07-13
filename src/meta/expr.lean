@@ -481,6 +481,18 @@ meta def match_macro {elab} : expr elab →
 | (macro df args) := some (df, args)
 | _ := none
 
+/-- Match a `≤` or `≥` expression. -/
+meta def match_le : expr → option (expr × expr)
+| `(%%x ≤ %%y) := pure (x, y)
+| `(%%x ≥ %%y) := pure (y, x)
+| _ := none
+
+/-- Match a `<` or `>` expression. -/
+meta def match_lt : expr → option (expr × expr)
+| `(%%x < %%y) := pure (x, y)
+| `(%%x > %%y) := pure (y, x)
+| _ := none
+
 /-- Tests whether an expression is a meta-variable. -/
 meta def is_mvar : expr → bool
 | (mvar _ _ _) := tt

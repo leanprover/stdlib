@@ -647,11 +647,19 @@ def choose (hp : ∃ a, a ∈ l ∧ p a) : α := choose_x p l hp
 end choose
 
 /-- Filters and maps elements of a list -/
-def mmap_filter {m : Type → Type v} [monad m] {α β} (f : α → m (option β)) :
+def mmap_filter {m : Type u → Type v} [monad m] {α β} (f : α → m (option β)) :
   list α → m (list β)
 | []       := return []
 | (h :: t) := do b ← f h, t' ← t.mmap_filter, return $
   match b with none := t' | (some x) := x::t' end
+
+/-- Filters and maps elements of a list `alternative` operations to accept or
+reject elements of the list -/
+def mmap_filter' {m : Type u → Type v} [applicative m] [alternative m]
+  {α β} (f : α → m β) : list.{w} α → m (list.{u} β)
+| [] := pure []
+| (x :: xs) :=
+  ((::) <$> f x <|> pure id) <*> mmap_filter' xs
 
 /--
 `mmap_upper_triangle f l` calls `f` on all elements in the upper triangular part of `l × l`.
