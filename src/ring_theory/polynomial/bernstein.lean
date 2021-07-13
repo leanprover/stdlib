@@ -248,8 +248,7 @@ lemma linear_independent_aux (n k : ℕ) (h : k ≤ n + 1):
   linear_independent ℚ (λ ν : fin k, bernstein_polynomial ℚ n ν) :=
 begin
   induction k with k ih,
-  { apply linear_independent_empty_type,
-    rintro ⟨⟨n, ⟨⟩⟩⟩, },
+  { apply linear_independent_empty_type, },
   { apply linear_independent_fin_succ'.mpr,
     fsplit,
     { exact ih (le_of_lt h), },

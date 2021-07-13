@@ -158,8 +158,8 @@ lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
 ⟨λ w x, lt_of_le_of_lt (dist_coe_le_dist x) w, dist_lt_of_nonempty_compact⟩
 
 /-- On an empty space, bounded continuous functions are at distance 0 -/
-lemma dist_zero_of_empty (e : ¬ nonempty α) : dist f g = 0 :=
-le_antisymm ((dist_le (le_refl _)).2 $ λ x, e.elim ⟨x⟩) dist_nonneg'
+lemma dist_zero_of_empty [is_empty α] : dist f g = 0 :=
+le_antisymm ((dist_le (le_refl _)).2 is_empty_elim) dist_nonneg'
 
 /-- The type of bounded continuous functions, with the uniform distance, is a metric space. -/
 instance : metric_space (α →ᵇ β) :=

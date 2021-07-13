@@ -147,9 +147,6 @@ fin.cons_self_tail _
   set.range (vec_cons x u) = {x} ∪ set.range u :=
 set.ext $ λ y, by simp [fin.exists_fin_succ, eq_comm]
 
-@[simp] lemma range_empty (u : fin 0 → α) : set.range u = ∅ :=
-set.range_eq_empty.2 $ λ ⟨k⟩, k.elim0
-
 /-- `![a, b, ...] 1` is equal to `b`.
 
   The simplifier needs a special lemma for length `≥ 2`, in addition to

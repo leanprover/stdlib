@@ -212,12 +212,11 @@ hf.piecewise hs measurable_const
 @[to_additive]
 lemma measurable_one [has_one α] : measurable (1 : β → α) := @measurable_const _ _ _ _ 1
 
-lemma measurable_of_not_nonempty  (h : ¬ nonempty α) (f : α → β) : measurable f :=
-begin
-  assume s hs,
-  convert measurable_set.empty,
-  exact eq_empty_of_not_nonempty h _,
-end
+-- TODO[gh-6025] remove this once this instance is enabled globally
+local attribute [instance] set.unique_empty
+
+lemma measurable_of_is_empty [is_empty α] (f : α → β) : measurable f :=
+λ s hs, by convert measurable_set.empty
 
 @[to_additive, measurability] lemma measurable_set_mul_support [has_one β]
   [measurable_singleton_class β] {f : α → β} (hf : measurable f) :

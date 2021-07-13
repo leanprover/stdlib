@@ -150,12 +150,12 @@ theorem fintype.linear_independent_iff' [fintype ι] :
     (linear_map.lsum R (λ i : ι, R) ℕ (λ i, linear_map.id.smul_right (v i))).ker = ⊥ :=
 by simp [fintype.linear_independent_iff, linear_map.ker_eq_bot', funext_iff]
 
-lemma linear_independent_empty_type (h : ¬ nonempty ι) : linear_independent R v :=
+lemma linear_independent_empty_type [is_empty ι] : linear_independent R v :=
 begin
  rw [linear_independent_iff],
  intros,
  ext i,
- exact false.elim (h ⟨i⟩)
+ exact is_empty_elim i
 end
 
 lemma linear_independent.ne_zero [nontrivial R]
@@ -544,8 +544,7 @@ begin
   assume t, rw [set.Union, ← finset.sup_eq_supr],
   refine t.induction_on _ _,
   { rw finset.sup_empty,
-    apply linear_independent_empty_type (not_nonempty_iff_imp_false.2 _),
-    exact λ x, set.not_mem_empty x (subtype.mem x) },
+    apply linear_independent_empty_type, },
   { rintros i s his ih,
     rw [finset.sup_insert],
     refine (hl _).union ih _,

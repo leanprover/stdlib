@@ -373,9 +373,9 @@ filter.ext $ λ s, (mem_lift'_sets monotone_preimage).symm
 lemma lift'_infi_powerset {f : ι → filter α} :
   (infi f).lift' powerset = (⨅i, (f i).lift' powerset) :=
 begin
-  by_cases hι : nonempty ι,
-  { exactI (lift'_infi $ λ _ _, (powerset_inter _ _).symm) },
-  { rw [infi_of_empty hι, infi_of_empty hι, lift'_top, powerset_univ, principal_univ] }
+  casesI (is_empty_or_nonempty ι).symm,
+  { exact (lift'_infi $ λ _ _, (powerset_inter _ _).symm) },
+  { rw [infi_of_empty, infi_of_empty, lift'_top, powerset_univ, principal_univ] }
 end
 
 lemma lift'_inf_powerset (f g : filter α) :

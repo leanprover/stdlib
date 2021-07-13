@@ -1078,7 +1078,7 @@ lemma induced_outer_measure_union_of_false_of_nonempty_inter {s t : set α}
   (h : ∀ u, (s ∩ u).nonempty → (t ∩ u).nonempty → ¬P u) :
   induced_outer_measure m P0 m0 (s ∪ t) =
      induced_outer_measure m P0 m0 s + induced_outer_measure m P0 m0 t :=
-of_function_union_of_top_of_nonempty_inter $ λ u hsu htu, infi_of_empty' $ h u hsu htu
+of_function_union_of_top_of_nonempty_inter $ λ u hsu htu, infi_neg $ h u hsu htu
 
 include msU m_mono
 lemma induced_outer_measure_eq_extend' {s : set α} (hs : P s) :

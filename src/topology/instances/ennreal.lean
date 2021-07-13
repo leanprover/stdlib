@@ -306,7 +306,7 @@ begin
 end
 
 lemma infi_mul_left' {ι} {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
-  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) (h0 : a = 0 → nonempty ι) :
+  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) (h0 : is_empty ι → a ≠ 0) :
   (⨅ i, a * f i) = a * ⨅ i, f i :=
 begin
   by_cases H : a = ⊤ ∧ (⨅ i, f i) = 0,
@@ -314,28 +314,27 @@ begin
     rw [H.2, mul_zero, ← bot_eq_zero, infi_eq_bot],
     exact λ b hb, ⟨i, by rwa [hi, mul_zero, ← bot_eq_zero]⟩ },
   { rw not_and_distrib at H,
-    by_cases hι : nonempty ι,
-    { resetI,
-      exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
+    casesI (is_empty_or_nonempty ι).symm,
+    { exact (map_infi_of_continuous_at_of_monotone' (ennreal.continuous_at_const_mul H)
         ennreal.mul_left_mono).symm },
-    { rw [infi_of_empty hι, infi_of_empty hι, mul_top, if_neg],
-      exact mt h0 hι } }
+    { rw [infi_of_empty, infi_of_empty, mul_top, if_neg],
+      exact h0 infer_instance } }
 end
 
 lemma infi_mul_left {ι} [nonempty ι] {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
   (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) :
   (⨅ i, a * f i) = a * ⨅ i, f i :=
-infi_mul_left' h (λ _, ‹nonempty ι›)
+infi_mul_left' h (λ i _, not_is_empty_iff.mpr infer_instance i)
 
 lemma infi_mul_right' {ι} {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
-  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) (h0 : a = 0 → nonempty ι) :
+  (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) (h0 : is_empty ι → a ≠ 0) :
   (⨅ i, f i * a) = (⨅ i, f i) * a :=
 by simpa only [mul_comm a] using infi_mul_left' h h0
 
 lemma infi_mul_right {ι} [nonempty ι] {f : ι → ℝ≥0∞} {a : ℝ≥0∞}
   (h : a = ⊤ → (⨅ i, f i) = 0 → ∃ i, f i = 0) :
   (⨅ i, f i * a) = (⨅ i, f i) * a :=
-infi_mul_right' h (λ _, ‹nonempty ι›)
+infi_mul_right' h (λ i _, not_is_empty_iff.mpr infer_instance i)
 
 protected lemma continuous_inv : continuous (has_inv.inv : ℝ≥0∞ → ℝ≥0∞) :=
 continuous_iff_continuous_at.2 $ λ a, tendsto_order.2

@@ -1674,8 +1674,12 @@ lemma range_nonempty_iff_nonempty : (range f).nonempty ↔ nonempty ι :=
 lemma range_nonempty [h : nonempty ι] (f : ι → α) : (range f).nonempty :=
 range_nonempty_iff_nonempty.2 h
 
-@[simp] lemma range_eq_empty {f : ι → α} : range f = ∅ ↔ ¬ nonempty ι :=
-not_nonempty_iff_eq_empty.symm.trans $ not_congr range_nonempty_iff_nonempty
+@[simp] lemma range_eq_empty {f : ι → α} : range f = ∅ ↔ is_empty ι :=
+not_nonempty_iff_eq_empty.symm.trans $
+  (not_congr range_nonempty_iff_nonempty).trans not_nonempty_iff
+
+@[simp] lemma range_of_empty [is_empty ι] {f : ι → α} : range f = ∅ :=
+range_eq_empty.mpr ‹_›
 
 instance [nonempty ι] (f : ι → α) : nonempty (range f) := (range_nonempty f).to_subtype
 

@@ -112,17 +112,21 @@ begin
     using hf (λ i, δ i • m i) hle_δm hδm_lt,
 end
 
+section
+-- we turned this off at the top of the file, but need it for this lemma
+local attribute [instance] unique.subsingleton pi.subsingleton
+
 /-- If a multilinear map in finitely many variables on normed spaces is continuous, then it
 satisfies the inequality `∥f m∥ ≤ C * ∏ i, ∥m i∥`, for some `C` which can be chosen to be
 positive. -/
 theorem exists_bound_of_continuous (hf : continuous f) :
   ∃ (C : ℝ), 0 < C ∧ (∀ m, ∥f m∥ ≤ C * ∏ i, ∥m i∥) :=
 begin
-  by_cases hι : nonempty ι, swap,
+  casesI is_empty_or_nonempty ι,
   { refine ⟨∥f 0∥ + 1, add_pos_of_nonneg_of_pos (norm_nonneg _) zero_lt_one, λ m, _⟩,
-    obtain rfl : m = 0, from funext (λ i, (hι ⟨i⟩).elim),
-    simp [univ_eq_empty.2 hι, zero_le_one] },
-  resetI,
+    obtain rfl : m = 0 := subsingleton.elim _ _,
+    rw univ_eq_empty'.2 h,
+    simp [zero_le_one] },
   obtain ⟨ε : ℝ, ε0 : 0 < ε, hε : ∀ m : Π i, E i, ∥m - 0∥ < ε → ∥f m - f 0∥ < 1⟩ :=
     normed_group.tendsto_nhds_nhds.1 (hf.tendsto 0) 1 zero_lt_one,
   simp only [sub_zero, f.map_zero] at hε,
@@ -133,6 +137,7 @@ begin
   refine (hε m ((pi_norm_lt_iff ε0).2 hm)).le.trans _,
   rw [← div_le_iff' this, one_div, ← inv_pow', inv_div, fintype.card, ← prod_const],
   exact prod_le_prod (λ _ _, div_nonneg ε0.le (norm_nonneg _)) (λ i _, hcm i)
+end
 end
 
 /-- If `f` satisfies a boundedness property around `0`, one can deduce a bound on `f m₁ - f m₂`
@@ -694,26 +699,26 @@ calc ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ ≤ if nonempty ι
   multilinear_map.mk_continuous_norm_le _ (by split_ifs; simp [zero_le_one]) _
 ... = _ : if_pos ‹_›
 
-lemma norm_mk_pi_algebra_of_empty (h : ¬nonempty ι) :
+lemma norm_mk_pi_algebra_of_empty [is_empty ι] :
   ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ = ∥(1 : A)∥ :=
 begin
   apply le_antisymm,
   calc ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ ≤ if nonempty ι then 1 else ∥(1 : A)∥ :
     multilinear_map.mk_continuous_norm_le _ (by split_ifs; simp [zero_le_one]) _
-  ... = ∥(1 : A)∥ : if_neg ‹_›,
-  convert ratio_le_op_norm _ (λ _, 1); [skip, apply_instance],
-  simp [eq_empty_of_not_nonempty h univ]
+  ... = ∥(1 : A)∥ : if_neg (not_nonempty_iff.mpr ‹_›),
+  convert ratio_le_op_norm _ (λ _, (1 : A)),
+  simp [eq_empty_of_is_empty (univ : finset ι)],
 end
 
 @[simp] lemma norm_mk_pi_algebra [norm_one_class A] :
   ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ = 1 :=
 begin
-  by_cases hι : nonempty ι,
+  casesI is_empty_or_nonempty ι,
+  { simp [norm_mk_pi_algebra_of_empty] },
   { resetI,
     refine le_antisymm norm_mk_pi_algebra_le _,
     convert ratio_le_op_norm _ (λ _, 1); [skip, apply_instance],
     simp },
-  { simp [norm_mk_pi_algebra_of_empty hι] }
 end
 
 end

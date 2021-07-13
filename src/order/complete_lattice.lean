@@ -934,23 +934,11 @@ lemma supr_image {γ} {f : β → γ} {g : γ → α} {t : set β} :
 ### `supr` and `infi` under `Type`
 -/
 
-theorem infi_of_empty' (h : ι → false) {s : ι → α} : infi s = ⊤ :=
-top_unique (le_infi $ assume i, (h i).elim)
+@[simp] theorem infi_of_empty [is_empty ι] {s : ι → α} : infi s = ⊤ :=
+top_unique (le_infi is_empty_elim)
 
-theorem supr_of_empty' (h : ι → false) {s : ι → α} : supr s = ⊥ :=
-bot_unique (supr_le $ assume i, (h i).elim)
-
-theorem infi_of_empty (h : ¬nonempty ι) {s : ι → α} : infi s = ⊤ :=
-infi_of_empty' (λ i, h ⟨i⟩)
-
-theorem supr_of_empty (h : ¬nonempty ι) {s : ι → α} : supr s = ⊥ :=
-supr_of_empty' (λ i, h ⟨i⟩)
-
-@[simp] theorem infi_empty {s : empty → α} : infi s = ⊤ :=
-infi_of_empty nonempty_empty
-
-@[simp] theorem supr_empty {s : empty → α} : supr s = ⊥ :=
-supr_of_empty nonempty_empty
+@[simp] theorem supr_of_empty [is_empty ι] {s : ι → α} : supr s = ⊥ :=
+bot_unique (supr_le is_empty_elim)
 
 lemma supr_bool_eq {f : bool → α} : (⨆b:bool, f b) = f tt ⊔ f ff :=
 le_antisymm

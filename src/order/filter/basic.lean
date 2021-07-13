@@ -2080,9 +2080,9 @@ lemma le_map_of_right_inverse {mab : α → β} {mba : β → α} {f : filter α
   g ≤ map mab f :=
 by { rw [← @map_id _ g, ← map_congr h₁, ← map_map], exact map_mono h₂ }
 
-lemma tendsto_of_not_nonempty {f : α → β} {la : filter α} {lb : filter β} (h : ¬nonempty α) :
+lemma tendsto_of_is_empty {f : α → β} {la : filter α} {lb : filter β} [is_empty α] :
   tendsto f la lb :=
-by simp only [filter_eq_bot_of_not_nonempty la h, tendsto_bot]
+by simp only [filter_eq_bot_of_is_empty la, tendsto_bot]
 
 lemma eventually_eq_of_left_inv_of_right_inv {f : α → β} {g₁ g₂ : β → α} {fa : filter α}
   {fb : filter β} (hleft : ∀ᶠ x in fa, g₁ (f x) = x) (hright : ∀ᶠ y in fb, f (g₂ y) = y)

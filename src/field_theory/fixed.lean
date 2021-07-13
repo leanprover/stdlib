@@ -73,7 +73,8 @@ lemma linear_independent_smul_of_linear_independent {s : finset F} :
   linear_independent (fixed_points G F) (λ i : (↑s : set F), (i : F)) →
   linear_independent F (λ i : (↑s : set F), mul_action.to_fun G F i) :=
 begin
-  refine finset.induction_on s (λ _, linear_independent_empty_type $ λ ⟨x⟩, x.2)
+  haveI : is_empty ((∅ : finset F) : set F) := ⟨subtype.prop⟩,
+  refine finset.induction_on s (λ _, linear_independent_empty_type)
     (λ a s has ih hs, _),
   rw coe_insert at hs ⊢,
   rw linear_independent_insert (mt mem_coe.1 has) at hs,
