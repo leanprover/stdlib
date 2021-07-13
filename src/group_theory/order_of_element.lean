@@ -793,6 +793,15 @@ one_pow n
   pow_coprime h g⁻¹ = (pow_coprime h g)⁻¹ :=
 inv_pow g n
 
+lemma inf_eq_bot_of_coprime {G : Type*} [group G] {H K : subgroup G} [fintype H] [fintype K]
+  (h : nat.coprime (fintype.card H) (fintype.card K)) : H ⊓ K = ⊥ :=
+begin
+  refine (H ⊓ K).eq_bot_iff_forall.mpr (λ x hx, _),
+  rw [←order_of_eq_one_iff, ←nat.dvd_one, ←h.gcd_eq_one, nat.dvd_gcd_iff],
+  exact ⟨(congr_arg (∣ fintype.card H) (order_of_subgroup ⟨x, hx.1⟩)).mpr order_of_dvd_card_univ,
+    (congr_arg (∣ fintype.card K) (order_of_subgroup ⟨x, hx.2⟩)).mpr order_of_dvd_card_univ⟩,
+end
+
 variable (a)
 
 lemma image_range_add_order_of [decidable_eq A] :
