@@ -564,6 +564,21 @@ begin
   simp,
 end
 
+/-- A finite union of finsets is finite. -/
+lemma union_finset_finite_of_range_finite
+  [decidable_eq β] (f : α → finset β) (h : (range f).finite) : (⋃ a, (f a : set β)).finite :=
+begin
+  have w : (⋃ (a : α), ↑(f a)) = (h.to_finset.bUnion id : set β),
+  { ext x,
+    simp only [mem_Union, finset.mem_coe, finset.mem_bUnion, id.def],
+    use λ ⟨a, ha⟩, ⟨f a, h.mem_to_finset.2 (mem_range_self a), ha⟩,
+    rintro ⟨s, hs, hx⟩,
+    obtain ⟨a, rfl⟩ := h.mem_to_finset.1 hs,
+    exact ⟨a, hx⟩, },
+  rw w,
+  apply set.finite_mem_finset,
+end
+
 lemma finite_subset_Union {s : set α} (hs : finite s)
   {ι} {t : ι → set α} (h : s ⊆ ⋃ i, t i) : ∃ I : set ι, finite I ∧ s ⊆ ⋃ i ∈ I, t i :=
 begin

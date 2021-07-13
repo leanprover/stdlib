@@ -495,6 +495,60 @@ theorem succ_is_regular {c : cardinal.{u}} (h : omega ≤ c) : is_regular (succ 
     apply typein_lt_type }
 end⟩
 
+/--
+A function whose codomain's cardinality is infinite but strictly smaller than its domain's
+has a fiber with cardinality strictly great than the codomain.
+-/
+theorem infinite_pigeonhole_card_lt {β α : Type u} (f : β → α)
+  (w : mk α < mk β) (w' : omega ≤ mk α) :
+  ∃ a : α, mk α < mk (f ⁻¹' {a}) :=
+begin
+  simp_rw [← succ_le],
+  exact ordinal.infinite_pigeonhole_card f (mk α).succ (succ_le.mpr w)
+    (w'.trans (lt_succ_self _).le)
+    ((lt_succ_self _).trans_le (succ_is_regular w').2.ge),
+end
+
+/--
+A function whose codomain's cardinality is infinite but strictly smaller than its domain's
+has an infinite fiber.
+-/
+theorem exists_infinite_fiber {β α : Type*} (f : β → α)
+  (w : mk α < mk β) (w' : _root_.infinite α) :
+  ∃ a : α, _root_.infinite (f ⁻¹' {a}) :=
+begin
+  simp_rw [cardinal.infinite_iff] at ⊢ w',
+  cases infinite_pigeonhole_card_lt f w w' with a ha,
+  exact ⟨a, w'.trans ha.le⟩,
+end
+
+/--
+If an infinite type `β` can be expressed as a union of finite sets,
+then the cardinality of the collection of those finite sets
+must be at least the cardinality of `β`.
+-/
+lemma le_range_of_union_finset_eq_top
+  {α β : Type*} [infinite β] (f : α → finset β) (w : (⋃ a, (f a : set β)) = ⊤) :
+  mk β ≤ mk (range f) :=
+begin
+  have k : _root_.infinite (range f),
+  { rw infinite_coe_iff,
+    apply mt (union_finset_finite_of_range_finite f),
+    rw w,
+    exact infinite_univ, },
+  by_contradiction h,
+  simp only [not_le] at h,
+  let u : Π b, ∃ a, b ∈ f a := λ b, by simpa using (w.ge : _) (set.mem_univ b),
+  let u' : β → range f := λ b, ⟨f (u b).some, by simp⟩,
+  have v' : ∀ a, u' ⁻¹' {⟨f a, by simp⟩} ≤ f a, begin rintros a p m,
+    simp at m,
+    rw ←m,
+    apply (λ b, (u b).some_spec),
+  end,
+  obtain ⟨⟨-, ⟨a, rfl⟩⟩, p⟩ := exists_infinite_fiber u' h k,
+  exact (@infinite.of_injective _ _ p (inclusion (v' a)) (inclusion_injective _)).false,
+end
+
 theorem sup_lt_ord_of_is_regular {ι} (f : ι → ordinal)
   {c} (hc : is_regular c) (H1 : cardinal.mk ι < c)
   (H2 : ∀ i, f i < c.ord) : ordinal.sup.{u u} f < c.ord :=
