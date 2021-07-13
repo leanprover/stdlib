@@ -36,6 +36,9 @@ variable {α : Type*}
 class is_modular_lattice α [lattice α] : Prop :=
 (sup_inf_le_assoc_of_le : ∀ {x : α} (y : α) {z : α}, x ≤ z → (x ⊔ y) ⊓ z ≤ x ⊔ (y ⊓ z))
 
+class modular_lattice α extends lattice α :=
+  (modular_law: ∀ (x u v : α ), (x ≤ u) → u ⊓ (v ⊔ x) = (u ⊓ v) ⊔ x )
+
 section is_modular_lattice
 variables [lattice α] [is_modular_lattice α ]
 
@@ -77,6 +80,24 @@ def inf_Icc_order_iso_Icc_sup (a b : α) : set.Icc (a ⊓ b) a ≃o set.Icc b (a
     exact inf_le_inf_left _ h
   end }
 end is_modular_lattice
+
+namespace modular_lattice
+
+theorem diamond_isomorphism
+  [modular_lattice α] {u v w x y : α} :
+  (x ≤ u) → (x ≥ v) → (x ≥ u ⊓ v) → (x ≤ u ⊔ v) → u ⊓ (v ⊔ x) = x ∧ (x ⊓ u) ⊔ v = x :=
+begin
+    intros h1 h2 h3 h4,
+    split,
+    { rw modular_lattice.modular_law,
+      exact sup_eq_right.mpr h3,
+      exact h1 },
+    { rw ← modular_lattice.modular_law,
+      exact inf_eq_left.mpr h4,
+      exact h2 }
+end
+
+end modular_lattice
 
 namespace is_compl
 variables [bounded_lattice α] [is_modular_lattice α]
