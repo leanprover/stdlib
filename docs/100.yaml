@@ -155,6 +155,9 @@
   author : Chris Hughes
 45:
   title  : The Partition Theorem
+  author : Bhavik Mehta, Aaron Anderson
+  links:
+    mathlib archive: https://github.com/leanprover-community/mathlib/blob/master/archive/100-theorems-list/45_partition.lean
 46:
   title  : The Solution of the General Quartic Equation
 47:
