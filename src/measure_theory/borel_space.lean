@@ -879,7 +879,25 @@ end complete_linear_order
 
 section conditionally_complete_linear_order
 
-variables [conditionally_complete_linear_order α] [second_countable_topology α] [order_topology α]
+variables [conditionally_complete_linear_order α] [order_topology α]
+
+lemma measurable_of_monotone [densely_ordered α] [linear_order β] [order_topology β]
+  [second_countable_topology β] {f : α → β} (hf : monotone f) :
+  measurable f :=
+suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
+  from measurable_of_Ioi (λ x, (h x).is_preconnected.measurable_set),
+λ x, ord_connected_def.mpr (λ a ha b hb c hc, lt_of_lt_of_le ha (hf hc.1))
+
+alias measurable_of_monotone ← monotone.measurable
+
+lemma measurable_of_antimono [densely_ordered α] [linear_order β] [order_topology β]
+  [second_countable_topology β] {f : α → β} (hf : ∀ ⦃x y : α⦄, x ≤ y → f y ≤ f x) :
+  measurable f :=
+suffices h : ∀ x, ord_connected (f ⁻¹' Ioi x),
+  from measurable_of_Ioi (λ x, (h x).is_preconnected.measurable_set),
+λ x, ord_connected_def.mpr (λ a ha b hb c hc, lt_of_lt_of_le hb (hf hc.2))
+
+variable [second_countable_topology α]
 
 lemma measurable_cSup {ι} {f : ι → δ → α} {s : set ι} (hs : s.countable)
   (hf : ∀ i, measurable (f i)) (bdd : ∀ x, bdd_above ((λ i, f i x) '' s)) :
