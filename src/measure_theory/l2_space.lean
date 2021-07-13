@@ -134,6 +134,53 @@ instance inner_product_space : inner_product_space 𝕜 (α →₂[μ] E) :=
 
 end inner_product_space
 
+section indicator_const_Lp
+
+variables [measurable_space 𝕜] [borel_space 𝕜] {s : set α}
+
+lemma inner_indicator_const_Lp_eq_set_integral_inner (f : Lp E 2 μ) (hs : measurable_set s) (c : E)
+  (hμs : μ s ≠ ∞) :
+  inner (indicator_const_Lp 2 hs hμs c) f = ∫ x in s, ⟪c, f x⟫ ∂μ :=
+begin
+  rw [inner_def, ← integral_add_compl hs (L2.integrable_inner _ f)],
+  have h_left : ∫ x in s, ⟪(indicator_const_Lp 2 hs hμs c) x, f x⟫ ∂μ = ∫ x in s, ⟪c, f x⟫ ∂μ,
+  { suffices h_ae_eq : ∀ᵐ x ∂μ, x ∈ s → ⟪indicator_const_Lp 2 hs hμs c x, f x⟫ = ⟪c, f x⟫,
+      from set_integral_congr_ae hs h_ae_eq,
+    have h_indicator : ∀ᵐ (x : α) ∂μ, x ∈ s → (indicator_const_Lp 2 hs hμs c x) = c,
+      from indicator_const_Lp_coe_fn_mem,
+    refine h_indicator.mono (λ x hx hxs, _),
+    congr,
+    exact hx hxs, },
+  have h_right : ∫ x in sᶜ, ⟪(indicator_const_Lp 2 hs hμs c) x, f x⟫ ∂μ = 0,
+  { suffices h_ae_eq : ∀ᵐ x ∂μ, x ∉ s → ⟪indicator_const_Lp 2 hs hμs c x, f x⟫ = 0,
+    { simp_rw ← set.mem_compl_iff at h_ae_eq,
+      suffices h_int_zero : ∫ x in sᶜ, inner (indicator_const_Lp 2 hs hμs c x) (f x) ∂μ
+        = ∫ x in sᶜ, (0 : 𝕜) ∂μ,
+      { rw h_int_zero,
+        simp, },
+      exact set_integral_congr_ae hs.compl h_ae_eq, },
+    have h_indicator : ∀ᵐ (x : α) ∂μ, x ∉ s → (indicator_const_Lp 2 hs hμs c x) = 0,
+      from indicator_const_Lp_coe_fn_nmem,
+    refine h_indicator.mono (λ x hx hxs, _),
+    rw hx hxs,
+    exact inner_zero_left, },
+  rw [h_left, h_right, add_zero],
+end
+
+variables (𝕜)
+lemma inner_indicator_const_Lp_eq_inner_set_integral [complete_space E] [normed_space ℝ E]
+  [is_scalar_tower ℝ 𝕜 E] (hs : measurable_set s) (hμs : μ s ≠ ∞) (c : E) (f : Lp E 2 μ) :
+  inner (indicator_const_Lp 2 hs hμs c) f = ⟪c, ∫ x in s, f x ∂μ⟫ :=
+by rw [← integral_inner (integrable_on_Lp_of_measure_ne_top f fact_one_le_two_ennreal.elim hμs),
+    L2.inner_indicator_const_Lp_eq_set_integral_inner]
+variables {𝕜}
+
+lemma inner_indicator_const_Lp_one (hs : measurable_set s) (hμs : μ s ≠ ∞) (f : Lp ℝ 2 μ) :
+  inner (indicator_const_Lp 2 hs hμs (1 : ℝ)) f = ∫ x in s, f x ∂μ :=
+by { rw L2.inner_indicator_const_Lp_eq_inner_set_integral ℝ hs hμs (1 : ℝ) f, simp, }
+
+end indicator_const_Lp
+
 end L2
 
 section inner_continuous
