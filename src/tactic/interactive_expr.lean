@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 
 Authors: E.W.Ayers
 -/
+import data.list.defs
 
 /-!
 # Widgets used for tactic state and term-mode goal display
@@ -23,7 +24,6 @@ Lean itself calls the `widget_override.term_goal_widget` function to render
 term-mode goals and `widget_override.tactic_state_widget` to render the
 tactic state in a tactic proof.
 -/
-
 namespace widget_override
 open widget
 
@@ -55,6 +55,8 @@ meta def sf.repr : sf → format
 meta instance : has_to_format sf := ⟨sf.repr⟩
 meta instance : has_to_string sf := ⟨λ s, s.repr.to_string⟩
 meta instance : has_repr sf := ⟨λ s, s.repr.to_string⟩
+meta instance : has_coe string sf := ⟨sf.of_string⟩
+meta instance : has_append sf := ⟨sf.compose⟩
 
 /-- Constructs an `sf` from an `eformat` by forgetting grouping, nesting, etc. -/
 meta def sf.of_eformat : eformat → sf
@@ -64,6 +66,74 @@ meta def sf.of_eformat : eformat → sf
 | (highlight c m) := sf.highlight c $ sf.of_eformat m
 | (of_format f) := sf.of_string $ format.to_string f
 | (compose x y) := sf.compose (sf.of_eformat x) (sf.of_eformat y)
+
+/-- Get the subexpression and sf object at the given address, if any.
+The address must point to a `sf.tag_expr` boundary. -/
+meta def sf.follow : expr.address → sf → option (expr × sf)
+| [] s := none
+| l (sf.tag_expr ea e  m) := do
+  a ← list.get_rest l ea,
+  if a = [] then pure (e,m) else
+  sf.follow a m
+| l (sf.block _ a) := sf.follow l a
+| l (sf.highlight _ a) := sf.follow l a
+| l (sf.of_string _) := none
+| l (sf.compose a b) := sf.follow l a <|> sf.follow l b
+
+/-- Run `f` on each of the immediate child substrings of the given string. -/
+meta def sf.traverse {m} [applicative m] (f : sf → m sf) : sf → m sf
+| (sf.tag_expr ea e m) := pure (sf.tag_expr ea e) <*> f m
+| (sf.block x a) := pure (sf.block x) <*> f a
+| (sf.highlight x a) := pure (sf.highlight x) <*> f a
+| (sf.compose a b) := pure (sf.compose) <*> f a <*> f b
+| (sf.of_string s) := pure $ sf.of_string s
+
+/-- Run `f` on each child. If it fails then stop traversing and keep it the same.-/
+meta def sf.replace {m} [monad m] [alternative m] (f : sf → m sf) : sf → m sf
+| x := (f x >>= sf.traverse sf.replace) <|> pure x
+
+/-- The test for whether the proposition is a valid target for restricted quantifier collapsing.
+Eg (@has_mem.mem _ _ _ _) -/
+meta def sf.collapse_restricted_quantifiers_pred : expr → tactic bool
+| `(@gt _ _ %%(expr.var 0) _) := pure tt
+| `(@has_lt.lt _ _ %%(expr.var 0) _) := pure tt
+| `(@has_le.le _ _ %%(expr.var 0) _) := pure tt
+| `(@ge _ _ %%(expr.var 0) _) := pure tt
+| `(@has_mem.mem _ _ _ %%(expr.var 0) _) := pure tt
+-- [fixme] add to this list! So many predicates. Maybe just include all of them.
+| _ := pure ff
+
+
+open expr.coord
+
+/-- If the given sf has the form `∀ (x : α), P x → Q`
+and `P x` obeys `collapse_restricted_quantifiers_pred`
+then replace it with `∀ (P x), Q`, mapping the addresses properly
+so interactive rendering still works. -/
+meta def sf.collapse_restricted_quantifiers_core : sf → tactic sf
+| s@(sf.tag_expr addr e@(expr.pi x xbi xy (expr.pi p pbi py b)) a) := (do
+  should_collapse ← sf.collapse_restricted_quantifiers_pred py,
+  if ¬ should_collapse then pure s else do
+  a1 ← pure $ [pi_body, pi_var_type],
+  a2 ← pure $ [pi_body, pi_body],
+  (e1, s1) ← sf.follow a1 a,
+  (e2, s2) ← sf.follow a2 a,
+  pure (sf.tag_expr addr e $ "∀ (" ++ (sf.tag_expr (addr ++ a1) e1 s1) ++ "), " ++ (sf.tag_expr (addr ++ a2) e2 s2))
+  ) <|> pure s
+| s@(sf.tag_expr addr e a) := (do
+  `(Exists %%pred) ← pure e,
+  expr.lam _ _ α pred ← pure pred,
+  `(Exists %%pred) ← pure pred,
+  expr.lam _ _ py pred ← pure pred,
+  should_collapse ← sf.collapse_restricted_quantifiers_pred py,
+  if ¬ should_collapse then pure s else do
+  a1 ← pure $ [app_arg, lam_body, app_arg, lam_var_type],
+  a2 ← pure $ [app_arg, lam_body, app_arg, lam_body],
+  (e1, s1) ← sf.follow a1 a,
+  (e2, s2) ← sf.follow a2 a,
+  pure (sf.tag_expr addr e $ "∃ (" ++ (sf.tag_expr (addr ++ a1) e1 s1) ++ "), " ++ (sf.tag_expr (addr ++ a2) e2 s2))
+  ) <|> pure s
+| x := pure x
 
 /-- Flattens an `sf`, i.e. merges adjacent `of_string` constructors. -/
 meta def sf.flatten : sf → sf
@@ -122,6 +192,36 @@ After:
 meta def sf.elim_part_apps (s : sf) : sf :=
 elim_part_apps s []
 
+/-- Pretty print an expression as an sf and then apply a set of syntax-level transformations:
+- Remove annotation tags on partial applications
+- Merge adjacent of_string constructors
+- Collapse restricted quantifiers
+-/
+meta def pp_to_sf : expr → tactic sf
+| e := do
+    m ← sf.of_eformat <$> tactic.pp_tagged e,
+    let m := m.elim_part_apps,
+    let m := m.flatten,
+    let m := m.tag_expr [] e, -- Add an expr-boundary for the root expression.
+    m ← sf.replace sf.collapse_restricted_quantifiers_core m,
+    pure m
+
+/-- Strip tagging information and create a format from an sf. -/
+meta def format_of_sf : sf → format
+| (sf.tag_expr addr e a) := format_of_sf a
+| (sf.compose a b) := format.compose (format_of_sf a) (format_of_sf b)
+| (sf.of_string s) := format.of_string s
+| (sf.block i a) := format.nest i $ format_of_sf a
+| (sf.highlight c a) := format.highlight (format_of_sf a) c
+
+/-- Create a string from an sf, should look the same as a directly pretty printed string. -/
+meta def string_of_sf : sf → string
+| s := format.to_string $ format_of_sf s
+
+/-- A version of pretty print that also includes the quantifier collapse step. -/
+meta def pretty_print_with_collapsed_quantifiers : expr → tactic string
+| e := string_of_sf <$> pp_to_sf e
+
 /--
 The actions accepted by an expression widget.
 -/
@@ -178,7 +278,7 @@ meta def view {γ} (tooltip_component : tc subexpr (action γ)) (click_address :
   click_attrs  : list (attr (action γ)) ←
     if some new_address = click_address then do
       content ← tc.to_html tooltip_component (e, new_address),
-      efmt : string ← format.to_string <$> tactic.pp e,
+      efmt : string ← pretty_print_with_collapsed_quantifiers e,
       gd_btn ← goto_def_button e,
       pure [tooltip $ h "div" [] [
           h "div" [cn "fr"] (gd_btn ++ [
@@ -236,10 +336,7 @@ $ tc.mk_simple
     end
   )
   (λ e ⟨ca, sa⟩, do
-    m ← sf.of_eformat <$> tactic.pp_tagged e,
-    let m := m.elim_part_apps,
-    let m := m.flatten,
-    let m := m.tag_expr [] e, -- [hack] in pp.cpp I forgot to add an expr-boundary for the root expression.
+    m ← pp_to_sf e,
     v ← view tooltip_comp (prod.snd <$> ca) (prod.snd <$> sa) ⟨e, []⟩ m,
     pure $
     [ h "span" [
