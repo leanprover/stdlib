@@ -328,6 +328,10 @@
   title  : Desargues’s Theorem
 88:
   title  : Derangements Formula
+  decls  :
+    - num_derangements_succ
+    - num_derangements_sum
+  author : Henry Swanson
 89:
   title  : The Factor and Remainder Theorems
   decls  :
