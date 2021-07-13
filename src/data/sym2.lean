@@ -100,8 +100,7 @@ lemma map_comp {α β γ : Type*} {g : β → γ} {f : α → β} :
   sym2.map (g ∘ f) = sym2.map g ∘ sym2.map f := by tidy
 
 @[simp]
-lemma map_pair_eq {α β : Type*} (f : α → β) (x y : α) : map f ⟦(x, y)⟧ = ⟦(f x, f y)⟧ :=
-by simp [map]
+lemma map_pair_eq {α β : Type*} (f : α → β) (x y : α) : map f ⟦(x, y)⟧ = ⟦(f x, f y)⟧ := rfl
 
 section membership
 
