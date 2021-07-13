@@ -853,6 +853,170 @@ end
 
 end sqrt
 
+section bernoulli
+
+private def f (r x : ℝ) : ℝ := 1 + r * x - (1 + x)^r
+
+private lemma has_deriv_at_f (r x : ℝ) (hx : -1 < x) :
+  has_deriv_at (f r) (r - r * (1 + x)^(r - 1) * 1) x :=
+begin
+  apply has_deriv_at.sub,
+  { apply has_deriv_at.const_add,
+    nth_rewrite 0 ←mul_one r,
+    exact has_deriv_at.const_mul _ (has_deriv_at_id _) },
+  { change λ x : ℝ, (1 + x)^r with (λ t, t^r) ∘ (λ x, 1 + x),
+    convert has_deriv_at.comp _ _ (has_deriv_at.const_add _ (has_deriv_at_id _)) using 1,
+    { apply real.has_deriv_at_rpow,
+      linarith } }
+end
+
+private lemma f_zero {r : ℝ} : f r 0 = 0 :=
+begin
+  change f r with λ x, 1 + r * x - (1 + x)^r,
+  simp only [add_zero, real.one_rpow, mul_zero, sub_self]
+end
+
+lemma one_add_rpow_le_of_nonneg {x r : ℝ} (hx : 0 ≤ x) (hr0 : 0 ≤ r) (hr1 : r ≤ 1) :
+  (1 + x)^r ≤ 1 + r * x :=
+begin
+  have h1 : ∀ x : ℝ, 0 ≤ x → (1 + x)^(r - 1) ≤ 1,
+  { intros x hx,
+    apply real.rpow_le_one_of_one_le_of_nonpos;
+    linarith },
+  have h2 : ∀ x : ℝ, 0 ≤ x → 0 ≤ deriv (f r) x,
+  { intros x hx,
+    nlinarith [(has_deriv_at_f r x (by linarith)).deriv, h1 x hx] },
+  have h3 : 0 ≤ f r x,
+  { rcases lt_or_eq_of_le hx with (hx|rfl),
+    { rcases exists_deriv_eq_slope (f r) hx
+        (λ t ht, (has_deriv_at_f r t (by linarith [ht.1])).continuous_at.continuous_within_at)
+        (λ t ht,
+          (has_deriv_at_f r t (by linarith [ht.1])).differentiable_at.differentiable_within_at)
+          with ⟨c, hc₁, hc₂⟩,
+      rw [f_zero, sub_zero, sub_zero, eq_div_iff hx.ne.symm] at hc₂,
+      rw ←hc₂,
+      exact mul_nonneg (h2 _ hc₁.1.le) hx.le },
+    rw f_zero },
+  change f r x with 1 + r * x - (1 + x)^r at h3,
+  linarith,
+end
+
+lemma one_add_rpow_le_of_neg_one_lt_of_nonpos {x r : ℝ} (hxm1 : -1 < x) (hx0 : x ≤ 0) (hr0 : 0 ≤ r)
+  (hr1 : r ≤ 1) : (1 + x)^r ≤ 1 + r * x :=
+begin
+  have h1 : ∀ x : ℝ, -1 < x → x ≤ 0 → 1 ≤ (1 + x)^(r - 1),
+  { intros x hx1 hx2,
+    apply real.one_le_rpow_of_pos_of_le_one_of_nonpos;
+    linarith },
+  have h2 : ∀ x : ℝ, -1 < x → x ≤ 0 → deriv (f r) x ≤ 0,
+  { intros x hx1 hx2,
+    nlinarith [(has_deriv_at_f r x (by linarith)).deriv, h1 x hx1 hx2] },
+  have h3 : 0 ≤ f r x,
+  { rcases lt_or_eq_of_le hx0 with (hx|rfl),
+    { rcases exists_deriv_eq_slope (f r) hx
+        (λ t ht, (has_deriv_at_f r t (by linarith [ht.1])).continuous_at.continuous_within_at)
+        (λ t ht,
+          (has_deriv_at_f r t (by linarith [ht.1])).differentiable_at.differentiable_within_at)
+        with ⟨c, hc₁, hc₂⟩,
+      rw [f_zero, zero_sub, zero_sub, neg_div, div_neg, neg_neg, eq_div_iff hx.ne] at hc₂,
+      rw ←hc₂,
+      exact mul_nonneg_of_nonpos_of_nonpos (h2 _ (hxm1.trans hc₁.1) hc₁.2.le) hx0 },
+    rw f_zero },
+  change f r x with 1 + r * x - (1 + x)^r at h3,
+  linarith,
+end
+
+/--
+Bernoulli's Inequality, if `-1 < x` and `0 ≤ r ≤ 1`, then `(1 + x)^r ≤ 1 + r * x`
+-/
+lemma one_add_rpow_le {x r : ℝ} (hxm1 : -1 < x) (hr0 : 0 ≤ r) (hr1 : r ≤ 1) :
+  (1 + x)^r ≤ 1 + r * x :=
+begin
+  by_cases hx : x ≤ 0,
+  { exact one_add_rpow_le_of_neg_one_lt_of_nonpos hxm1 hx hr0 hr1 },
+  { rw not_le at hx,
+    exact one_add_rpow_le_of_nonneg hx.le hr0 hr1 }
+end
+
+/--
+Bernoulli's Inequality, if `-1 ≤ x` and `0 < r ≤ 1`, then `(1 + x)^r ≤ 1 + r * x`
+-/
+lemma one_add_rpow_le' {x r : ℝ} (hxm1 : -1 ≤ x) (hr0 : 0 < r) (hr1 : r ≤ 1) :
+  (1 + x)^r ≤ 1 + r * x :=
+begin
+  rcases lt_or_eq_of_le hxm1 with (hxm1 | rfl),
+  { exact one_add_rpow_le hxm1 hr0.le hr1 },
+  rw [add_neg_self, zero_rpow hr0.ne.symm],
+  linarith,
+end
+
+lemma le_one_add_rpow_of_nonneg {x r : ℝ} (hx : 0 ≤ x) (hr : 1 ≤ r) : 1 + r * x ≤ (1 + x)^r :=
+begin
+  have h1 : ∀ x : ℝ, 0 ≤ x → 1 ≤ (1 + x)^(r - 1),
+  { intros x hx,
+    apply real.one_le_rpow;
+    linarith },
+  have h2 : ∀ x : ℝ, 0 ≤ x → deriv (f r) x ≤ 0,
+  { intros x hx,
+    nlinarith [(has_deriv_at_f r x (by linarith)).deriv, h1 x hx] },
+  have h3 : f r x ≤ 0,
+  { rcases lt_or_eq_of_le hx with (hx|rfl),
+    { rcases exists_deriv_eq_slope (f r) hx
+        (λ t ht, (has_deriv_at_f r t (by linarith [ht.1])).continuous_at.continuous_within_at)
+        (λ t ht,
+          (has_deriv_at_f r t (by linarith [ht.1])).differentiable_at.differentiable_within_at)
+        with ⟨c, hc₁, hc₂⟩,
+      rw [f_zero, sub_zero, sub_zero, eq_div_iff hx.ne.symm] at hc₂,
+      rw [←hc₂, mul_nonpos_iff],
+      right,
+      exact ⟨h2 _ hc₁.1.le, hx.le⟩ },
+    rw f_zero },
+  change f r x with 1 + r * x - (1 + x)^r at h3,
+  linarith,
+end
+
+lemma le_one_add_rpow_of_neg_one_lt_of_nonpos {x r : ℝ} (hxm1 : -1 < x) (hx0 : x ≤ 0) (hr : 1 ≤ r) :
+  1 + r * x ≤ (1 + x)^r :=
+begin
+  have h1 : ∀ x : ℝ, -1 < x → x ≤ 0 → (1 + x)^(r - 1) ≤ 1,
+  { intros x hx1 hx2,
+    apply real.rpow_le_one;
+    linarith },
+  have h2 : ∀ x : ℝ, -1 < x → x ≤ 0 → 0 ≤ deriv (f r) x,
+  { intros x hx1 hx2,
+    nlinarith [(has_deriv_at_f r x (by linarith)).deriv, h1 x hx1 hx2] },
+   have h3 : f r x ≤ 0,
+  { rcases lt_or_eq_of_le hx0 with (hx|rfl),
+    { rcases exists_deriv_eq_slope (f r) hx
+        (λ t ht, (has_deriv_at_f r t (by linarith [ht.1])).continuous_at.continuous_within_at)
+        (λ t ht,
+          (has_deriv_at_f r t (by linarith [ht.1])).differentiable_at.differentiable_within_at)
+        with ⟨c, hc₁, hc₂⟩,
+      rw [f_zero, zero_sub, zero_sub, neg_div, div_neg, neg_neg, eq_div_iff hx.ne] at hc₂,
+      rw [←hc₂, mul_nonpos_iff],
+      left,
+      exact ⟨h2 _ (hxm1.trans hc₁.1) hc₁.2.le, hx.le⟩ },
+    rw f_zero },
+  change f r x with 1 + r * x - (1 + x)^r at h3,
+  linarith,
+end
+
+/-
+Bernoulli's Inequality, if `-1 ≤ x` and `1 ≤ r`, then `1 + r * x ≤ (1 + x)^r`
+-/
+lemma le_one_add_rpow {x r : ℝ} (hxm1 : -1 ≤ x) (hr : 1 ≤ r) : 1 + r * x ≤ (1 + x)^r :=
+begin
+  rcases lt_or_eq_of_le hxm1 with (hxm1 | rfl),
+  { by_cases hx : x ≤ 0,
+    { exact le_one_add_rpow_of_neg_one_lt_of_nonpos hxm1 hx hr },
+    { rw not_le at hx,
+      exact le_one_add_rpow_of_nonneg hx.le hr } },
+  rw [add_neg_self, zero_rpow (show r ≠ 0, by linarith)],
+  linarith
+end
+
+end bernoulli
+
 end real
 
 section differentiability
