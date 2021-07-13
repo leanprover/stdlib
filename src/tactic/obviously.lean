@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import tactic.tidy
 import tactic.replacer
+import tactic.tcache
 
 /-!
 # The `obviously` tactic
@@ -42,7 +43,7 @@ and then calls `tidy`.
 -/
 @[obviously] meta def obviously' :=
 tactic.sorry_if_contains_sorry <|>
-tactic.tidy <|>
+tactic.tcache tactic.tidy <|>
 tactic.fail (
 "`obviously` failed to solve a subgoal.\n" ++
 "You may need to explicitly provide a proof of the corresponding structure field.")

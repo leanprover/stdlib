@@ -5,6 +5,7 @@ _cache
 __pycache__
 all.lean
 *.depend
+.cache
 /src/.noisy_files
 *~
 .DS_Store

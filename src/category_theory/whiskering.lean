@@ -5,6 +5,10 @@ Authors: Scott Morrison
 -/
 import category_theory.natural_isomorphism
 
+-- run_cmd (do tactic.unsafe_run_io (tcache.rm_cache_dir >> tcache.mk_cache_dir))
+cache_file?
+-- cache_clear
+
 namespace category_theory
 
 universes u₁ v₁ u₂ v₂ u₃ v₃ u₄ v₄

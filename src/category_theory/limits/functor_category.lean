@@ -7,6 +7,8 @@ import category_theory.limits.preserves.limits
 
 open category_theory category_theory.category
 
+cache_file?
+
 namespace category_theory.limits
 
 universes v v₂ u -- morphism levels before object levels. See note [category_theory universes].
