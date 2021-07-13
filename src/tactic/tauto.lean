@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 import tactic.hint
+import tactic.ext
 
 namespace tactic
 
@@ -294,5 +295,27 @@ add_tactic_doc
   decl_names := [`tactic.interactive.tautology, `tactic.interactive.tauto],
   tags       := ["logic", "decision procedure"] }
 
+
+/-- Prove tautological equality of two sets, using intuitionistic logic.
+    For best results, import data.set.default or data.finset.default
+    as appropriate.
+ -/
+meta def set_tauto : tactic unit :=
+ `[{{ refl } <|> { ext1, try { simp [forall_and_distrib] }, try { tauto! }}}]
+
+
+/--
+This tactic solves set equality by using extensionality, simplification,
+and classical logic.
+
+This is a finishing tactic: it either closes the goal or raises an error.
+-/
+add_tactic_doc
+{ name       := "set_tauto",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.set_tauto],
+  tags       := ["logic", "decision procedure", "sets"] }
+
 end interactive
 end tactic
+
