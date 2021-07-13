@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import measure_theory.measure_space
+import data.subtype_instances
 
 /-!
 # Typeclasses for measurability of operations
@@ -501,6 +502,76 @@ lemma ae_measurable_const_smul_iff' {c : G₀} (hc : c ≠ 0) :
 (is_unit.mk0 c hc).ae_measurable_const_smul_iff
 
 end mul_action
+
+
+/-!
+### Typeclasses on `subtype measurable` and `subtype (λ f, ae_measurable f μ)`
+-/
+section
+
+variables {M β : Type*} [measurable_space β] [measurable_space M]
+
+/-! #### Notation classes -/
+
+namespace measurable.subtype
+
+@[to_additive]
+instance closed_under_one {_ : has_one β} :
+  subtype.closed_under₀ measurable (1 : α → β) := ⟨measurable_one⟩
+
+@[to_additive]
+instance closed_under_mul [has_mul β] [has_measurable_mul₂ β] :
+  subtype.closed_under₂ measurable (@has_mul.mul (α → β) _) := ⟨λ _ _, measurable.mul⟩
+
+@[to_additive]
+instance closed_under_inv [has_inv β] [has_measurable_inv β] :
+  subtype.closed_under₁ measurable (@has_inv.inv (α → β) _) := ⟨λ _, measurable.inv⟩
+
+@[to_additive]
+instance closed_under_div [has_div β] [has_measurable_div₂ β] :
+  subtype.closed_under₂ measurable (@has_div.div (α → β) _) := ⟨λ _ _, measurable.div⟩
+
+end measurable.subtype
+
+namespace ae_measurable.subtype
+
+variables {μ : measure α}
+
+@[to_additive]
+instance closed_under_one {_ : has_one β} :
+  subtype.closed_under₀ (λ f : α → β, ae_measurable f μ) 1 := ⟨ae_measurable_one⟩
+
+@[to_additive]
+instance closed_under_mul [has_mul β] [has_measurable_mul₂ β] :
+  subtype.closed_under₂ (λ f : α → β, ae_measurable f μ) (*) :=
+⟨λ _ _, ae_measurable.mul⟩
+
+@[to_additive]
+instance closed_under_inv [has_inv β] [has_measurable_inv β] :
+  subtype.closed_under₁ (λ f : α → β, ae_measurable f μ) (has_inv.inv) :=
+⟨λ _, ae_measurable.inv⟩
+
+@[to_additive]
+instance closed_under_div [has_div β] [has_measurable_div₂ β] :
+  subtype.closed_under₂ (λ f : α → β, ae_measurable f μ) (/) :=
+⟨λ _ _, ae_measurable.div⟩
+
+end ae_measurable.subtype
+
+/-- Typeclass inference can't find this without a large amount of help :(. -/
+example [semiring β] [has_measurable_add₂ β] [has_measurable_mul₂ β]:
+  semiring (subtype (measurable : (α → β) → Prop)) :=
+begin
+  /- `id _` lets us see why typeclass inference is failing. -/
+  refine @subtype.closed_under.subtype.semiring _ _ _ (id _) sorry sorry sorry,
+  convert measurable.subtype.closed_under_zero,
+  -- uh oh: `mul_zero_class.to_has_zero (α → β) = pi.has_zero`
+  swap,
+  apply_instance,
+  refl,
+end
+
+end
 
 /-!
 ### Big operators: `∏` and `∑`
