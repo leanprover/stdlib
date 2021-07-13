@@ -15,13 +15,13 @@ giving three equivalent definitions (TODO: and shows that they are equivalent).
 
 ## Main definitions
 
- - `is_dedekind_domain` defines a Dedekind domain as a commutative ring that is not a field,
-   Noetherian, integrally closed in its field of fractions and has Krull dimension exactly one.
+ - `is_dedekind_domain` defines a Dedekind domain as a commutative ring that is
+   Noetherian, integrally closed in its field of fractions and has Krull dimension at most one.
    `is_dedekind_domain_iff` shows that this does not depend on the choice of field of fractions.
  - `is_dedekind_domain_dvr` alternatively defines a Dedekind domain as an integral domain that
-   is not a field, Noetherian, and the localization at every nonzero prime ideal is a DVR.
- - `is_dedekind_domain_inv` alternatively defines a Dedekind domain as an integral domain that
-   is not a field, and every nonzero fractional ideal is invertible.
+   is Noetherian, and the localization at every nonzero prime ideal is a DVR.
+ - `is_dedekind_domain_inv` alternatively defines a Dedekind domain as an integral domain where
+   every nonzero fractional ideal is invertible.
  - `is_dedekind_domain_inv_iff` shows that this does note depend on the choice of field of
    fractions.
 
@@ -30,10 +30,14 @@ giving three equivalent definitions (TODO: and shows that they are equivalent).
 The definitions that involve a field of fractions choose a canonical field of fractions,
 but are independent of that choice. The `..._iff` lemmas express this independence.
 
+Often, definitions assume that Dedekind domains are not fields. We found it more practical
+to add a `(h : ¬ is_field A)` assumption whenever this is explicitly needed.
+
 ## References
 
 * [D. Marcus, *Number Fields*][marcus1977number]
 * [J.W.S. Cassels, A. Frölich, *Algebraic Number Theory*][cassels1967algebraic]
+* [J. Neukirch, *Algebraic Number Theory*][Neukirch1992]
 
 ## Tags
 
@@ -66,7 +70,9 @@ end ring
 
 /--
 A Dedekind domain is an integral domain that is Noetherian, integrally closed, and
-has Krull dimension exactly one (`not_is_field` and `dimension_le_one`).
+has Krull dimension at most one.
+
+This is definition 3.2 of [Neukirch1992].
 
 The integral closure condition is independent of the choice of field of fractions:
 use `is_dedekind_domain_iff` to prove `is_dedekind_domain` for a given `fraction_map`.
@@ -76,7 +82,6 @@ This is the default implementation, but there are equivalent definitions,
 TODO: Prove that these are actually equivalent definitions.
 -/
 class is_dedekind_domain : Prop :=
-(not_is_field : ¬ is_field A)
 (is_noetherian_ring : is_noetherian_ring A)
 (dimension_le_one : dimension_le_one A)
 (is_integrally_closed : integral_closure A (fraction_ring A) = ⊥)
@@ -86,22 +91,20 @@ Noetherian, has dimension ≤ 1, and is integrally closed in a given fraction fi
 In particular, this definition does not depend on the choice of this fraction field. -/
 lemma is_dedekind_domain_iff (K : Type*) [field K] [algebra A K] [is_fraction_ring A K] :
   is_dedekind_domain A ↔
-    (¬ is_field A) ∧ is_noetherian_ring A ∧ dimension_le_one A ∧
-    integral_closure A K = ⊥ :=
-⟨λ ⟨hf, hr, hd, hi⟩, ⟨hf, hr, hd,
+    is_noetherian_ring A ∧ dimension_le_one A ∧ integral_closure A K = ⊥ :=
+⟨λ ⟨hr, hd, hi⟩, ⟨hr, hd,
   by rw [←integral_closure_map_alg_equiv (fraction_ring.alg_equiv A K), hi, algebra.map_bot]⟩,
- λ ⟨hf, hr, hd, hi⟩, ⟨hf, hr, hd,
+ λ ⟨hr, hd, hi⟩, ⟨hr, hd,
   by rw [←integral_closure_map_alg_equiv (fraction_ring.alg_equiv A K).symm, hi, algebra.map_bot]⟩⟩
 
 /--
-A Dedekind domain is an integral domain that is not a field, is Noetherian, and the
+A Dedekind domain is an integral domain that is Noetherian, and the
 localization at every nonzero prime is a discrete valuation ring.
 
 This is equivalent to `is_dedekind_domain`.
 TODO: prove the equivalence.
 -/
 structure is_dedekind_domain_dvr : Prop :=
-(not_is_field : ¬ is_field A)
 (is_noetherian_ring : is_noetherian_ring A)
 (is_dvr_at_nonzero_prime : ∀ P ≠ (⊥ : ideal A), P.is_prime →
   discrete_valuation_ring (localization.at_prime P))
@@ -218,32 +221,32 @@ begin
 end
 
 /--
-A Dedekind domain is an integral domain that is not a field such that every fractional ideal
-has an inverse.
+A Dedekind domain is an integral domain such that every fractional ideal has an inverse.
 
 This is equivalent to `is_dedekind_domain`.
 TODO: prove the equivalence.
 -/
-structure is_dedekind_domain_inv : Prop :=
-(not_is_field : ¬ is_field A)
-(mul_inv_cancel : ∀ I ≠ (⊥ : fractional_ideal A⁰ (fraction_ring A)), I * (1 / I) = 1)
+def is_dedekind_domain_inv : Prop :=
+∀ I ≠ (⊥ : fractional_ideal A⁰ (fraction_ring A)), I * (1 / I) = 1
 
 open ring.fractional_ideal
 
 lemma is_dedekind_domain_inv_iff (K : Type*) [field K] [algebra A K] [is_fraction_ring A K] :
   is_dedekind_domain_inv A ↔
-    (¬ is_field A) ∧ (∀ I ≠ (⊥ : fractional_ideal A⁰ K), I * I⁻¹ = 1) :=
+    (∀ I ≠ (⊥ : fractional_ideal A⁰ K), I * I⁻¹ = 1) :=
 begin
   set h : fraction_ring A ≃ₐ[A] K := fraction_ring.alg_equiv A K,
-  split; rintros ⟨hf, hi⟩; use hf; intros I hI,
-  { have := hi (map ↑h.symm I) (map_ne_zero _ hI),
-    convert congr_arg (map (h : fraction_ring A →ₐ[A] K)) this;
-      simp only [map_symm_map, map_one, fractional_ideal.map_mul, fractional_ideal.map_div,
-                 inv_eq] },
-  { have := hi (map ↑h I) (map_ne_zero _ hI),
-    convert congr_arg (map (h.symm : K →ₐ[A] fraction_ring A)) this;
-      simp only [map_map_symm, map_one, fractional_ideal.map_mul, fractional_ideal.map_div,
-                 inv_eq] },
+  split; rintros hi I hI,
+  { have := hi (fractional_ideal.map h.symm.to_alg_hom I)
+               (fractional_ideal.map_ne_zero h.symm.to_alg_hom hI),
+    convert congr_arg (fractional_ideal.map h.to_alg_hom) this;
+      simp only [alg_equiv.to_alg_hom_eq_coe, map_symm_map, map_one,
+                 fractional_ideal.map_mul, fractional_ideal.map_div, inv_eq] },
+  { have := hi (fractional_ideal.map h.to_alg_hom I)
+               (fractional_ideal.map_ne_zero h.to_alg_hom hI),
+    convert congr_arg (fractional_ideal.map h.symm.to_alg_hom) this;
+      simp only [alg_equiv.to_alg_hom_eq_coe, map_map_symm, map_one,
+                 fractional_ideal.map_mul, fractional_ideal.map_div, inv_eq] },
 end
 
 end inverse
