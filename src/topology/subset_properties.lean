@@ -763,7 +763,7 @@ end
 section tychonoff
 variables {ι : Type*} {π : ι → Type*} [∀ i, topological_space (π i)]
 
-/-- Tychonoff's theorem -/
+/-- **Tychonoff's theorem** -/
 lemma is_compact_pi_infinite {s : Π i, set (π i)} :
   (∀ i, is_compact (s i)) → is_compact {x : Π i, π i | ∀ i, x i ∈ s i} :=
 begin

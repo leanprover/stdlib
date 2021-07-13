@@ -11,7 +11,7 @@ import linear_algebra.basis
 /-!
 # Maschke's theorem
 
-We prove Maschke's theorem for finite groups,
+We prove **Maschke's theorem** for finite groups,
 in the formulation that every submodule of a `k[G]` module has a complement,
 when `k` is a field with `invertible (fintype.card G : k)`.
 

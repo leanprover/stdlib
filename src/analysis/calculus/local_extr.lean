@@ -192,7 +192,7 @@ if hf : differentiable_within_at ℝ f s a
 then h.has_fderiv_within_at_eq_zero hf.has_fderiv_within_at hy hy'
 else by { rw fderiv_within_zero_of_not_differentiable_within_at hf, refl }
 
-/-- Fermat's Theorem: the derivative of a function at a local minimum equals zero. -/
+/-- **Fermat's Theorem**: the derivative of a function at a local minimum equals zero. -/
 lemma is_local_min.has_fderiv_at_eq_zero (h : is_local_min f a) (hf : has_fderiv_at f f' a) :
   f' = 0 :=
 begin

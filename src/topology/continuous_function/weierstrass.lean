@@ -44,7 +44,7 @@ begin
 end
 
 /--
-The Weierstrass approximation theorem:
+The **Weierstrass Approximation Theorem**:
 polynomials functions on `[a, b] ⊆ ℝ` are dense in `C([a,b],ℝ)`
 
 (While we could deduce this as an application of the Stone-Weierstrass theorem,

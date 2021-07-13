@@ -280,7 +280,7 @@ begin
 end
 
 /--
-The Stone-Weierstrass approximation theorem,
+The **Stone-Weierstrass Approximation Theorem**,
 that a subalgebra `A` of `C(X, ℝ)`, where `X` is a compact topological space,
 is dense if it separates points.
 -/

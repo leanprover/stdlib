@@ -18,7 +18,8 @@ open_locale topological_space classical
 
 variables {a b : ℝ} {f f' : ℝ → ℝ}
 
-/-- Darboux's theorem: if `a ≤ b` and `f' a < m < f' b`, then `f' c = m` for some `c ∈ [a, b]`. -/
+/-- **Darboux's theorem**: if `a ≤ b` and `f' a < m < f' b`, then `f' c = m` for some 
+`c ∈ [a, b]`. -/
 theorem exists_has_deriv_within_at_eq_of_gt_of_lt
   (hab : a ≤ b) (hf : ∀ x ∈ (Icc a b), has_deriv_within_at f (f' x) (Icc a b) x)
   {m : ℝ} (hma : f' a < m) (hmb : m < f' b) :
