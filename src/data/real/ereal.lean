@@ -366,7 +366,7 @@ protected theorem neg_le_of_neg_le : ∀ {a b : ereal} (h : -a ≤ b), -b ≤ a
 | ⊤ l h := le_top
 | (a : ℝ) ⊥ h := by cases (le_bot_iff.1 h)
 | l ⊤ h := bot_le
-| (a : ℝ) (b : ℝ) h := by { norm_cast at h ⊢, exact _root_.neg_le_of_neg_le h }
+| (a : ℝ) (b : ℝ) h := by { norm_cast at h ⊢, exact neg_le.mp h }
 
 /-- `-a ≤ b ↔ -b ≤ a` on `ereal`. -/
 protected theorem neg_le {a b : ereal} : -a ≤ b ↔ -b ≤ a :=

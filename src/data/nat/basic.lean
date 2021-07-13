@@ -839,6 +839,18 @@ lemma decreasing_induction_succ_left {P : ℕ → Sort*} (h : ∀n, P (n+1) → 
 by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_trans,
          decreasing_induction_succ'] }
 
+/-- An induction principle for natural numbers strictly bigger than zero. -/
+@[elab_as_eliminator]
+lemma induction_from_zero_lt {p : ℕ → Prop} {n : ℕ} (n0 : 0 < n)
+  (p1 : p 1) (pind : ∀ {n}, 0 < n → p n → p n.succ) :
+  p n :=
+begin
+  rcases nat.exists_eq_succ_of_ne_zero n0.ne' with ⟨n, rfl⟩,
+  induction n with n hn,
+  { exact p1 },
+  { exact pind n.succ_pos (hn n.succ_pos) }
+end
+
 /-! ### `div` -/
 
 attribute [simp] nat.div_self

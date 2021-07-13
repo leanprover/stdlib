@@ -52,6 +52,109 @@ instance [linear_ordered_add_comm_group_with_top α] :
   ..multiplicative.linear_ordered_comm_monoid_with_zero,
   ..multiplicative.nontrivial }
 
+section monoid
+variable [monoid α]
+
+section preorder
+variable [preorder α]
+
+section left
+variable [covariant_class α α (*) (≤)]
+lemma left.pow_le_one_of_le : ∀ {n : ℕ} {x : α}, x ≤ 1 → x^n ≤ 1
+| 0       x _ := (pow_zero x).le
+| (n + 1) x H := calc x ^ n.succ = x * x ^ n : pow_succ x n
+                             ... ≤ x * 1     : mul_le_mul_left' (left.pow_le_one_of_le H) x
+                             ... = x         : mul_one x
+                             ... ≤ 1         : H
+
+alias left.pow_le_one_of_le ← pow_le_one_of_le_one
+
+lemma left.one_le_pow_of_le : ∀ {n : ℕ} {x : α}, 1 ≤ x → 1 ≤ x^n
+| 0       x _ := (pow_zero x).symm.le
+| (n + 1) x H := calc 1 ≤ x          : H
+                    ... = x * 1      : (mul_one x).symm
+                    ... ≤ x * x ^ n  : mul_le_mul_left' (left.one_le_pow_of_le H) x
+                    ... = x ^ n.succ : (pow_succ x n).symm
+
+alias left.one_le_pow_of_le ← one_le_pow_of_one_le'
+
+end left
+
+section right
+variable [covariant_class α α (function.swap (*)) (≤)]
+
+lemma right.one_le_pow_of_le {x : α} (H : 1 ≤ x) :
+  ∀ {n : ℕ}, 1 ≤ x^n
+| 0       := (pow_zero _).symm.le
+| (n + 1) := calc 1 ≤ x          : H
+                ... = 1 * x      : (one_mul x).symm
+                ... ≤ x ^ n * x  : mul_le_mul_right' right.one_le_pow_of_le x
+                ... = x ^ n.succ : (pow_succ' x n).symm
+
+lemma right.pow_le_one_of_le {x : α} (H : x ≤ 1) :
+  ∀ {n : ℕ}, x^n ≤ 1
+| 0       := (pow_zero _).le
+| (n + 1) := calc x ^ n.succ = x ^ n * x : pow_succ' x n
+                         ... ≤ 1 * x     : mul_le_mul_right' right.pow_le_one_of_le x
+                         ... = x         : one_mul x
+                         ... ≤ 1         : H
+
+end right
+
+lemma pow_le_pow_of_le [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
+  {x y : α} (H : x ≤ y) :
+  ∀ {n : ℕ} , x^n ≤ y^n
+| 0       := (pow_zero _).le.trans (pow_zero _).symm.le
+| (n + 1) := calc  x ^ n.succ = x * x ^ n  : pow_succ x n
+                          ... ≤ y * x ^ n  : mul_le_mul_right' H (x ^ n)
+                          ... ≤ y * y ^ n  : mul_le_mul_left' pow_le_pow_of_le y
+                          ... = y ^ n.succ : (pow_succ y n).symm
+
+lemma left.pow_lt_one_of_lt [covariant_class α α (*) (<)] {n : ℕ} {x : α} (n0 : 0 < n) (H : x < 1) :
+  x^n < 1 :=
+begin
+  refine nat.induction_from_zero_lt n0 ((pow_one _).le.trans_lt H) (λ n n0 hn, lt_trans _ H),
+  convert mul_lt_mul_left' hn x,
+  { exact pow_succ x n },
+  { exact (mul_one _).symm }
+end
+
+lemma right.pow_lt_one_of_lt [covariant_class α α (function.swap (*)) (<)] {n : ℕ} {x : α}
+  (n0 : 0 < n) (H : x < 1) :
+  x^n < 1 :=
+begin
+  refine nat.induction_from_zero_lt n0 ((pow_one _).le.trans_lt H) (λ n n0 hn, lt_trans _ H),
+  convert mul_lt_mul_right' hn x,
+  { exact pow_succ' x n },
+  { exact (one_mul _).symm }
+end
+
+end preorder
+
+section left_right
+variables [linear_order α]
+  [covariant_class α α (*) (≤)] [covariant_class α α (function.swap (*)) (≤)]
+
+lemma eq_one_of_pow_eq_one {x : α} {n : ℕ} (hn : n ≠ 0) (H : x ^ n = 1) : x = 1 :=
+begin
+  rcases nat.exists_eq_succ_of_ne_zero hn with ⟨n, rfl⟩, clear hn,
+  induction n with n ih,
+  { exact (pow_one _).symm.trans H },
+  { cases le_total x 1 with h,
+    all_goals
+    { have h1 := mul_le_mul_right' h (x ^ (n + 1)),
+      rw pow_succ at H,
+      rw [H, one_mul] at h1 },
+    { have h2 := pow_le_one_of_le_one h,
+      exact ih (le_antisymm h2 h1) },
+    { have h2 := one_le_pow_of_one_le' h,
+      exact ih (le_antisymm h1 h2) } }
+end
+
+end left_right
+
+end monoid
+
 section linear_ordered_comm_monoid
 
 variables [linear_ordered_comm_monoid_with_zero α]
@@ -72,36 +175,6 @@ def function.injective.linear_ordered_comm_monoid_with_zero {β : Type*}
   ..linear_order.lift f hf,
   ..hf.ordered_comm_monoid f one mul,
   ..hf.comm_monoid_with_zero f zero one mul }
-
-lemma one_le_pow_of_one_le' {n : ℕ} (H : 1 ≤ x) : 1 ≤ x^n :=
-begin
-  induction n with n ih,
-  { rw pow_zero },
-  { rw pow_succ, exact one_le_mul H ih }
-end
-
-lemma pow_le_one_of_le_one {n : ℕ} (H : x ≤ 1) : x^n ≤ 1 :=
-begin
-  induction n with n ih,
-  { rw pow_zero },
-  { rw pow_succ, exact mul_le_one' H ih }
-end
-
-lemma eq_one_of_pow_eq_one {n : ℕ} (hn : n ≠ 0) (H : x ^ n = 1) : x = 1 :=
-begin
-  rcases nat.exists_eq_succ_of_ne_zero hn with ⟨n, rfl⟩, clear hn,
-  induction n with n ih,
-  { simpa using H },
-  { cases le_total x 1 with h,
-    all_goals
-    { have h1 := mul_le_mul_right' h (x ^ (n + 1)),
-      rw pow_succ at H,
-      rw [H, one_mul] at h1 },
-    { have h2 := pow_le_one_of_le_one h,
-      exact ih (le_antisymm h2 h1) },
-    { have h2 := one_le_pow_of_one_le' h,
-      exact ih (le_antisymm h1 h2) } }
-end
 
 lemma pow_eq_one_iff {n : ℕ} (hn : n ≠ 0) : x ^ n = 1 ↔ x = 1 :=
 ⟨eq_one_of_pow_eq_one hn, by { rintro rfl, exact one_pow _ }⟩

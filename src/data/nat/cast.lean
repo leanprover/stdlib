@@ -173,7 +173,7 @@ variable [nontrivial α]
 
 theorem strict_mono_cast : strict_mono (coe : ℕ → α) :=
 λ m n h, nat.le_induction (lt_add_of_pos_right _ zero_lt_one)
-  (λ n _ h, lt_add_of_lt_of_pos h zero_lt_one) _ h
+  (λ n _ h, lt_add_of_lt_of_pos' h zero_lt_one) _ h
 
 @[simp, norm_cast] theorem cast_le {m n : ℕ} :
   (m : α) ≤ n ↔ m ≤ n :=

@@ -364,7 +364,7 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
   { intros n n0 y yS,
     have := lt_of_lt_of_le (sub_one_lt_floor _)
       (int.cast_le.2 $ (hf n).2 _ ⟨y, yS, floor_le _⟩),
-    simp [-sub_eq_add_neg],
+    simp only [cast_coe_int, -sub_lt_iff_lt_add, cast_div, cast_coe_nat],
     rwa [lt_div_iff ((nat.cast_pos.2 n0):((_:ℝ) < _)), sub_mul, _root_.inv_mul_cancel],
     exact ne_of_gt (nat.cast_pos.2 n0) },
   suffices hg, let g : cau_seq ℚ abs := ⟨λ n, f n / n, hg⟩,
