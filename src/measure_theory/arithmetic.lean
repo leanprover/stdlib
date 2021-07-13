@@ -502,6 +502,102 @@ lemma ae_measurable_const_smul_iff' {c : G₀} (hc : c ≠ 0) :
 
 end mul_action
 
+
+/-!
+### Typeclasses on `subtype measurable` and `subtype (λ f, ae_measurable f μ)`
+-/
+namespace measurable.subtype
+
+variables {M β : Type*} [measurable_space β] [measurable_space M]
+
+/-! #### Notation classes -/
+
+@[to_additive]
+instance [has_one β] : has_one (subtype (measurable : (α → β) → Prop)) :=
+{ one := ⟨1, measurable_one⟩}
+
+@[simp, to_additive] lemma coe_one [has_one β] :
+  ↑(1 : subtype (measurable : (α → β) → Prop)) = (1 : α → β) := rfl
+
+@[to_additive]
+instance [has_mul β] [has_measurable_mul₂ β] : has_mul (subtype (measurable : (α → β) → Prop)) :=
+{ mul := λ f g, ⟨f * g, f.2.mul g.2⟩}
+
+@[simp, to_additive] lemma coe_mul [has_mul β] [has_measurable_mul₂ β]
+  (f g : subtype (measurable : (α → β) → Prop)) : ↑(f * g) = (f * g : α → β) := rfl
+
+@[to_additive]
+instance [has_div β] [has_measurable_div₂ β] : has_div (subtype (measurable : (α → β) → Prop)) :=
+{ div := λ f g, ⟨f / g, f.2.div g.2⟩}
+
+@[simp, to_additive] lemma coe_div [has_div β] [has_measurable_div₂ β]
+  (f g : subtype (measurable : (α → β) → Prop)) : ↑(f / g) = (f / g : α → β) := rfl
+
+@[to_additive]
+instance [has_inv β] [has_measurable_inv β] : has_inv (subtype (measurable : (α → β) → Prop)) :=
+{ inv := λ f, ⟨f⁻¹, f.2.inv⟩}
+
+@[simp, to_additive] lemma coe_inv [has_inv β] [has_measurable_inv β]
+  (f : subtype (measurable : (α → β) → Prop)) : ↑(f⁻¹) = (f⁻¹ : α → β) := rfl
+
+instance [has_scalar M β] [has_measurable_smul M β] :
+  has_scalar M (subtype (measurable : (α → β) → Prop)) :=
+{ smul := λ c f, ⟨c • f, f.2.const_smul c⟩}
+
+@[simp] lemma coe_smul [has_scalar M β] [has_measurable_smul M β]
+  (c : M) (f : subtype (measurable : (α → β) → Prop)) : ↑(c • f) = (c • f : α → β) := rfl
+
+/-! #### Algebra classes -/
+
+@[to_additive]
+instance [mul_one_class β] [has_measurable_mul₂ β] :
+  mul_one_class (subtype (measurable : (α → β) → Prop)) :=
+subtype.coe_injective.mul_one_class _ coe_one coe_mul
+
+@[to_additive]
+instance [semigroup β] [has_measurable_mul₂ β] :
+  semigroup (subtype (measurable : (α → β) → Prop)) :=
+subtype.coe_injective.semigroup _ coe_mul
+
+@[to_additive]
+instance [monoid β] [has_measurable_mul₂ β] :
+  monoid (subtype (measurable : (α → β) → Prop)) :=
+subtype.coe_injective.monoid _ coe_one coe_mul
+
+@[to_additive]
+instance [group β] [has_measurable_mul₂ β] [has_measurable_inv β] [has_measurable_div β] :
+  group (subtype (measurable : (α → β) → Prop)) :=
+subtype.coe_injective.group _ coe_one coe_mul coe_inv coe_div
+
+@[to_additive]
+instance [comm_group β] [has_measurable_mul₂ β] [has_measurable_inv β] [has_measurable_div β] :
+  comm_group (subtype (measurable : (α → β) → Prop)) :=
+subtype.coe_injective.comm_group _ coe_one coe_mul coe_inv coe_div
+
+@[to_additive]
+instance [comm_monoid β] [has_measurable_mul₂ β] :
+  comm_monoid (subtype (measurable : (α → β) → Prop)) :=
+subtype.coe_injective.comm_monoid _ coe_one coe_mul
+
+instance [semiring β] [has_measurable_add₂ β] [has_measurable_mul₂ β] :
+  semiring (subtype (measurable : (α → β) → Prop)) :=
+subtype.coe_injective.semiring _ coe_zero coe_one coe_add coe_mul
+
+instance [comm_semiring β] [has_measurable_add₂ β] [has_measurable_mul₂ β] :
+  comm_semiring (subtype (measurable : (α → β) → Prop)) :=
+subtype.coe_injective.comm_semiring _ coe_zero coe_one coe_add coe_mul
+
+instance [ring β] [has_measurable_add₂ β] [has_measurable_mul₂ β] [has_measurable_neg β] :
+  ring (subtype (measurable : (α → β) → Prop)) :=
+subtype.coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub
+
+instance [comm_ring β] [has_measurable_add₂ β] [has_measurable_mul₂ β] [has_measurable_neg β] :
+  comm_ring (subtype (measurable : (α → β) → Prop)) :=
+subtype.coe_injective.comm_ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub
+
+end measurable.subtype
+
+
 /-!
 ### Big operators: `∏` and `∑`
 -/
