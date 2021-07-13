@@ -575,6 +575,55 @@ begin
   tauto,
 end
 
+lemma compl_neighbor_set (G : simple_graph V) (v : V) :
+  Gᶜ.neighbor_set v = (G.neighbor_set v)ᶜ \ {v} :=
+begin
+  ext w,
+  simp only [set.mem_diff, set.mem_singleton_iff, compl_adj, ne.def,
+              mem_neighbor_set, set.mem_compl_eq],
+  tauto,
+end
+
+variables [decidable_eq V]
+
+lemma neighbor_set_union_compl_neighbor_set_card [fintype V] (G : simple_graph V)
+  [decidable_rel G.adj] [decidable_rel Gᶜ.adj] (v : V) :
+  fintype.card ((G.neighbor_set v ∪ Gᶜ.neighbor_set v) : set V) = fintype.card V - 1 :=
+begin
+  -- i don't love the `fintype.subtype_of_fintype situation` i have here
+  classical,
+  simp_rw neighbor_set_union_compl_neighbor_set_eq,
+  rw ← set.to_finset_card,
+  simp,
+  rw fintype.card_of_finset' {v}ᶜ,
+  rw card_compl,
+  rw ← card_singleton v,
+  simp,
+end
+
+lemma card_compl_neighbor_set [fintype V] (G : simple_graph V) [decidable_rel G.adj] (v : V) :
+  Gᶜ.degree v = fintype.card V - G.degree v - 1 :=
+begin
+  rw [nat.sub_sub, add_comm, ← nat.sub_sub, ← neighbor_set_union_compl_neighbor_set_card G v,
+    fintype.card_of_finset],
+  rw card_disjoint_union (set.to_finset_disjoint_iff.2 (compl_neighbor_set_disjoint G v)),
+  simp only [degree, neighbor_finset, nat.add_sub_cancel_left],
+end
+
+lemma compl_regular_is_regular [fintype V] (G : simple_graph V) [decidable_rel G.adj]
+  [decidable_rel Gᶜ.adj] (k : ℕ) (h : G.is_regular_of_degree k) :
+  Gᶜ.is_regular_of_degree (fintype.card V - k - 1) :=
+begin
+  rw is_regular_of_degree,
+  intros v,
+  specialize h v,
+  rw [nat.sub_sub, add_comm, ← nat.sub_sub, ← neighbor_set_union_compl_neighbor_set_card G v, ← h,
+      fintype.card_of_finset],
+  rw card_disjoint_union (set.to_finset_disjoint_iff.2 (compl_neighbor_set_disjoint G v)),
+  simp only [degree, neighbor_finset, nat.add_sub_cancel_left],
+end
+
+
 end complement
 
 end simple_graph
