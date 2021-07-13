@@ -155,11 +155,14 @@ by simp only [le_antisymm_iff, add_le_add_iff_right]
   exact ⟨f punit.star⟩
 end, λ e, by simp only [e, card_zero]⟩
 
+@[simp] theorem type_eq_zero_of_empty [is_well_order α r] [is_empty α] : type r = 0 :=
+card_eq_zero.symm.mpr eq_zero_of_is_empty
+
+@[simp] theorem type_eq_zero_iff_is_empty [is_well_order α r] : type r = 0 ↔ is_empty α :=
+(@card_eq_zero (type r)).symm.trans eq_zero_iff_is_empty
+
 theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α :=
 (not_congr (@card_eq_zero (type r))).symm.trans ne_zero_iff_nonempty
-
-@[simp] theorem type_eq_zero_iff_empty [is_well_order α r] : type r = 0 ↔ ¬ nonempty α :=
-(not_iff_comm.1 type_ne_zero_iff_nonempty).symm
 
 protected lemma one_ne_zero : (1 : ordinal) ≠ 0 :=
 type_ne_zero_iff_nonempty.2 ⟨punit.star⟩
@@ -547,12 +550,10 @@ quotient.induction_on₂ a b $ λ ⟨α, r, _⟩ ⟨β, s, _⟩,
 mul_comm (mk β) (mk α)
 
 @[simp] theorem mul_zero (a : ordinal) : a * 0 = 0 :=
-induction_on a $ λ α _ _, by exactI
-type_eq_zero_iff_empty.2 (λ ⟨⟨e, _⟩⟩, e.elim)
+induction_on a $ λ α _ _, by exactI type_eq_zero_of_empty
 
 @[simp] theorem zero_mul (a : ordinal) : 0 * a = 0 :=
-induction_on a $ λ α _ _, by exactI
-type_eq_zero_iff_empty.2 (λ ⟨⟨_, e⟩⟩, e.elim)
+induction_on a $ λ α _ _, by exactI type_eq_zero_of_empty
 
 theorem mul_add (a b c : ordinal) : a * (b + c) = a * b + a * c :=
 quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩,

@@ -195,9 +195,9 @@ le_antisymm (by simpa using cof_le_card 0) (cardinal.zero_le _)
 
 @[simp] theorem cof_eq_zero {o} : cof o = 0 ↔ o = 0 :=
 ⟨induction_on o $ λ α r _ z, by exactI
-  let ⟨S, hl, e⟩ := cof_eq r in type_eq_zero_iff_empty.2 $
-  λ ⟨a⟩, let ⟨b, h, _⟩ := hl a in
-  ne_zero_iff_nonempty.2 (by exact ⟨⟨_, h⟩⟩) (e.trans z),
+  let ⟨S, hl, e⟩ := cof_eq r in type_eq_zero_iff_is_empty.2 $
+  ⟨λ a, let ⟨b, h, _⟩ := hl a in
+    (eq_zero_iff_is_empty.1 (e.trans z)).elim' ⟨_, h⟩⟩,
 λ e, by simp [e]⟩
 
 @[simp] theorem cof_succ (o) : cof (succ o) = 1 :=
