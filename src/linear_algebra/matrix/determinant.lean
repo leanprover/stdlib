@@ -484,7 +484,7 @@ begin
     simp only [prod_congr_left_apply] },
   { intros σ _,
     rw [finset.prod_mul_distrib, ←finset.univ_product_univ, finset.prod_product, finset.prod_comm],
-    simp only [sign_prod_congr_left, units.coe_prod, int.coe_prod, block_diagonal_apply_eq,
+    simp only [sign_prod_congr_left, units.coe_prod, int.cast_prod, block_diagonal_apply_eq,
       prod_congr_left_apply] },
   { intros σ σ' _ _ eq,
     ext x hx k,

@@ -735,7 +735,7 @@ begin
       int.cast_one, sum_singleton, coe_mul_zeta_apply, one_one, int_coe_apply, pow_zero] },
   rw [coe_mul_zeta_apply, one_apply_ne (ne_of_gt (succ_lt_succ (nat.succ_pos _)))],
   simp_rw [int_coe_apply],
-  rw [← finset.sum_int_cast, ← sum_filter_ne_zero],
+  rw [←int.cast_sum, ← sum_filter_ne_zero],
   convert int.cast_zero,
   simp only [moebius_ne_zero_iff_squarefree],
   suffices :

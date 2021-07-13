@@ -183,7 +183,7 @@ begin
   classical,
   have h := congr_arg ((λ n, ↑n) : ℕ → zmod 2) G.sum_degrees_eq_twice_card_edges,
   simp only [zmod.nat_cast_self, zero_mul, nat.cast_mul] at h,
-  rw [sum_nat_cast, ←sum_filter_ne_zero] at h,
+  rw [nat.cast_sum, ←sum_filter_ne_zero] at h,
   rw @sum_congr _ _ _ _ (λ v, (G.degree v : zmod 2)) (λ v, (1 : zmod 2)) _ rfl at h,
   { simp only [filter_congr_decidable, mul_one, nsmul_eq_mul, sum_const, ne.def] at h,
     rw ←zmod.eq_zero_iff_even,

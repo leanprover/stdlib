@@ -67,7 +67,7 @@ calc card α = card (Σ y : quotient (orbit_rel G α), {x // quotient.mk' x = y}
 ... = ∑ a : quotient (orbit_rel G α), card {x // quotient.mk' x = a} : card_sigma _
 ... ≡ ∑ a : fixed_points G α, 1 [MOD p] :
 begin
-  rw [← zmod.eq_iff_modeq_nat p, sum_nat_cast, sum_nat_cast],
+  rw [←zmod.eq_iff_modeq_nat p, nat.cast_sum, nat.cast_sum],
   refine eq.symm (sum_bij_ne_zero (λ a _ _, quotient.mk' a.1)
     (λ _ _ _, mem_univ _)
     (λ a₁ a₂ _ _ _ _ h,

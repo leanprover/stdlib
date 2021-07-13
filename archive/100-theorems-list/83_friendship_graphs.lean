@@ -85,7 +85,7 @@ end
 lemma adj_matrix_pow_three_of_not_adj {v w : V} (non_adj : ¬ G.adj v w) :
   ((G.adj_matrix R) ^ 3) v w = degree G v :=
 begin
-  rw [pow_succ, mul_eq_mul, adj_matrix_mul_apply, degree, card_eq_sum_ones, sum_nat_cast],
+  rw [pow_succ, mul_eq_mul, adj_matrix_mul_apply, degree, card_eq_sum_ones, nat.cast_sum],
   apply sum_congr rfl,
   intros x hx,
   rw [adj_matrix_sq_of_ne _ hG, nat.cast_one],

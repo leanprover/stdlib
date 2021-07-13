@@ -125,7 +125,7 @@ begin
       rw [pow_card_sub_one_eq_one (eval x (f i)) hx, sub_self], } },
   -- In particular, we can now show:
   have key : ∑ x, eval x F = fintype.card {x : σ → K // ∀ i ∈ s, eval x (f i) = 0},
-  rw [fintype.card_of_subtype S hS, card_eq_sum_ones, sum_nat_cast, nat.cast_one,
+  rw [fintype.card_of_subtype S hS, card_eq_sum_ones, nat.cast_sum, nat.cast_one,
       ← fintype.sum_extend_by_zero S, sum_congr rfl (λ x hx, hF x)],
   -- With these preparations under our belt, we will approach the main goal.
   show p ∣ fintype.card {x // ∀ (i : ι), i ∈ s → eval x (f i) = 0},

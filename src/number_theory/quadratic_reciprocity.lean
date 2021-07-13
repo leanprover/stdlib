@@ -234,21 +234,21 @@ calc ((∑ x in Ico 1 (p / 2).succ, a * x : ℕ) : zmod 2)
 ... = (∑ x in Ico 1 (p / 2).succ, ((a * x : ℕ) : zmod p).val : ℕ) +
     (∑ x in Ico 1 (p / 2).succ, (a * x) / p : ℕ) :
   by simp only [val_nat_cast];
-    simp [sum_add_distrib, mul_sum.symm, nat.cast_add, nat.cast_mul, sum_nat_cast, hp2]
+    simp [sum_add_distrib, mul_sum.symm, nat.cast_add, nat.cast_mul, nat.cast_sum, hp2]
 ... = _ : congr_arg2 (+)
   (calc ((∑ x in Ico 1 (p / 2).succ, ((a * x : ℕ) : zmod p).val : ℕ) : zmod 2)
       = ∑ x in Ico 1 (p / 2).succ,
           ((((a * x : zmod p).val_min_abs +
             (if (a * x : zmod p).val ≤ p / 2 then 0 else p)) : ℤ) : zmod 2) :
-        by simp only [(val_eq_ite_val_min_abs _).symm]; simp [sum_nat_cast]
+        by simp only [(val_eq_ite_val_min_abs _).symm]; simp [nat.cast_sum]
   ... = ((Ico 1 (p / 2).succ).filter
         (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card +
       ((∑ x in Ico 1 (p / 2).succ, (a * x : zmod p).val_min_abs.nat_abs) : ℕ) :
-    by { simp [ite_cast, add_comm, sum_add_distrib, finset.sum_ite, hp2, sum_nat_cast], }
+    by { simp [ite_cast, add_comm, sum_add_distrib, finset.sum_ite, hp2, nat.cast_sum], }
   ... = _ : by rw [finset.sum_eq_multiset_sum,
       Ico_map_val_min_abs_nat_abs_eq_Ico_map_id p a hap,
       ← finset.sum_eq_multiset_sum];
-    simp [sum_nat_cast]) rfl
+    simp [nat.cast_sum]) rfl
 
 private lemma eisenstein_lemma_aux₂ (p : ℕ) [fact p.prime] [fact (p % 2 = 1)]
   {a : ℕ} (ha2 : a % 2 = 1) (hap : (a : zmod p) ≠ 0) :
@@ -257,7 +257,7 @@ private lemma eisenstein_lemma_aux₂ (p : ℕ) [fact p.prime] [fact (p % 2 = 1)
   ≡ ∑ x in Ico 1 (p / 2).succ, (x * a) / p [MOD 2] :=
 have ha2 : (a : zmod 2) = (1 : ℕ), from (eq_iff_modeq_nat _).2 ha2,
 (eq_iff_modeq_nat 2).1 $ sub_eq_zero.1 $
-  by simpa [add_left_comm, sub_eq_add_neg, finset.mul_sum.symm, mul_comm, ha2, sum_nat_cast,
+  by simpa [add_left_comm, sub_eq_add_neg, finset.mul_sum.symm, mul_comm, ha2, nat.cast_sum,
             add_neg_eq_iff_eq_add.symm, neg_eq_self_mod_two, add_assoc]
     using eq.symm (eisenstein_lemma_aux₁ p hap)
 
