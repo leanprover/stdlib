@@ -78,6 +78,24 @@ lemma le_of_fin_injective [strong_rank_condition R] {n m : ℕ} (f : (fin n → 
   injective f → n ≤ m :=
 strong_rank_condition.le_of_fin_injective f
 
+lemma card_le_of_injective [strong_rank_condition R] {α β : Type*} [fintype α] [fintype β]
+  (f : (α → R) →ₗ[R] (β → R)) (i : injective f) : fintype.card α ≤ fintype.card β :=
+begin
+  let P := linear_map.fun_congr_left R R (fintype.equiv_fin α),
+  let Q := linear_map.fun_congr_left R R (fintype.equiv_fin β),
+  exact le_of_fin_injective R ((Q.symm.to_linear_map.comp f).comp P.to_linear_map)
+    (((linear_equiv.symm Q).injective.comp i).comp (linear_equiv.injective P)),
+end
+
+lemma card_le_of_injective' [strong_rank_condition R] {α β : Type*} [fintype α] [fintype β]
+  (f : (α →₀ R) →ₗ[R] (β →₀ R)) (i : injective f) : fintype.card α ≤ fintype.card β :=
+begin
+  let P := (finsupp.linear_equiv_fun_on_fintype R R β),
+  let Q := (finsupp.linear_equiv_fun_on_fintype R R α).symm,
+  exact card_le_of_injective R ((P.to_linear_map.comp f).comp Q.to_linear_map)
+    ((P.injective.comp i).comp Q.injective)
+end
+
 /-- We say that `R` satisfies the rank condition if `(fin n → R) →ₗ[R] (fin m → R)` surjective
     implies `m ≤ n`. -/
 class rank_condition : Prop :=
@@ -86,6 +104,24 @@ class rank_condition : Prop :=
 lemma le_of_fin_surjective [rank_condition R] {n m : ℕ} (f : (fin n → R) →ₗ[R] (fin m → R)) :
   surjective f → m ≤ n :=
 rank_condition.le_of_fin_surjective f
+
+lemma card_le_of_surjective [rank_condition R] {α β : Type*} [fintype α] [fintype β]
+  (f : (α → R) →ₗ[R] (β → R)) (i : surjective f) : fintype.card β ≤ fintype.card α :=
+begin
+  let P := linear_map.fun_congr_left R R (fintype.equiv_fin α),
+  let Q := linear_map.fun_congr_left R R (fintype.equiv_fin β),
+  exact le_of_fin_surjective R ((Q.symm.to_linear_map.comp f).comp P.to_linear_map)
+    (((linear_equiv.symm Q).surjective.comp i).comp (linear_equiv.surjective P)),
+end
+
+lemma card_le_of_surjective' [rank_condition R] {α β : Type*} [fintype α] [fintype β]
+  (f : (α →₀ R) →ₗ[R] (β →₀ R)) (i : surjective f) : fintype.card β ≤ fintype.card α :=
+begin
+  let P := (finsupp.linear_equiv_fun_on_fintype R R β),
+  let Q := (finsupp.linear_equiv_fun_on_fintype R R α).symm,
+  exact card_le_of_surjective R ((P.to_linear_map.comp f).comp Q.to_linear_map)
+    ((P.surjective.comp i).comp Q.surjective)
+end
 
 /--
 By the universal property for free modules, any surjective map `(fin n → R) →ₗ[R] (fin m → R)`
@@ -116,6 +152,11 @@ variables (R : Type u) [ring R] [invariant_basis_number R]
 
 lemma eq_of_fin_equiv {n m : ℕ} : ((fin n → R) ≃ₗ[R] (fin m → R)) → n = m :=
 invariant_basis_number.eq_of_fin_equiv
+
+lemma card_eq_of_lequiv {α β : Type*} [fintype α] [fintype β]
+  (f : (α → R) ≃ₗ[R] (β → R)) : fintype.card α = fintype.card β :=
+eq_of_fin_equiv R (((linear_map.fun_congr_left R R (fintype.equiv_fin α)).trans f).trans
+  ((linear_map.fun_congr_left R R (fintype.equiv_fin β)).symm))
 
 lemma nontrivial_of_invariant_basis_number : nontrivial R :=
 begin
