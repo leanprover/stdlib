@@ -297,17 +297,22 @@ do tt ← is_prop d.type | return none,
   no_errors_found := "No uses of `inhabited` arguments should be replaced with `nonempty`.",
   errors_found := "USES OF `inhabited` SHOULD BE REPLACED WITH `nonempty`." }
 
+/-- Determine if `type` is of the form `decidable p` or some variant. -/
+private meta abbreviation is_decidable_instance (type : expr) : Prop :=
+type.is_app_of `decidable_eq ∨
+type.is_app_of `decidable_pred ∨
+type.is_app_of `decidable_rel ∨
+type.is_app_of `decidable
+
 /-- Checks whether a declaration is `Prop`-valued and takes a `decidable* _`
-hypothesis that is unused lsewhere in the type.
+hypothesis that is unused elsewhere in the type.
 In this case, that hypothesis can be replaced with `classical` in the proof.
 Theorems in the `decidable` namespace are exempt from the check. -/
 private meta def decidable_classical (d : declaration) : tactic (option string) :=
 do tt ← is_prop d.type | return none,
    ff ← pure $ (`decidable).is_prefix_of d.to_name | return none,
    (binders, _) ← get_pi_binders_nondep d.type,
-   let deceq_binders := binders.filter $ λ pr, pr.2.type.is_app_of `decidable_eq
-     ∨ pr.2.type.is_app_of `decidable_pred ∨ pr.2.type.is_app_of `decidable_rel
-     ∨ pr.2.type.is_app_of `decidable,
+   let deceq_binders := binders.filter $ λ pr, is_decidable_instance pr.2.type,
    if deceq_binders.length = 0 then return none
    else (λ s, some $ "The following `decidable` hypotheses should be replaced with
                       `classical` in the proof. " ++ s) <$>
@@ -319,6 +324,46 @@ do tt ← is_prop d.type | return none,
   auto_decls := ff,
   no_errors_found := "No uses of `decidable` arguments should be replaced with `classical`.",
   errors_found := "USES OF `decidable` SHOULD BE REPLACED WITH `classical` IN THE PROOF." }
+
+/-- Checks whether `decidable` arguments to lemmas exist that violate "Yury's rule of thumb"-/
+private meta def decidable_exact (d : declaration) : tactic (option string) :=
+do
+  -- definitions are free to use whatever decidable arguments they like
+  tt ← is_prop d.type | return none,
+
+  (binders, body) ← open_pis d.type,
+
+  -- find decidable binders
+  decidable_binders ← binders.mmap_filter (λ binder, do
+    some t ← try_core (infer_type binder) | return none,
+    tt ← pure (is_decidable_instance t : bool) | return none,
+    return (some binder)),
+
+  -- find `decidable` expressions in the body
+  matches ← body.mfold [] (λ e depth so_far, do
+    let head := e.get_app_fn,
+    ff ← pure (head.is_local_constant) | return so_far,
+    some t ← try_core (infer_type e) | return so_far,
+    -- which should only ever be the binders themselves, never objects derived from those binders
+    tt ← pure (is_decidable_instance t ∧ ¬head.is_local_constant : bool) | return so_far,
+    let relevant_binders := decidable_binders.filter (λ b, e.contains_expr_or_mvar b),
+    return (so_far ++ [(e, t, relevant_binders)])),
+
+  ff ← pure (matches.length = 0 : bool) | return none,
+
+  msg_items ← matches.mmap (λ i : prod _ _, do
+    e ← tactic.pp i.1,
+    e_type ← tactic.pp i.2.1,
+    let e_args := format.join $ (i.2.2.map $ λ e, format!"{expr.to_binder e}").intersperse format.space,
+    return (format!" missing [{e_type}], synthesized using {e_args} (via {e})\n")),
+  return (some (format.to_string (format!"There are bad decidable arguments:\n{format.join msg_items}")))
+
+/-- A linter object for `decidable_classical`. -/
+@[linter] meta def linter.decidable_exact : linter :=
+{ test := decidable_exact,
+  auto_decls := ff,
+  no_errors_found := "No theorems contained derived decidable instances",
+  errors_found := "`decidable` INSTANCE ARGUMENTS SHOULD NOT BE MORE GENERAL THAN NEEDED" }
 
 /- The file `logic/basic.lean` emphasizes the differences between what holds under classical
 and non-classical logic. It makes little sense to make all these lemmas classical, so we add them
