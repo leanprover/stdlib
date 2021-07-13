@@ -41,8 +41,8 @@ section linear_order
 variables [linear_order α] {a₁ a₂ b₁ b₂ : α}
 
 @[simp] lemma Ico_disjoint_Ico : disjoint (Ico a₁ a₂) (Ico b₁ b₂) ↔ min a₂ b₂ ≤ max a₁ b₁ :=
-by simp only [set.disjoint_iff, subset_empty_iff, Ico_inter_Ico, Ico_eq_empty_iff,
-  inf_eq_min, sup_eq_max]
+by simp_rw [set.disjoint_iff_inter_eq_empty, Ico_inter_Ico, Ico_eq_empty_iff,
+  inf_eq_min, sup_eq_max, not_lt]
 
 @[simp] lemma Ioc_disjoint_Ioc : disjoint (Ioc a₁ a₂) (Ioc b₁ b₂) ↔ min a₂ b₂ ≤ max a₁ b₁ :=
 by simpa only [dual_Ico] using @Ico_disjoint_Ico (order_dual α) _ a₂ a₁ b₂ b₁

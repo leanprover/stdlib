@@ -402,12 +402,12 @@ unique_diff_on_convex (convex_Icc a b) $ by simp only [interior_Icc, nonempty_Io
 lemma unique_diff_on_Ico (a b : ℝ) : unique_diff_on ℝ (Ico a b) :=
 if hab : a < b
 then unique_diff_on_convex (convex_Ico a b) $ by simp only [interior_Ico, nonempty_Ioo, hab]
-else by simp only [Ico_eq_empty (le_of_not_lt hab), unique_diff_on_empty]
+else by simp only [Ico_eq_empty hab, unique_diff_on_empty]
 
 lemma unique_diff_on_Ioc (a b : ℝ) : unique_diff_on ℝ (Ioc a b) :=
 if hab : a < b
 then unique_diff_on_convex (convex_Ioc a b) $ by simp only [interior_Ioc, nonempty_Ioo, hab]
-else by simp only [Ioc_eq_empty (le_of_not_lt hab), unique_diff_on_empty]
+else by simp only [Ioc_eq_empty hab, unique_diff_on_empty]
 
 lemma unique_diff_on_Ioo (a b : ℝ) : unique_diff_on ℝ (Ioo a b) :=
 is_open_Ioo.unique_diff_on
