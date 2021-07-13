@@ -216,6 +216,19 @@ lemma ext_iff {f g : M ↪[L] N} : f = g ↔ ∀ x, f x = g x :=
 
 lemma injective (f : M ↪[L] N) : function.injective f := f.to_embedding.injective
 
+/-- In an algebraic language, any injective homomorphism is an embedding. -/
+def of_injective [L.is_algebraic] {f : M →[L] N} (hf : function.injective f) : M ↪[L] N :=
+{ inj' := hf,
+  map_rel' := λ n r, (is_algebraic.empty_relations n r).elim,
+  .. f }
+
+@[simp] lemma coe_fn_of_injective [L.is_algebraic] {f : M →[L] N} (hf : function.injective f) :
+  (of_injective hf : M → N) = f := rfl
+
+@[simp] lemma of_injective_to_hom [L.is_algebraic] {f : M →[L] N} (hf : function.injective f) :
+  (of_injective hf).to_hom = f :=
+by { ext, simp }
+
 variables (L) (M)
 /-- The identity embedding from a structure to itself -/
 @[refl] def refl : M ↪[L] M :=
@@ -524,7 +537,7 @@ variables (L) (M)
 /-- `closure` forms a Galois insertion with the coercion to set. -/
 protected def gi : galois_insertion (@closure L M _) coe :=
 { choice := λ s _, closure L s,
-  gc := λ s t, closure_le,
+  gc := (closure L).gc,
   le_l_u := λ s, subset_closure,
   choice_eq := λ s h, rfl }
 
@@ -544,6 +557,247 @@ lemma closure_union (s t : set M) : closure L (s ∪ t) = closure L s ⊔ closur
 
 lemma closure_Union {ι} (s : ι → set M) : closure L (⋃ i, s i) = ⨆ i, closure L (s i) :=
 (substructure.gi L M).gc.l_supr
+
+/-!
+### `comap` and `map`
+-/
+
+/-- The preimage of a substructure along a homomorphism is a substructure. -/
+def comap (φ : M →[L] N) (S : L.substructure N) : L.substructure M :=
+{ carrier := (φ ⁻¹' S),
+  fun_mem := λ n f x hx, begin
+    rw [mem_preimage, φ.map_fun],
+    exact S.fun_mem f (φ ∘ x) hx,
+  end }
+
+@[simp]
+lemma coe_comap (S : L.substructure N) (f : M →[L] N) : (S.comap f : set M) = f ⁻¹' S := rfl
+
+@[simp]
+lemma mem_comap {S : L.substructure N} {f : M →[L] N} {x : M} : x ∈ S.comap f ↔ f x ∈ S := iff.rfl
+
+
+lemma comap_comap (S : L.substructure P) (g : N →[L] P) (f : M →[L] N) :
+  (S.comap g).comap f = S.comap (g.comp f) :=
+rfl
+
+@[simp]
+lemma comap_id (S : L.substructure P) : S.comap (hom.id _ _) = S :=
+ext (by simp)
+
+/-- The image of a substructure along a homomorphism is a substructure. -/
+def map (φ : M →[L] N) (S : L.substructure M) : L.substructure N :=
+{ carrier := (φ '' S),
+  fun_mem := λ n f x hx, (mem_image _ _ _).1 ⟨fun_map f (λ i, classical.some (hx i)),
+      S.fun_mem f _ (λ i, (classical.some_spec (hx i)).1), begin
+    simp only [hom.map_fun, set_like.mem_coe],
+    exact congr rfl (funext (λ i, (classical.some_spec (hx i)).2)),
+  end⟩ }
+
+@[simp]
+lemma coe_map (f : M →[L] N) (S : L.substructure M) :
+  (S.map f : set N) = f '' S := rfl
+
+@[simp]
+lemma mem_map {f : M →[L] N} {S : L.substructure M} {y : N} :
+  y ∈ S.map f ↔ ∃ x ∈ S, f x = y :=
+mem_image_iff_bex
+
+
+lemma mem_map_of_mem (f : M →[L] N) {S : L.substructure M} {x : M} (hx : x ∈ S) : f x ∈ S.map f :=
+mem_image_of_mem f hx
+
+
+lemma apply_coe_mem_map (f : M →[L] N) (S : L.substructure M) (x : S) : f x ∈ S.map f :=
+mem_map_of_mem f x.prop
+
+
+lemma map_map (g : N →[L] P) (f : M →[L] N) : (S.map f).map g = S.map (g.comp f) :=
+set_like.coe_injective $ image_image _ _ _
+
+
+lemma map_le_iff_le_comap {f : M →[L] N} {S : L.substructure M} {T : L.substructure N} :
+  S.map f ≤ T ↔ S ≤ T.comap f :=
+image_subset_iff
+
+
+lemma gc_map_comap (f : M →[L] N) : galois_connection (map f) (comap f) :=
+λ S T, map_le_iff_le_comap
+
+
+lemma map_le_of_le_comap {T : L.substructure N} {f : M →[L] N} : S ≤ T.comap f → S.map f ≤ T :=
+(gc_map_comap f).l_le
+
+
+lemma le_comap_of_map_le {T : L.substructure N} {f : M →[L] N} : S.map f ≤ T → S ≤ T.comap f :=
+(gc_map_comap f).le_u
+
+
+lemma le_comap_map {f : M →[L] N} : S ≤ (S.map f).comap f :=
+(gc_map_comap f).le_u_l _
+
+
+lemma map_comap_le {S : L.substructure N} {f : M →[L] N} : (S.comap f).map f ≤ S :=
+(gc_map_comap f).l_u_le _
+
+
+lemma monotone_map {f : M →[L] N} : monotone (map f) :=
+(gc_map_comap f).monotone_l
+
+
+lemma monotone_comap {f : M →[L] N} : monotone (comap f) :=
+(gc_map_comap f).monotone_u
+
+@[simp]
+lemma map_comap_map {f : M →[L] N} : ((S.map f).comap f).map f = S.map f :=
+congr_fun ((gc_map_comap f).l_u_l_eq_l) _
+
+@[simp]
+lemma comap_map_comap {S : L.substructure N} {f : M →[L] N} :
+  ((S.comap f).map f).comap f = S.comap f :=
+congr_fun ((gc_map_comap f).u_l_u_eq_u) _
+
+
+lemma map_sup (S T : L.substructure M) (f : M →[L] N) : (S ⊔ T).map f = S.map f ⊔ T.map f :=
+(gc_map_comap f).l_sup
+
+
+lemma map_supr {ι : Sort*} (f : M →[L] N) (s : ι → L.substructure M) :
+  (supr s).map f = ⨆ i, (s i).map f :=
+(gc_map_comap f).l_supr
+
+
+lemma comap_inf (S T : L.substructure N) (f : M →[L] N) : (S ⊓ T).comap f = S.comap f ⊓ T.comap f :=
+(gc_map_comap f).u_inf
+
+
+lemma comap_infi {ι : Sort*} (f : M →[L] N) (s : ι → L.substructure N) :
+  (infi s).comap f = ⨅ i, (s i).comap f :=
+(gc_map_comap f).u_infi
+
+@[simp] lemma map_bot (f : M →[L] N) : (⊥ : L.substructure M).map f = ⊥ :=
+(gc_map_comap f).l_bot
+
+@[simp] lemma comap_top (f : M →[L] N) : (⊤ : L.substructure N).comap f = ⊤ :=
+(gc_map_comap f).u_top
+
+@[simp] lemma map_id (S : L.substructure M) : S.map (hom.id L M) = S :=
+ext (λ x, ⟨λ ⟨_, h, rfl⟩, h, λ h, ⟨_, h, rfl⟩⟩)
+
+section galois_coinsertion
+
+variables {ι : Type*} {f : M →[L] N} (hf : function.injective f)
+
+include hf
+
+/-- `map f` and `comap f` form a `galois_coinsertion` when `f` is injective. -/
+def gci_map_comap : galois_coinsertion (map f) (comap f) :=
+(gc_map_comap f).to_galois_coinsertion
+  (λ S x, by simp [mem_comap, mem_map, hf.eq_iff])
+
+lemma comap_map_eq_of_injective (S : L.substructure M) : (S.map f).comap f = S :=
+(gci_map_comap hf).u_l_eq _
+
+lemma comap_surjective_of_injective : function.surjective (comap f) :=
+(gci_map_comap hf).u_surjective
+
+lemma map_injective_of_injective : function.injective (map f) :=
+(gci_map_comap hf).l_injective
+
+lemma comap_inf_map_of_injective (S T : L.substructure M) : (S.map f ⊓ T.map f).comap f = S ⊓ T :=
+(gci_map_comap hf).u_inf_l _ _
+
+lemma comap_infi_map_of_injective (S : ι → L.substructure M) :
+  (⨅ i, (S i).map f).comap f = infi S :=
+(gci_map_comap hf).u_infi_l _
+
+lemma comap_sup_map_of_injective (S T : L.substructure M) : (S.map f ⊔ T.map f).comap f = S ⊔ T :=
+(gci_map_comap hf).u_sup_l _ _
+
+lemma comap_supr_map_of_injective (S : ι → L.substructure M) :
+  (⨆ i, (S i).map f).comap f = supr S :=
+(gci_map_comap hf).u_supr_l _
+
+lemma map_le_map_iff_of_injective {S T : L.substructure M} : S.map f ≤ T.map f ↔ S ≤ T :=
+(gci_map_comap hf).l_le_l_iff
+
+lemma map_strict_mono_of_injective : strict_mono (map f) :=
+(gci_map_comap hf).strict_mono_l
+
+end galois_coinsertion
+
+section galois_insertion
+
+variables {ι : Type*} {f : M →[L] N} (hf : function.surjective f)
+
+include hf
+
+/-- `map f` and `comap f` form a `galois_insertion` when `f` is surjective. -/
+def gi_map_comap : galois_insertion (map f) (comap f) :=
+(gc_map_comap f).to_galois_insertion
+  (λ S x h, let ⟨y, hy⟩ := hf x in mem_map.2 ⟨y, by simp [hy, h]⟩)
+
+lemma map_comap_eq_of_surjective (S : L.substructure N) : (S.comap f).map f = S :=
+(gi_map_comap hf).l_u_eq _
+
+lemma map_surjective_of_surjective : function.surjective (map f) :=
+(gi_map_comap hf).l_surjective
+
+lemma comap_injective_of_surjective : function.injective (comap f) :=
+(gi_map_comap hf).u_injective
+
+lemma map_inf_comap_of_surjective (S T : L.substructure N) :
+  (S.comap f ⊓ T.comap f).map f = S ⊓ T :=
+(gi_map_comap hf).l_inf_u _ _
+
+lemma map_infi_comap_of_surjective (S : ι → L.substructure N) :
+  (⨅ i, (S i).comap f).map f = infi S :=
+(gi_map_comap hf).l_infi_u _
+
+lemma map_sup_comap_of_surjective (S T : L.substructure N) :
+  (S.comap f ⊔ T.comap f).map f = S ⊔ T :=
+(gi_map_comap hf).l_sup_u _ _
+
+lemma map_supr_comap_of_surjective (S : ι → L.substructure N) :
+  (⨆ i, (S i).comap f).map f = supr S :=
+(gi_map_comap hf).l_supr_u _
+
+lemma comap_le_comap_iff_of_surjective {S T : L.substructure N} :
+  S.comap f ≤ T.comap f ↔ S ≤ T :=
+(gi_map_comap hf).u_le_u_iff
+
+lemma comap_strict_mono_of_surjective : strict_mono (comap f) :=
+(gi_map_comap hf).strict_mono_u
+
+end galois_insertion
+
+instance induced_Structure {S : L.substructure M} : L.Structure S :=
+{ fun_map := λ n f x, ⟨fun_map f (λ i, x i), S.fun_mem f (λ i, x i) (λ i, (x i).2)⟩,
+  rel_map := λ n r x, rel_map r (λ i, (x i : M)) }
+
+/-- The natural embedding of an `L.substructure` of `M` into `M`. -/
+def subtype (S : L.substructure M) : S ↪[L] M :=
+{ to_fun := coe,
+  inj' := subtype.coe_injective }
+
+@[simp] theorem coe_subtype : ⇑S.subtype = coe := rfl
+
+/-- An induction principle on elements of the type `substructure.closure L s`.
+If `p` holds for `1` and all elements of `s`, and is preserved under multiplication, then `p`
+holds for all elements of the closure of `s`.
+The difference with `substructure.closure_induction` is that this acts on the subtype.
+-/
+@[elab_as_eliminator] lemma closure_induction' (s : set M) {p : closure L s → Prop}
+  (Hs : ∀ x (h : x ∈ s), p ⟨x, subset_closure h⟩)
+  (Hfun : ∀ {n : ℕ} (f : L.functions n), closed_under f (set_of p))
+  (x : closure L s) :
+  p x :=
+subtype.rec_on x $ λ x hx, begin
+  refine exists.elim _ (λ (hx : x ∈ closure L s) (hc : p ⟨x, hx⟩), hc),
+  exact closure_induction hx (λ x hx, ⟨subset_closure hx, Hs x hx⟩) (λ n f x hx,
+    ⟨(closure L s).fun_mem f _ (λ i, classical.some (hx i)),
+    Hfun f (λ i, ⟨x i, classical.some (hx i)⟩) (λ i, classical.some_spec (hx i))⟩),
+end
 
 end substructure
 
