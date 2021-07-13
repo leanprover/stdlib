@@ -730,6 +730,14 @@ lemma to_finset_union {α : Type*} [decidable_eq α] (s t : set α) [fintype (s 
   [fintype s] [fintype t] : (s ∪ t).to_finset = s.to_finset ∪ t.to_finset :=
 by ext; simp
 
+instance fintype_to_finset_diff  {α : Type*} [decidable_eq α] (s t : set α) [fintype s] [fintype t] :
+  fintype (s \ t : set α) :=
+fintype.of_finset (s.to_finset \ t.to_finset) $ by simp
+
+lemma to_finset_diff {α : Type*} [decidable_eq α] (s t : set α) [fintype (s \ t : set α)]
+  [fintype s] [fintype t] : (s \ t).to_finset = s.to_finset \ t.to_finset :=
+by ext; simp
+
 lemma to_finset_ne_eq_erase {α : Type*} [decidable_eq α] [fintype α] (a : α)
   [fintype {x : α | x ≠ a}] : {x : α | x ≠ a}.to_finset = finset.univ.erase a :=
 by ext; simp
