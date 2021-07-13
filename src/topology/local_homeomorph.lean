@@ -923,6 +923,69 @@ begin
     simpa only [h, subset_univ] with mfld_simps using e.image_open_of_open hU}
 end
 
+section curry
+
+open_locale classical
+
+/-- Given a local homeomorphism between `α × β` and ‵γ` and a point `x : α` such that
+`(x, y) ∈ e.source` for some `y`, `e.curry x hx` is a local homeomorphism between
+`β` and `{z | (e⁻¹ z).1 = x}`. Varying `x`, we get a family of local homeomorphisms
+that can be interpreted as a version of `function.curry` for `local_homeomorph`s.
+Note that in contrast with `function.curry` this operation looses information,
+so there is no `local_homeomorph.uncurry`.  -/
+noncomputable def curry (e : local_homeomorph (α × β) γ) (x : α)
+  (hx : set.nonempty {y | (x, y) ∈ e.source}) :
+  local_homeomorph β {z | (e.inv_fun z).1 = x} :=
+{ source := {y | (x, y) ∈ e.source},
+  open_source := continuous_const.prod_mk continuous_id _ e.open_source,
+  target := {z | ↑z ∈ e.target},
+  open_target := continuous_subtype_coe _ e.open_target,
+  to_fun := λ y, if h : (x, y) ∈ e.source
+    then ⟨e.to_fun (x, y), congr_arg prod.fst (e.left_inv h)⟩
+    else ⟨e.to_fun (x, hx.some), congr_arg prod.fst (e.left_inv hx.some_mem)⟩,
+  inv_fun := λ z, (e.inv_fun z).2,
+  continuous_to_fun :=
+    begin
+      rw continuous_on_iff_continuous_restrict,
+      simp only [restrict],
+      conv { congr, funext, rw [dif_pos (show (_, ↑x) ∈ e.source, from x.2)] },
+      apply continuous_subtype_mk,
+      change continuous (restrict (λ y, e.to_fun (x, y))
+        {y : β | (x, y) ∈ e.to_local_equiv.source}),
+      rw ← continuous_on_iff_continuous_restrict,
+      exact e.continuous_to_fun.comp (continuous_const.prod_mk continuous_id).continuous_on
+        (subset.refl _)
+    end,
+  continuous_inv_fun := continuous_snd.comp_continuous_on $
+    e.continuous_inv_fun.comp continuous_subtype_coe.continuous_on $
+    subset.refl _,
+  left_inv := λ y (hy : (x, y) ∈ _), by { simp only [dif_pos hy, subtype.coe_mk, e.left_inv hy] },
+  right_inv :=
+    begin
+      rintros ⟨z, hzx⟩ hz,
+      change _ = x at hzx,
+      simp only [← hzx, mem_set_of_eq, subtype.coe_mk] at hz,
+      rw [dif_pos],
+      { simp only [subtype.coe_mk, ← hzx, prod.mk.eta, subtype.ext],
+        exact e.right_inv hz },
+      { simp only [subtype.coe_mk, ← hzx, prod.mk.eta, subtype.ext],
+        exact e.map_target hz }
+    end,
+  map_source := λ y (hy : (x, y) ∈ _), by { rw [dif_pos hy], exact e.map_source hy },
+  map_target := λ ⟨z, (hzx : _ = x)⟩ hz, by simpa [← hzx] using e.map_target hz }
+
+@[simp] lemma coe_curry_apply (e : local_homeomorph (α × β) γ) (x : α)
+  (hx : set.nonempty {y | (x, y) ∈ e.source}) (y : β) (hy : (x, y) ∈ e.source) :
+  (↑((e.curry x hx).to_fun y) : γ) = e.to_fun (x, y) :=
+subtype.ext.1 $ dif_pos hy
+
+@[simp] lemma curry_symm_apply (e : local_homeomorph (α × β) γ) (x : α)
+  (hx : set.nonempty {y | (x, y) ∈ e.source}) (z : {z : γ | (e.inv_fun z).1 = x}) :
+  (e.curry x hx).inv_fun z = (e.inv_fun z).2 :=
+rfl
+
+end curry
+
 end local_homeomorph
 
 namespace homeomorph
