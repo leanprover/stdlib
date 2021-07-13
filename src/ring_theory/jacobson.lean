@@ -591,7 +591,7 @@ lemma quotient_mk_comp_C_is_integral_of_jacobson {R : Type*} [integral_domain R]
 begin
   unfreezingI {induction n with n IH},
   { refine ring_hom.is_integral_of_surjective _ (function.surjective.comp quotient.mk_surjective _),
-    exact C_surjective_fin_0 },
+    exact C_surjective (fin 0) },
   { rw [← fin_succ_equiv_comp_C_eq_C, ← ring_hom.comp_assoc, ← ring_hom.comp_assoc,
       ← quotient_map_comp_mk le_rfl, ring_hom.comp_assoc (polynomial.C),
       ← quotient_map_comp_mk le_rfl, ring_hom.comp_assoc, ring_hom.comp_assoc,
