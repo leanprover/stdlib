@@ -948,7 +948,8 @@ lemma deriv_within_const_sub (hxs : unique_diff_within_at 𝕜 s x) (c : F) :
 by simp [deriv_within, fderiv_within_const_sub hxs]
 
 lemma deriv_const_sub (c : F) : deriv (λ y, c - f y) x = -deriv f x :=
-by simp only [← deriv_within_univ, deriv_within_const_sub unique_diff_within_at_univ]
+by simp only [← deriv_within_univ,
+  deriv_within_const_sub (unique_diff_within_at_univ : unique_diff_within_at 𝕜 _ _)]
 
 end sub
 
