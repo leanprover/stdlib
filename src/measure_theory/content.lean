@@ -193,7 +193,7 @@ lemma is_mul_left_invariant_inner_content [group G] [topological_group G]
   (U : opens G) : μ.inner_content (U.comap $ continuous_mul_left g) = μ.inner_content U :=
 by convert μ.inner_content_comap (homeomorph.mul_left g) (λ K, h g) U
 
--- @[to_additive] (fails for now)
+@[to_additive]
 lemma inner_content_pos_of_is_mul_left_invariant [t2_space G] [group G] [topological_group G]
   (h3 : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K)
   (K : compacts G) (hK : 0 < μ K) (U : opens G) (hU : (U : set G).nonempty) :
@@ -299,14 +299,13 @@ begin
   apply inner_content_mono'
 end
 
--- @[to_additive] (fails for now)
+@[to_additive]
 lemma outer_measure_pos_of_is_mul_left_invariant [group G] [topological_group G]
   (h3 : ∀ (g : G) {K : compacts G}, μ (K.map _ $ continuous_mul_left g) = μ K)
   (K : compacts G) (hK : 0 < μ K) {U : set G} (h1U : is_open U) (h2U : U.nonempty) :
   0 < μ.outer_measure U :=
 by { convert μ.inner_content_pos_of_is_mul_left_invariant h3 K hK ⟨U, h1U⟩ h2U,
      exact μ.outer_measure_opens ⟨U, h1U⟩ }
-
 
 variables [S : measurable_space G] [borel_space G]
 include S

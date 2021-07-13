@@ -25,17 +25,27 @@ because on some types (e.g., `ℕ`, `ℝ≥0∞`) division and/or subtraction ar
 For instances relating, e.g., `has_continuous_mul` to `has_measurable_mul` see file
 `measure_theory.borel_space`.
 
+## Implementation notes
+
+For the heuristics of `@[to_additive]` it is important that the type with a multiplication
+(or another multiplicative operations) is the first (implicit) argument of all declarations.
+
 ## Tags
 
 measurable function, arithmetic operator
+
+## Todo
+
+* Uniformize the treatment of `pow` and `smul`.
+* Use `@[to_additive]` to send `has_measurable_pow` to `has_measurable_smul₂`.
+* This might require changing the definition (swapping the arguments in the function that is
+  in the conclusion of `measurable_smul`.)
 -/
 
 universes u v
 
 open_locale big_operators
 open measure_theory
-
-variables {α : Type*} [measurable_space α]
 
 /-!
 ### Binary operations: `(+)`, `(*)`, `(-)`, `(/)`
@@ -73,7 +83,7 @@ export has_measurable_mul₂ (measurable_mul)
 
 section mul
 
-variables {M : Type*} [measurable_space M] [has_mul M]
+variables {M α : Type*} [measurable_space M] [has_mul M] [measurable_space α]
 
 @[to_additive, measurability]
 lemma measurable.const_mul [has_measurable_mul M] {f : α → M} (hf : measurable f) (c : M) :
@@ -148,8 +158,8 @@ end⟩
 
 section pow
 
-variables {β γ : Type*} [measurable_space β] [measurable_space γ] [has_pow β γ]
-  [has_measurable_pow β γ]
+variables {β γ α : Type*} [measurable_space β] [measurable_space γ] [has_pow β γ]
+  [has_measurable_pow β γ] [measurable_space α]
 
 @[measurability]
 lemma measurable.pow {f : α → β} {g : α → γ} (hf : measurable f) (hg : measurable g) :
@@ -213,7 +223,7 @@ export has_measurable_div₂ (measurable_div)
 
 section div
 
-variables {G : Type*} [measurable_space G] [has_div G]
+variables {G α : Type*} [measurable_space G] [has_div G] [measurable_space α]
 
 @[to_additive, measurability]
 lemma measurable.const_div [has_measurable_div G] {f : α → G} (hf : measurable f) (c : G) :
@@ -313,7 +323,7 @@ instance has_measurable_div_of_mul_inv (G : Type*) [measurable_space G]
 
 section inv
 
-variables {G : Type*} [has_inv G] [measurable_space G] [has_measurable_inv G]
+variables {G α : Type*} [has_inv G] [measurable_space G] [has_measurable_inv G] [measurable_space α]
 
 @[to_additive, measurability]
 lemma measurable.inv {f : α → G} (hf : measurable f) :
@@ -406,7 +416,8 @@ instance has_measurable_smul₂_of_mul (M : Type*) [monoid M] [measurable_space 
 
 section smul
 
-variables {M β : Type*} [measurable_space M] [measurable_space β] [has_scalar M β]
+variables {M β α : Type*} [measurable_space M] [measurable_space β] [has_scalar M β]
+  [measurable_space α]
 
 @[measurability]
 lemma measurable.smul [has_measurable_smul₂ M β]
@@ -460,8 +471,8 @@ end smul
 
 section mul_action
 
-variables {M β : Type*} [measurable_space M] [measurable_space β] [monoid M] [mul_action M β]
-  [has_measurable_smul M β] {f : α → β} {μ : measure α}
+variables {M β α : Type*} [measurable_space M] [measurable_space β] [monoid M] [mul_action M β]
+  [has_measurable_smul M β] [measurable_space α] {f : α → β} {μ : measure α}
 
 variables {G : Type*} [group G] [measurable_space G] [mul_action G β]
   [has_measurable_smul G β]
@@ -506,9 +517,11 @@ end mul_action
 ### Big operators: `∏` and `∑`
 -/
 
+section monoid
+variables {M α : Type*} [monoid M] [measurable_space M] [has_measurable_mul₂ M] [measurable_space α]
+
 @[to_additive, measurability]
-lemma list.measurable_prod' {M : Type*} [monoid M] [measurable_space M] [has_measurable_mul₂ M]
-  (l : list (α → M)) (hl : ∀ f ∈ l, measurable f) :
+lemma list.measurable_prod' (l : list (α → M)) (hl : ∀ f ∈ l, measurable f) :
   measurable l.prod :=
 begin
   induction l with f l ihl, { exact measurable_one },
@@ -518,9 +531,8 @@ begin
 end
 
 @[to_additive, measurability]
-lemma list.ae_measurable_prod' {M : Type*} [monoid M] [measurable_space M] [has_measurable_mul₂ M]
-  {μ : measure α} (l : list (α → M)) (hl : ∀ f ∈ l, ae_measurable f μ) :
-  ae_measurable l.prod μ :=
+lemma list.ae_measurable_prod' {μ : measure α} (l : list (α → M))
+  (hl : ∀ f ∈ l, ae_measurable f μ) : ae_measurable l.prod μ :=
 begin
   induction l with f l ihl, { exact ae_measurable_one },
   rw [list.forall_mem_cons] at hl,
@@ -529,67 +541,65 @@ begin
 end
 
 @[to_additive, measurability]
-lemma list.measurable_prod {M : Type*} [monoid M] [measurable_space M] [has_measurable_mul₂ M]
-  (l : list (α → M)) (hl : ∀ f ∈ l, measurable f) :
+lemma list.measurable_prod (l : list (α → M)) (hl : ∀ f ∈ l, measurable f) :
   measurable (λ x, (l.map (λ f : α → M, f x)).prod) :=
 by simpa only [← pi.list_prod_apply] using l.measurable_prod' hl
 
 @[to_additive, measurability]
-lemma list.ae_measurable_prod {M : Type*} [monoid M] [measurable_space M] [has_measurable_mul₂ M]
-  {μ : measure α} (l : list (α → M)) (hl : ∀ f ∈ l, ae_measurable f μ) :
+lemma list.ae_measurable_prod {μ : measure α} (l : list (α → M)) (hl : ∀ f ∈ l, ae_measurable f μ) :
   ae_measurable (λ x, (l.map (λ f : α → M, f x)).prod) μ :=
 by simpa only [← pi.list_prod_apply] using l.ae_measurable_prod' hl
 
+end monoid
+
+section comm_monoid
+variables {M ι α : Type*} [comm_monoid M] [measurable_space M] [has_measurable_mul₂ M]
+  [measurable_space α]
+
 @[to_additive, measurability]
-lemma multiset.measurable_prod' {M : Type*} [comm_monoid M] [measurable_space M]
-  [has_measurable_mul₂ M] (l : multiset (α → M)) (hl : ∀ f ∈ l, measurable f) :
+lemma multiset.measurable_prod' (l : multiset (α → M)) (hl : ∀ f ∈ l, measurable f) :
   measurable l.prod :=
 by { rcases l with ⟨l⟩, simpa using l.measurable_prod' (by simpa using hl) }
 
 @[to_additive, measurability]
-lemma multiset.ae_measurable_prod' {M : Type*} [comm_monoid M] [measurable_space M]
-  [has_measurable_mul₂ M] {μ : measure α} (l : multiset (α → M)) (hl : ∀ f ∈ l, ae_measurable f μ) :
-  ae_measurable l.prod μ :=
+lemma multiset.ae_measurable_prod' {μ : measure α} (l : multiset (α → M))
+  (hl : ∀ f ∈ l, ae_measurable f μ) : ae_measurable l.prod μ :=
 by { rcases l with ⟨l⟩, simpa using l.ae_measurable_prod' (by simpa using hl) }
 
 @[to_additive, measurability]
-lemma multiset.measurable_prod {M : Type*} [comm_monoid M] [measurable_space M]
-  [has_measurable_mul₂ M] (s : multiset (α → M)) (hs : ∀ f ∈ s, measurable f) :
+lemma multiset.measurable_prod (s : multiset (α → M)) (hs : ∀ f ∈ s, measurable f) :
   measurable (λ x, (s.map (λ f : α → M, f x)).prod) :=
 by simpa only [← pi.multiset_prod_apply] using s.measurable_prod' hs
 
 @[to_additive, measurability]
-lemma multiset.ae_measurable_prod {M : Type*} [comm_monoid M] [measurable_space M]
-  [has_measurable_mul₂ M] {μ : measure α} (s : multiset (α → M)) (hs : ∀ f ∈ s, ae_measurable f μ) :
-  ae_measurable (λ x, (s.map (λ f : α → M, f x)).prod) μ :=
+lemma multiset.ae_measurable_prod {μ : measure α} (s : multiset (α → M))
+  (hs : ∀ f ∈ s, ae_measurable f μ) : ae_measurable (λ x, (s.map (λ f : α → M, f x)).prod) μ :=
 by simpa only [← pi.multiset_prod_apply] using s.ae_measurable_prod' hs
 
 @[to_additive, measurability]
-lemma finset.measurable_prod' {ι M : Type*} [comm_monoid M] [measurable_space M]
-  [has_measurable_mul₂ M] {f : ι → α → M} (s : finset ι) (hf : ∀i ∈ s, measurable (f i)) :
+lemma finset.measurable_prod' {f : ι → α → M} (s : finset ι) (hf : ∀i ∈ s, measurable (f i)) :
   measurable (∏ i in s, f i) :=
 finset.prod_induction _ _ (λ _ _, measurable.mul) (@measurable_one M _ _ _ _) hf
 
 @[to_additive, measurability]
-lemma finset.measurable_prod {ι M : Type*} [comm_monoid M] [measurable_space M]
-  [has_measurable_mul₂ M] {f : ι → α → M} (s : finset ι) (hf : ∀i ∈ s, measurable (f i)) :
+lemma finset.measurable_prod {f : ι → α → M} (s : finset ι) (hf : ∀i ∈ s, measurable (f i)) :
   measurable (λ a, ∏ i in s, f i a) :=
 by simpa only [← finset.prod_apply] using s.measurable_prod' hf
 
 @[to_additive, measurability]
-lemma finset.ae_measurable_prod' {ι M : Type*} [comm_monoid M] [measurable_space M]
-  [has_measurable_mul₂ M] {μ : measure α} {f : ι → α → M} (s : finset ι)
+lemma finset.ae_measurable_prod' {μ : measure α} {f : ι → α → M} (s : finset ι)
   (hf : ∀i ∈ s, ae_measurable (f i) μ) :
   ae_measurable (∏ i in s, f i) μ :=
 multiset.ae_measurable_prod' _ $
   λ g hg, let ⟨i, hi, hg⟩ := multiset.mem_map.1 hg in (hg ▸ hf _ hi)
 
 @[to_additive, measurability]
-lemma finset.ae_measurable_prod {ι M : Type*} [comm_monoid M] [measurable_space M]
-  [has_measurable_mul₂ M] {f : ι → α → M} {μ : measure α} (s : finset ι)
+lemma finset.ae_measurable_prod {f : ι → α → M} {μ : measure α} (s : finset ι)
   (hf : ∀i ∈ s, ae_measurable (f i) μ) :
   ae_measurable (λ a, ∏ i in s, f i a) μ :=
 by simpa only [← finset.prod_apply] using s.ae_measurable_prod' hf
+
+end comm_monoid
 
 attribute [measurability] list.measurable_sum' list.ae_measurable_sum' list.measurable_sum
   list.ae_measurable_sum multiset.measurable_sum' multiset.ae_measurable_sum'

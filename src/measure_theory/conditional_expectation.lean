@@ -43,14 +43,14 @@ lemma add [has_add β] [has_measurable_add₂ β] (hf : ae_measurable' m f μ)
 begin
   rcases hf with ⟨f', h_f'_meas, hff'⟩,
   rcases hg with ⟨g', h_g'_meas, hgg'⟩,
-  exact ⟨f' + g', @measurable.add α m _ _ _ _ f' g' h_f'_meas h_g'_meas, hff'.add hgg'⟩,
+  exact ⟨f' + g', @measurable.add _ _ _ _ m _ f' g' h_f'_meas h_g'_meas, hff'.add hgg'⟩,
 end
 
 lemma const_smul [has_scalar 𝕜 β] [has_measurable_smul 𝕜 β] (c : 𝕜) (hf : ae_measurable' m f μ) :
   ae_measurable' m (c • f) μ :=
 begin
   rcases hf with ⟨f', h_f'_meas, hff'⟩,
-  refine ⟨c • f', @measurable.const_smul α m _ _ _ _ _ _ f' h_f'_meas c, _⟩,
+  refine ⟨c • f', @measurable.const_smul _ _ _ _ _ _ m _ f' h_f'_meas c, _⟩,
   exact eventually_eq.fun_comp hff' (λ x, c • x),
 end
 
@@ -205,7 +205,7 @@ begin
   refine eventually_eq.trans _ (@Lp.coe_fn_add _ _ m _ _ _ _ _ _ _ _).symm,
   refine ae_eq_trim_of_measurable hm _ _ _,
   { exact @Lp.measurable _ _ m _ _ _ _ _ _ _, },
-  { exact @measurable.add _ m _ _ _ _ _ _ (@Lp.measurable _ _ m _ _ _ _ _ _ _)
+  { exact @measurable.add _ _ _ _ m _ _ _ (@Lp.measurable _ _ m _ _ _ _ _ _ _)
       (@Lp.measurable _ _ m _ _ _ _ _ _ _), },
   refine (Lp_meas_to_Lp_trim_ae_eq hm _).trans _,
   refine eventually_eq.trans _
@@ -223,7 +223,7 @@ begin
   refine eventually_eq.trans _ (@Lp.coe_fn_smul _ _ m _ _ _ _ _ _ _ _ _ _ _ _ _).symm,
   refine ae_eq_trim_of_measurable hm _ _ _,
   { exact @Lp.measurable _ _ m _ _ _ _ _ _ _, },
-  { exact @measurable.const_smul _ m _ _ _ _ _ _ _ (@Lp.measurable _ _ m _ _ _ _ _ _ _) c, },
+  { exact @measurable.const_smul _ _ _ _ _ _ m _ _ (@Lp.measurable _ _ m _ _ _ _ _ _ _) c, },
   refine (Lp_meas_to_Lp_trim_ae_eq hm _).trans _,
   refine (Lp.coe_fn_smul c _).trans _,
   refine (Lp_meas_to_Lp_trim_ae_eq hm f).mono (λ x hx, _),

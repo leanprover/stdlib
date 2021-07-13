@@ -155,7 +155,7 @@ section group
 variables [group G] [topological_group G]
 
 /-! Properties of regular left invariant measures -/
-@[to_additive measure_theory.measure.is_add_left_invariant.null_iff_empty]
+@[to_additive]
 lemma is_mul_left_invariant.null_iff_empty [regular μ] (h2μ : is_mul_left_invariant μ)
   (h3μ : μ ≠ 0) {s : set G} (hs : is_open s) : μ s = 0 ↔ s = ∅ :=
 begin
@@ -177,7 +177,7 @@ begin
     rwa [inv_mul_cancel_right] }
 end
 
-@[to_additive measure_theory.measure.is_add_left_invariant.null_iff]
+@[to_additive]
 lemma is_mul_left_invariant.null_iff [regular μ] (h2μ : is_mul_left_invariant μ)
   {s : set G} (hs : is_open s) : μ s = 0 ↔ s = ∅ ∨ μ = 0 :=
 begin
@@ -186,7 +186,7 @@ begin
   exact h2μ.null_iff_empty h3μ hs,
 end
 
-@[to_additive measure_theory.measure.is_add_left_invariant.measure_ne_zero_iff_nonempty]
+@[to_additive]
 lemma is_mul_left_invariant.measure_ne_zero_iff_nonempty [regular μ]
   (h2μ : is_mul_left_invariant μ) (h3μ : μ ≠ 0) {s : set G} (hs : is_open s) :
   μ s ≠ 0 ↔ s.nonempty :=
@@ -194,7 +194,7 @@ by simp_rw [← ne_empty_iff_nonempty, ne.def, h2μ.null_iff_empty h3μ hs]
 
 /-- For nonzero regular left invariant measures, the integral of a continuous nonnegative function
   `f` is 0 iff `f` is 0. -/
--- @[to_additive] (fails for now)
+@[to_additive]
 lemma lintegral_eq_zero_of_is_mul_left_invariant [regular μ]
   (h2μ : is_mul_left_invariant μ) (h3μ : μ ≠ 0) {f : G → ℝ≥0∞} (hf : continuous f) :
   ∫⁻ x, f x ∂μ = 0 ↔ f = 0 :=

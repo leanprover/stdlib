@@ -42,11 +42,12 @@ namespace measure_theory
 open measure
 
 variables {G : Type*} [topological_space G] [measurable_space G] [second_countable_topology G]
-  [borel_space G] [group G] [topological_group G]
+variables [borel_space G] [group G] [topological_group G]
 variables {μ ν : measure G} [sigma_finite ν] [sigma_finite μ]
 
 /-- This condition is part of the definition of a measurable group in [Halmos, §59].
   There, the map in this lemma is called `S`. -/
+@[to_additive map_prod_sum_eq]
 lemma map_prod_mul_eq (hν : is_mul_left_invariant ν) :
   map (λ z : G × G, (z.1, z.1 * z.2)) (μ.prod ν) = μ.prod ν :=
 begin
@@ -60,6 +61,7 @@ end
 
 /-- The function we are mapping along is `SR` in [Halmos, §59],
   where `S` is the map in `map_prod_mul_eq` and `R` is `prod.swap`. -/
+@[to_additive map_prod_add_eq_swap]
 lemma map_prod_mul_eq_swap (hμ : is_mul_left_invariant μ) :
   map (λ z : G × G, (z.2, z.2 * z.1)) (μ.prod ν) = ν.prod μ :=
 begin
@@ -70,6 +72,7 @@ end
 
 /-- The function we are mapping along is `S⁻¹` in [Halmos, §59],
   where `S` is the map in `map_prod_mul_eq`. -/
+@[to_additive map_prod_neg_add_eq]
 lemma map_prod_inv_mul_eq (hν : is_mul_left_invariant ν) :
   map (λ z : G × G, (z.1, z.1⁻¹ * z.2)) (μ.prod ν) = μ.prod ν :=
 (homeomorph.shear_mul_right G).to_measurable_equiv.map_apply_eq_iff_map_symm_apply_eq.mp $
@@ -77,6 +80,7 @@ lemma map_prod_inv_mul_eq (hν : is_mul_left_invariant ν) :
 
 /-- The function we are mapping along is `S⁻¹R` in [Halmos, §59],
   where `S` is the map in `map_prod_mul_eq` and `R` is `prod.swap`. -/
+@[to_additive map_prod_neg_add_eq_swap]
 lemma map_prod_inv_mul_eq_swap (hμ : is_mul_left_invariant μ) :
   map (λ z : G × G, (z.2, z.2⁻¹ * z.1)) (μ.prod ν) = ν.prod μ :=
 begin
@@ -88,6 +92,7 @@ end
 
 /-- The function we are mapping along is `S⁻¹RSR` in [Halmos, §59],
   where `S` is the map in `map_prod_mul_eq` and `R` is `prod.swap`. -/
+@[to_additive map_prod_add_neg_eq]
 lemma map_prod_mul_inv_eq (hμ : is_mul_left_invariant μ) (hν : is_mul_left_invariant ν) :
   map (λ z : G × G, (z.2 * z.1, z.1⁻¹)) (μ.prod ν) = μ.prod ν :=
 begin
@@ -100,6 +105,7 @@ begin
     map_prod_inv_mul_eq_swap hν]
 end
 
+@[to_additive]
 lemma measure_null_of_measure_inv_null (hμ : is_mul_left_invariant μ)
   {E : set G} (hE : measurable_set E) (h2E : μ ((λ x, x⁻¹) ⁻¹' E) = 0) : μ E = 0 :=
 begin
@@ -112,6 +118,7 @@ begin
   convert lintegral_zero, ext1 x, refine measure_mono_null (inter_subset_right _ _) h2E
 end
 
+@[to_additive]
 lemma measure_inv_null (hμ : is_mul_left_invariant μ) {E : set G} (hE : measurable_set E) :
   μ ((λ x, x⁻¹) ⁻¹' E) = 0 ↔ μ E = 0 :=
 begin
@@ -122,6 +129,7 @@ begin
   exact set.inv_inv
 end
 
+@[to_additive]
 lemma measurable_measure_mul_right {E : set G} (hE : measurable_set E) :
   measurable (λ x, μ ((λ y, y * x) ⁻¹' E)) :=
 begin
@@ -132,6 +140,7 @@ begin
   exact measurable_const.prod_mk (measurable_fst.mul measurable_snd) (measurable_set.univ.prod hE)
 end
 
+@[to_additive]
 lemma lintegral_lintegral_mul_inv (hμ : is_mul_left_invariant μ) (hν : is_mul_left_invariant ν)
   (f : G → G → ℝ≥0∞) (hf : ae_measurable (uncurry f) (μ.prod ν)) :
   ∫⁻ x, ∫⁻ y, f (y * x) x⁻¹ ∂ν ∂μ = ∫⁻ x, ∫⁻ y, f x y ∂ν ∂μ :=
@@ -146,6 +155,7 @@ begin
   exact lintegral_map' (hf.mono' (map_prod_mul_inv_eq hμ hν).absolutely_continuous) h,
 end
 
+@[to_additive]
 lemma measure_mul_right_null (hμ : is_mul_left_invariant μ) {E : set G} (hE : measurable_set E)
   (y : G) : μ ((λ x, x * y) ⁻¹' E) = 0 ↔ μ E = 0 :=
 begin
@@ -154,6 +164,7 @@ begin
   convert iff.rfl using 3, ext x, simp,
 end
 
+@[to_additive]
 lemma measure_mul_right_ne_zero (hμ : is_mul_left_invariant μ) {E : set G} (hE : measurable_set E)
   (h2E : μ E ≠ 0) (y : G) : μ ((λ x, x * y) ⁻¹' E) ≠ 0 :=
 (not_iff_not_of_iff (measure_mul_right_null hμ hE y)).mpr h2E
@@ -167,6 +178,7 @@ lemma measure_mul_right_ne_zero (hμ : is_mul_left_invariant μ) {E : set G} (hE
   inequality. For this reason, we use a compact `E` instead of a measurable `E` as in [Halmos], and
   additionally assume that `ν` is a regular measure (we only need that it is finite on compact
   sets). -/
+@[to_additive]
 lemma measure_lintegral_div_measure [t2_space G] (hμ : is_mul_left_invariant μ)
   (hν : is_mul_left_invariant ν) [regular ν] {E : set G} (hE : is_compact E) (h2E : ν E ≠ 0)
   (f : G → ℝ≥0∞) (hf : measurable f) :
@@ -186,7 +198,7 @@ begin
   λ x, measurable_const.indicator (measurable_mul_const _ Em),
   have : ∀ x y, E.indicator (λ (z : G), (1 : ℝ≥0∞)) (y * x) =
     ((λ z, z * x) ⁻¹' E).indicator (λ (b : G), 1) y,
-  { intros x y, symmetry, convert indicator_comp_right (λ y, y * x), ext1 z, simp },
+  { intros x y, symmetry, convert indicator_comp_right (λ y, y * x), ext1 z, refl },
   have h3E : ∀ y, ν ((λ x, x * y) ⁻¹' E) ≠ ∞ :=
   λ y, ennreal.lt_top_iff_ne_top.mp (regular.lt_top_of_is_compact $
     (homeomorph.mul_right _).compact_preimage.mpr hE),
@@ -198,6 +210,7 @@ end
 /-- This is roughly the uniqueness (up to a scalar) of left invariant Borel measures on a second
   countable locally compact group. The uniqueness of Haar measure is proven from this in
   `measure_theory.measure.haar_measure_unique` -/
+@[to_additive]
 lemma measure_mul_measure_eq [t2_space G] (hμ : is_mul_left_invariant μ)
   (hν : is_mul_left_invariant ν) [regular ν] {E F : set G}
   (hE : is_compact E) (hF : measurable_set F) (h2E : ν E ≠ 0) : μ E * ν F = ν E * μ F :=
