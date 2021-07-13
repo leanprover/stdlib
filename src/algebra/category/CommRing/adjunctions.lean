@@ -5,6 +5,7 @@ Authors: Scott Morrison, Johannes Hölzl
 -/
 import algebra.category.CommRing.basic
 import data.mv_polynomial
+import category_theory.concrete_category.representable
 
 /-!
 Multivariable polynomials on a type is the left adjoint of the
@@ -51,5 +52,8 @@ adjunction.mk_of_hom_equiv
     λ _ _ Y f g, ring_hom.ext $ λ x, eval₂_cast_comp f (int.cast_ring_hom Y) g x }
 
 instance : is_right_adjoint (forget CommRing.{u}) := ⟨_, adj⟩
+
+instance : representably_concrete CommRing.{u} :=
+{ out := corepresentable_of_right_adjoint _ _ }
 
 end CommRing

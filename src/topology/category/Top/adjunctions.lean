@@ -5,6 +5,7 @@ Authors: Patrick Massot, Mario Carneiro
 -/
 import topology.category.Top.basic
 import category_theory.adjunction.basic
+import category_theory.concrete_category.representable
 
 /-!
 # Adjunctions regarding the category of topological spaces
@@ -38,5 +39,8 @@ adjunction.mk_of_unit_counit
   counit := { app := λ X, id } }
 
 instance : is_right_adjoint (forget Top.{u}) := ⟨_, adj₁⟩
+
+instance : representably_concrete Top.{u} :=
+{ out := corepresentable_of_right_adjoint _ _ }
 
 end Top

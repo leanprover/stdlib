@@ -6,6 +6,7 @@ Authors: Reid Barton, Patrick Massot, Scott Morrison
 import category_theory.monad.limits
 import topology.uniform_space.completion
 import topology.category.Top.basic
+import category_theory.concrete_category.representable
 
 /-!
 # The category of uniform spaces
@@ -57,6 +58,13 @@ instance has_forget_to_Top : has_forget₂ UniformSpace.{u} Top.{u} :=
   { obj := λ X, Top.of X,
     map := λ X Y f, { to_fun := f,
                       continuous_to_fun := uniform_continuous.continuous f.property }, }, }
+
+instance : representably_concrete UniformSpace.{u} :=
+{ out := functor.corepresentable_of_nat_iso _ (opposite.op (of punit))
+          (nat_iso.of_components
+            (λ X, { hom := λ (f : _ ⟶ _), f ⟨⟩,
+                    inv := λ x, ⟨λ _, x, uniform_continuous_const⟩})
+            (λ X Y f, rfl)) }
 
 end UniformSpace
 

@@ -5,6 +5,7 @@ Authors: Scott Morrison, Johannes Hölzl
 -/
 import algebra.category.Group.basic
 import group_theory.free_abelian_group
+import category_theory.concrete_category.representable
 
 /-!
 # Adjunctions regarding the category of (abelian) groups
@@ -76,6 +77,9 @@ example {G H : AddCommGroup.{u}} (f : G ⟶ H) [mono f] : function.injective f :
 
 instance : is_right_adjoint (forget AddCommGroup.{u}) := ⟨_, adj⟩
 
+instance : representably_concrete AddCommGroup.{u} :=
+{ out := corepresentable_of_right_adjoint _ _ }
+
 end AddCommGroup
 
 namespace Group
@@ -96,6 +100,9 @@ adjunction.mk_of_hom_equiv
   hom_equiv_naturality_left_symm' := λ X Y G f g, begin ext1, refl end  }
 
 instance : is_right_adjoint (forget Group.{u}) := ⟨_, adj⟩
+
+instance : representably_concrete Group.{u} :=
+{ out := corepresentable_of_right_adjoint _ _ }
 
 end Group
 

@@ -8,6 +8,7 @@ import algebra.algebra.subalgebra
 import algebra.free_algebra
 import algebra.category.CommRing.basic
 import algebra.category.Module.basic
+import category_theory.concrete_category.representable
 
 /-!
 # Category instance for algebras over a commutative ring
@@ -107,6 +108,9 @@ adjunction.mk_of_hom_equiv
       free_algebra.lift_symm_apply, types_comp_apply] } }
 
 instance : is_right_adjoint (forget (Algebra.{u} R)) := ⟨_, adj R⟩
+
+instance : representably_concrete (Algebra.{u} R) :=
+{ out := corepresentable_of_right_adjoint _ _ }
 
 end Algebra
 

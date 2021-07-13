@@ -67,10 +67,10 @@ def cech_nerve : arrow C ⥤ simplicial_object C :=
 { obj := λ f, f.cech_nerve,
   map := λ f g F,
   { app := λ n, wide_pullback.lift (wide_pullback.base _ ≫ F.right)
-      (λ i, wide_pullback.π _ i ≫ F.left) (λ i, by simp [← category.assoc]) },
-  -- tidy needs a bit of help here...
-  map_id' := by { intros i, ext, tidy },
-  map_comp' := begin
+      (λ i, wide_pullback.π _ i ≫ F.left) (λ i, by simp),
+    naturality' := λ n m i, by ext; dsimp; simp },
+  map_comp' :=
+  begin
     intros f g h F G,
     ext,
     all_goals {
